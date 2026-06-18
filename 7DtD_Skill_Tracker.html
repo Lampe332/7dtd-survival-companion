@@ -81,7 +81,13 @@ input[type=number]{font-family:var(--mono);font-weight:700}
 .refrow{font-size:13.5px;padding:5px 0;color:var(--muted)}.refrow b{color:var(--text);font-weight:600}
 .foot{color:var(--dim);font-size:12px;margin-top:26px;text-align:center;line-height:1.8}
 .foot b{color:var(--muted)}
-.wrap { display: none; }
+.launch{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.launch.hide{display:none}.launchbox{width:min(460px,100%);text-align:center;padding:34px}.launchbox h1{font-size:25px;margin-bottom:4px}
+.launchbox .btn{width:100%;margin-top:18px;padding:15px;font-size:17px;background:var(--acc);color:#0c0b09;border:none;font-weight:800}
+.launchstatus{min-height:22px;margin-top:12px;font-size:13px;color:var(--muted)}
+.imported{border-color:rgba(90,166,255,.45);background:rgba(90,166,255,.08)}
+.skillchips{display:flex;flex-wrap:wrap;gap:6px}.skillchip{font-size:12px;padding:5px 9px;border-radius:999px;background:var(--card2);border:1px solid var(--line2)}
+.skillchip b{color:var(--next)}.poi-preview{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-top:10px}
 textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid var(--line2);border-radius:12px;color:var(--text);font-family:inherit;font-size:14px;padding:11px;resize:vertical}
 .wstep{font-size:12.5px;color:var(--muted);margin-bottom:8px;line-height:1.6}
 .filebtn{position:relative;overflow:hidden;display:inline-block}
@@ -110,6 +116,14 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 </style>
 </head>
 <body>
+<div class="launch" id="launcher">
+  <div class="card launchbox">
+    <h1>🔨 Survival Companion</h1>
+    <div class="sub">Rust-Scanner · echte Saves · lokale App</div>
+    <button class="btn" id="scanbtn">Welten und Charaktere scannen</button>
+    <div class="launchstatus" id="launchstatus">Keine BAT und kein Python nötig.</div>
+  </div>
+</div>
 <div class="wrap">
 <div class="top">
   <div class="logo">🔨 Survival Companion</div>
@@ -128,7 +142,6 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 <div id="ref" class="sec"></div>
 <div class="foot">Alles <b>lokal gespeichert</b> · <b>offline</b> · keine Cloud · ⇅ = Export/Import deines Fortschritts</div>
 </div>
-<script src="7dtd_data.js"></script>
 <script>
 function lg(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function ls(k,v){try{localStorage.setItem(k,v);}catch(e){}}
@@ -146,7 +159,33 @@ var BUILDS={
 "stealth":{name:"🗡️ Assassine (Agility)",sub:"Vorlage · Stealth + Pistole",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Gunslinger R1-3","",0],["→ Agility 5","",0],["Hidden Strike R1","",0],["Parkour R1","",0]]],["🛡️","Stealth","Lvl 13-30","p1",[["→ Agility 7","",0],["Gunslinger R4","",0],["Hidden Strike R2-3","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Agility 10","",0],["Gunslinger R5","",1],["Parkour R5","",1]]],["❤️","HP","Lvl 49+","p3",[["Fortitude Mastery","",1],["Pain Tolerance R3-5","",1]]],["🧰","Komfort","ab 70","p4",[["Light Armor","",0],["LOTL/Chef","",0]]]]}
 };
 var EXTRAS=[["Lucky Looter","+25% Loot, +80% schneller looten","General",0],["Salvage Operations","Geld + Stahl beim Schrotten","Perception",0],["Treasure Hunter","vergrabene Schätze","Perception",0],["From The Shadows","leiser + schneller schleichen","Agility",0],["Better Barter","bessere Trader-Preise","Intellect",0],["Advanced Engineering","schneller craften","Intellect",0],["Physician","Meds heilen mehr","Intellect",0],["The Huntsman","+100% Fleisch/Leder","Fortitude",0],["Iron Gut","−25% Food/Water","Fortitude",1],["Junk Miner","+100% Junk-Rohstoffe","Strength",0],["Grand Slam","50% Ragdoll (Sprint)","Strength",1],["Hard Target R2-5","−25% NUR beim Laufen (Funnel schwach)","Agility",1]];
-var MAGS=[["Sledge Saga",7,"★ Briefkästen! Completion = Stamina-Fix + 2× Kopf-XP",1],["Medical Journal",75,"L30 Herbal, L50 First Aid Kit, L60 Antibiotika",1],["Get Hammered",75,"L11 Iron-, L36 Steel-Sledge",1],["Forge Ahead",75,"L4 Forge, L10 Workbench, L16 Dew Collector",1],["Home Cooking Weekly",100,"bessere Rezepte je Stufe",1],["Tools Digest",100,"L11 Iron-, L26 Steel-Tools",0],["Southern Farming",20,"Crops freischalten",0],["Armored Up",100,"L11 alle Outfits",0]];
+var EXTRA_PHASE={"The Huntsman":1,"Iron Gut":1,"Hard Target R2-5":1,"From The Shadows":2,"Grand Slam":2,"Physician":3,"Lucky Looter":4,"Salvage Operations":4,"Treasure Hunter":4,"Better Barter":4,"Advanced Engineering":4,"Junk Miner":4};
+var MAGS=[
+["Sledge Saga",7,"Briefkästen · Completion = Stamina-Fix",1,"perksledgesaga","book"],
+["Tools Digest",100,"Harvesting Tools",0,"craftingharvestingtools"],
+["Handy Land",50,"Repair Tools",0,"craftingrepairtools"],
+["Scrapping 4 Fun",75,"Salvage Tools",0,"craftingsalvagetools"],
+["Furious Fists",75,"Knuckles",0,"craftingknuckles"],
+["Knife Guy",75,"Blades",0,"craftingblades"],
+["Big Hitters",75,"Clubs",0,"craftingclubs"],
+["Get Hammered",75,"Sledgehammers",1,"craftingsledgehammers"],
+["Bow Hunters",75,"Bows",0,"craftingbows"],
+["Sharp Sticks",75,"Spears",0,"craftingspears"],
+["Handgun Magazine",100,"Handguns",0,"craftinghandguns"],
+["Shotgun Weekly",100,"Shotguns",0,"craftingshotguns"],
+["Rifle World",100,"Rifles",0,"craftingrifles"],
+["Tactical Warfare",100,"Machine Guns",0,"craftingmachineguns"],
+["Explosive Magazine",100,"Explosives",0,"craftingexplosives"],
+["Tech Planet",100,"Robotics",0,"craftingrobotics"],
+["Armored Up",100,"Armor",0,"craftingarmor"],
+["Medical Journal",75,"Medical",1,"craftingmedical"],
+["Home Cooking Weekly",100,"Food",1,"craftingfood"],
+["Southern Farming",20,"Seeds",0,"craftingseeds"],
+["Wiring 101",100,"Electrician",0,"craftingelectrician"],
+["Electrical Traps",75,"Traps",0,"craftingtraps"],
+["Forge Ahead",75,"Workstations",1,"craftingworkstations"],
+["Vehicle Adventures",100,"Vehicles",0,"craftingvehicles"]
+];
 var READY=[["Base voll repariert (Stahl-Lane)","",2],["Sledge auf voller Durability + 1 Ersatz-Sledge","",2],["3+ Repair Kits dabei","",1],["10+ First Aid Bandages / Kits","",2],["Honey + Vitamins (Infektion)","",1],["Essen + Wasser >70% + Vorrat","",1],["Grandpa's Moonshine (Opener) + Mega Crush (Panik)","",1],["Forge AUS (Screamer)","",1],["Dach gegen Vultures","",1],["Escape-Route / Bail-Luke frei","",2]];
 var REF=[
 ["⚙️ Deine Settings",[["Schwierigkeit","Insane — du 50% / Gegner 250%"],["Headshot-Mult","125% (Sledge-Köpfe!)"],["XP","125%"],["Zombie-Speed","Nightmare (Tag+Nacht)"],["Feral Sense","Night"],["Block-Damage","Gegner 85% / Blutmond 65%"],["Blood Moon","alle 10 Tage · 64 Gegner"],["Skillpunkte","2 pro Level (Skill Gain Amount=2)"]]],
@@ -163,10 +202,10 @@ var SANDORDER=["RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","Heads
 var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XPOnly","Injured","PermaDeath"]},"DropOnDeath":{"d":["Nichts","Alles","Gürtel","Rucksack","Alles löschen"]},"DropOnQuit":{"d":["Nichts","Alles","Gürtel","Rucksack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Aus","Tag","Nacht","Alle"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morgen","Abend"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unbegrenzt"]}};
 var TABS=[["world","🌍 Welt"],["map","🗺️ Map"],["d3","🧊 3D"],["dash","🏠 Dashboard"],["build","🔨 Build"],["horde","🩸 Horde"],["loot","📦 Loot"],["mags","📕 Magazine"],["ref","📋 Referenz"]];
 var S=JSON.parse(lg("7dtd-companion")||"null")||{tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,col:{},world:null};
-var W={tree:null,curSave:null,maps:{},mapImg:null,view:null,sel:null};
+var W={tree:null,curSave:null,maps:{},mapImg:null,roadImg:null,waterImg:null,view:null,sel:null,mapKey:null,scanned:false};
 var W3={dead:true,gl:null,raf:0};
 if(!S.mapFilter)S.mapFilter={"-1":1,"0":1,"1":1,"2":1,"3":1,"4":1,"5":1};
-function save(){ls("7dtd-companion",JSON.stringify(S));}
+function save(){var p=JSON.parse(JSON.stringify(S));delete p.map;delete p.playerProgression;ls("7dtd-companion",JSON.stringify(p));}
 function bstate(){if(!S.builds[S.cur])S.builds[S.cur]={chk:{},ext:[]};return S.builds[S.cur];}
 // ---- top ----
 function renderTop(){document.getElementById("dayv").textContent=S.day;}
@@ -217,15 +256,21 @@ function rBuild(){var st=bstate();
  var ex='<div class="ph'+exCol+'" style="--pa:var(--px)"><div class="phh" data-col="ex"><span>🎁</span><span class="ttl">Optionale Perks <span style="font-size:11.5px;color:var(--dim);font-weight:400">· antippen zum Hinzufügen</span></span><span class="chev">▼</span></div><div class="body chips">';
  EXTRAS.forEach(function(e,i){var on=st.ext.indexOf(e[0])>=0;ex+='<div class="chip'+(on?" act":"")+'" data-ex="'+i+'"><div class="cn">'+(e[3]?'⚠ ':'')+e[0]+' '+(on?'✓':'＋')+'</div><div class="ce">'+e[1]+' · '+e[2]+'</div></div>';});
  ex+='</div></div>';
- var html='<div class="ctrls">'+sel+'<span style="font-size:13px;color:var(--muted)">'+pct+'% fertig</span></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>'+ex;
+ var imported="";
+ if(S.importedPlayer&&S.playerProgression){
+  var perks=Object.keys(S.playerProgression).filter(function(k){return /^perk/.test(k)&&PERK_NAMES[k]&&S.playerProgression[k]>0;});
+  imported='<div class="card imported" style="margin-bottom:12px"><h3>🎮 Importiert: '+esc(S.importedPlayer.name)+' · Level '+S.importedPlayer.level+'</h3><div class="skillchips">'+
+   perks.map(function(k){return '<span class="skillchip">'+esc(PERK_NAMES[k])+' <b>R'+S.playerProgression[k]+'</b></span>';}).join("")+
+   '</div><div class="sub">Build automatisch erkannt: <b>'+esc(BUILDS[S.cur].name)+'</b>. Abgehakte Schritte stammen aus dem echten Player-Save.</div></div>';
+ }
+ var html=imported+'<div class="ctrls">'+sel+'<span style="font-size:13px;color:var(--muted)">'+pct+'% fertig</span></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>'+ex;
  var gi=0,def=BUILDS[S.cur].done||0;
  BUILDS[S.cur].phases.forEach(function(ph,pi){var body="",d=0,t=ph[4].length;
   ph[4].forEach(function(it){gi++;var id="c"+gi;var on=(id in st.chk)?st.chk[id]:(gi<=def);if(on)d++;
    body+=rowHTML(id,it[0],it[1],it[2],on);});
+  st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
- if(st.ext.length){var body="";st.ext.forEach(function(nm){gi++;var id="x"+nm;var e=EXTRAS.filter(function(x){return x[0]==nm;})[0]||[nm,"",""];var on=!!st.chk[id];body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
-  html+='<div class="ph" style="--pa:var(--px)"><div class="phh"><span>🎁</span><span class="ttl">Deine Extras</span></div><div class="body">'+body+'</div></div>';}
  document.getElementById("build").innerHTML=html;
  document.getElementById("bsel").onchange=function(){S.cur=this.value;save();rBuild();};
  document.querySelectorAll("#build [data-ex]").forEach(function(c){c.onclick=function(){var e=EXTRAS[+c.dataset.ex];var i=st.ext.indexOf(e[0]);if(i>=0)st.ext.splice(i,1);else st.ext.push(e[0]);save();rBuild();};});
@@ -264,6 +309,7 @@ function rLoot(){var gs=gamestage(),ls2=lootstage();
 }
 // ---- MAGS ----
 function rMags(){var html='<div class="card"><h3>📕 Magazin-Fortschritt</h3><div class="sub" style="margin-bottom:8px">★ = wichtig für deinen Sledge-Build. Briefkästen looten!</div></div>';
+ if(S.importedPlayer)html+='<div class="banner safe" style="margin-top:10px">🎮 Fortschritt aus <b>'+esc(S.importedPlayer.name)+'</b> importiert. Werte sind Crafting-Fortschritt; bei geänderten „Points per Magazine“ nicht zwingend physische Heftanzahl.</div>';
  MAGS.forEach(function(m,i){var v=S.mag[i]||0,pct=Math.round(v/m[1]*100);
   html+='<div class="card" style="padding:12px 14px;margin-top:10px"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:15px;font-weight:600">'+(m[3]?'★ ':'')+m[0]+'</div><div class="mm" style="font-size:11.5px;color:var(--muted)">'+m[2]+'</div></div><div class="stepper"><button data-md="'+i+'">−</button><span class="mc">'+v+'/'+m[1]+'</span><button data-mp="'+i+'">+</button></div></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div></div>';
  });
@@ -279,55 +325,84 @@ function rRef(){var html="";
  document.getElementById("nt").oninput=function(){S.notes=this.value;save();};
 }
 
-function launchCompanion(){
-  // Improved: open the clean project folder (no Scheiße)
-  try {
-    var folder = "file:///C:/Users/nicks/Documents/7DtD-Companion";
-    var a = document.createElement("a");
-    a.href = folder;
-    a.click();
-  } catch(e){}
-  var runCmd = 'cd "C:\\Users\\nicks\\Documents\\7DtD-Companion" ; & ".\\7DtD Companion.bat"';
-  try { navigator.clipboard.writeText(runCmd); } catch(e){}
-  setTimeout(function(){
-    alert("Companion-Ordner geöffnet (Documents\\7DtD-Companion).\n\nBefehl kopiert: " + runCmd + "\n\nDoppelklick .bat oder exe zum Scannen von Welt + Maps.\n\nDann F5 hier laden.");
-  }, 400);
-}
+var PERK_NAMES={
+ perkdeadeye:"Dead Eye",perkdemolitionsexpert:"Demolitions Expert",perkjavelinmaster:"Spear Master",
+ perkinfiltrator:"The Infiltrator",perkanimaltracker:"Animal Tracker",perkpenetrator:"The Penetrator",
+ perktreasurehunter:"Treasure Hunter",perksalvageoperations:"Salvage Operations",perkperceptionmastery:"Perception Mastery",
+ perkboomstick:"Boomstick",perkpummelpete:"Pummel Pete",perkskullcrusher:"Skull Crusher",perkgrandslam:"Grand Slam",
+ perkflurryofstrength:"Big and Fast",perkpackmule:"Pack Mule",perkstrengthmastery:"Strength Mastery",
+ perkminer69r:"Miner 69'er",perkmotherlode:"Mother Lode",perkjunkminer:"Junk Miner",
+ perkbrawler:"The Brawler",perkmachinegunner:"Machine Gunner",perkthehuntsman:"The Huntsman",
+ perkpaintolerance:"Pain Tolerance",perkfortitudemastery:"Fortitude Mastery",perksiphoningstrikes:"Siphoning Strikes",
+ perkhealingfactor:"Healing Factor",perkslowmetabolism:"Iron Gut",perkruleonecardio:"Rule 1: Cardio",
+ perkarchery:"Archery",perkgunslinger:"Gunslinger",perkdeepcuts:"Deep Cuts",perkrunandgun:"Run and Gun",
+ perkhardtarget:"Hard Target",perkparkour:"Parkour",perkagilitymastery:"Agility Mastery",
+ perkhiddenstrike:"Hidden Strike",perkfromtheshadows:"From The Shadows",perkelectrocutioner:"Electrocutioner",
+ perkturrets:"Robotics Inventor",perkbetterbarter:"Better Barter",perkdaringadventurer:"The Daring Adventurer",
+ perkcharismaticnature:"Charismatic Nature",perkphysician:"Physician",perkadvancedengineering:"Advanced Engineering",
+ perkgreasemonkey:"Grease Monkey",perkintellectmastery:"Intellect Mastery",perklightarmor:"Light Armor",
+ perkmediumarmor:"Medium Armor",perkheavyarmor:"Heavy Armor",perkmasterchef:"Master Chef",
+ perklivingofftheland:"Living Off The Land",perklockpicking:"Lock Picking",perkluckylooter:"Lucky Looter"
+};
+var LABEL_TO_PERK={};Object.keys(PERK_NAMES).forEach(function(k){LABEL_TO_PERK[PERK_NAMES[k].toLowerCase()]=k;});
 
-function autoApplyCharacterSkills(){
-  if(!S.world) return;
-  var p = (S.world.player || "").toLowerCase() + " " + (S.world.save || "").toLowerCase();
-  var key = "sledge";
-  if(p.includes("sniper") || p.includes("dead eye")) key="sniper";
-  else if(p.includes("mg") || p.includes("machine") || p.includes("tank")) key="mg";
-  else if(p.includes("stealth") || p.includes("agility") || p.includes("assassin")) key="stealth";
-  else if(p.includes("shotgun") || p.includes("boom")) key="shotgun";
-  S.cur = key;
-  var st = bstate();
-  st.chk = st.chk || {};
-  var lvl = S.lvl || (S.world && S.world.settings ? 20 : 22);
-  // rough points spent ~ lvl*1.8 (2 pts/lvl approx) - mark prefix in phases (rechnet was er gebaut haben könnte)
-  var targetChecks = Math.max(5, Math.floor(lvl * 1.6));
-  var gi=0;
-  BUILDS[key].phases.forEach(function(ph){
-    ph[4].forEach(function(it){
-      gi++;
-      if(gi <= targetChecks) st.chk["c"+gi] = true;
+function normalizeScan(data){
+  Object.keys(data.maps||{}).forEach(function(w){
+    var m=data.maps[w];m.pois=(m.pois||[]).map(function(p){
+      return [p.name,p.x,p.z,p.tier,p.rotation,p.width,p.depth,p.height,p.thumbnail,p.y];
     });
   });
-  // mark some mags based on priority (demo; real .ttp parse in Rust later)
-  if(!S.mag) S.mag={};
-  S.mag[0] = Math.max(S.mag[0]||0, 3); // Sledge Saga (Briefkästen per skill)
-  S.mag[1] = Math.max(S.mag[1]||0, 2); // Medical Journal
-  // insert Lucky Looter (and similar) at perfekte Stelle per seven-days-to-die skill (nach Basics, in QoL/General für Loot - low prio early)
-  if (lvl > 25 && st.ext.indexOf("Lucky Looter") === -1) {
-    st.ext.push("Lucky Looter"); // perfekt eingebaut für zukünftige Loot-Phase
+  return data;
+}
+async function scanNow(){
+  var btn=document.getElementById("scanbtn"),status=document.getElementById("launchstatus");
+  btn.disabled=true;status.textContent="Scanne Saves, Progression, Karten und POIs …";
+  try{
+    var res=await fetch("/api/scan",{cache:"no-store"}),data=await res.json();
+    if(!res.ok)throw new Error(data.error||("HTTP "+res.status));
+    data=normalizeScan(data);W.tree=data.saves||[];W.maps=data.maps||{};W.scanned=true;W.curSave=null;
+    document.getElementById("launcher").classList.add("hide");S.tab="world";save();renderTop();show();
+  }catch(e){status.textContent="Scan fehlgeschlagen: "+e.message;btn.disabled=false;}
+}
+document.getElementById("scanbtn").onclick=scanNow;
+
+function progressionValue(prog,key){return +(prog&&prog[key]||0);}
+function detectBuild(prog){
+  var score={
+    sledge:progressionValue(prog,"perkskullcrusher")*5+progressionValue(prog,"perkstrengthmastery"),
+    shotgun:progressionValue(prog,"perkboomstick")*5,
+    sniper:progressionValue(prog,"perkdeadeye")*5+progressionValue(prog,"perkpenetrator"),
+    mg:progressionValue(prog,"perkmachinegunner")*5,
+    stealth:Math.max(progressionValue(prog,"perkgunslinger"),progressionValue(prog,"perkarchery"))*4+
+      progressionValue(prog,"perkhiddenstrike")+progressionValue(prog,"perkfromtheshadows")
+  };
+  return Object.keys(score).sort(function(a,b){return score[b]-score[a];})[0];
+}
+function rowImportedDone(name,prog){
+  var low=name.toLowerCase(),attr={strength:"attstrength",fortitude:"attfortitude",perception:"attperception",agility:"attagility",intellect:"attintellect"};
+  var foundAttr=Object.keys(attr).filter(function(a){return low.indexOf(a)>=0;})[0];
+  var ranks=[],rm=/r(\d+)(?:-(\d+))?/g,m;while((m=rm.exec(low)))ranks.push(+(m[2]||m[1]));var target=ranks.length?Math.max.apply(null,ranks):1;
+  var keys=Object.keys(LABEL_TO_PERK).filter(function(label){return low.indexOf(label)>=0;}).map(function(label){return LABEL_TO_PERK[label];});
+  if(low.indexOf("lotl")>=0)keys.push("perklivingofftheland");
+  if(low.indexOf("chef")>=0)keys.push("perkmasterchef");
+  if(low.indexOf("cardio")>=0)keys.push("perkruleonecardio");
+  keys=keys.filter(function(k,i,a){return a.indexOf(k)===i;});
+  if(foundAttr&&low.indexOf("→")>=0&&!keys.length){
+   var attrTarget=(low.match(/(?:strength|fortitude|perception|agility|intellect)\s*(\d+)/)||[])[1]||1;
+   return progressionValue(prog,attr[foundAttr])>=+attrTarget;
   }
-  save();
-  // if on build or mags refresh
-  if(S.tab==="build") rBuild();
-  if(S.tab==="mags") rMags();
-  // TODO real: extend scanner to read actual player skill/mag data from save for perfect match
+  if(!keys.length)return false;
+  return keys.every(function(key){return progressionValue(prog,key)>=target;});
+}
+function bookCount(prog,prefix){
+  return Object.keys(prog||{}).filter(function(k){return k.indexOf(prefix)===0&&k.indexOf("complete")<0&&prog[k]>0;}).length;
+}
+function applyImportedCharacter(pl){
+  var prog=pl&&pl.progression||{};S.playerProgression=prog;S.lvl=pl&&pl.level||S.lvl;S.cur=detectBuild(prog);
+  var st=bstate();st.chk={};var gi=0;
+  BUILDS[S.cur].phases.forEach(function(ph){ph[4].forEach(function(it){gi++;st.chk["c"+gi]=rowImportedDone(it[0],prog);});});
+  MAGS.forEach(function(m,i){S.mag[i]=m[5]==="book"?Math.min(m[1],bookCount(prog,m[4])):Math.min(m[1],progressionValue(prog,m[4]));});
+  S.importedPlayer=pl?{name:pl.name,level:pl.level}:null;save();
 }
 // ---- WELT: gameOptions.sdf binary parser (verifiziert gegen echte Saves) ----
 function esc(s){return (""+s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
@@ -424,13 +499,13 @@ function importWorld(s,pl){
  S.world={world:s.world,save:s.save,version:v3?"3.0+ (Dead Hot Summer)":"≤2.6 (Legacy)",preset:st.SandboxPreset||"",player:pl?pl.name:"",steam:pl?pl.steam:"",login:pl?pl.login:"",settings:st};
  if(v3){var dc=decodeSandbox(st.SandboxCode);var bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;S.world.bmCount=parseInt(dc.BloodMoonEnemyCount,10)||null;}
  else{if("BloodMoonFrequency" in st)S.freq=st.BloodMoonFrequency;S.world.bmCount=st.BloodMoonEnemyCount||null;}
- if(s.scanned){var sm=W.maps&&W.maps[s.world];if(sm){sm=JSON.parse(JSON.stringify(sm));sm.player=(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null;S.map=sm;}else S.map=null;W.mapImg=null;W.view=null;W.sel=null;W3.dead=true;save(); 
-  // FIXED: Map update on selection - force W.mapImg + view reset + rMap if needed for different map
-  W.mapImg=null; W.view=null; W.sel=null;
-  if(S.tab==="map") setTimeout(function(){try{rMap();}catch(e){}},30);
-  S.tab="dash"; save(); show(); 
-  try{ autoApplyCharacterSkills(); }catch(e){} 
-  return;}
+ if(s.scanned){
+  var sm=W.maps&&W.maps[s.world];
+  if(sm){S.map=sm;S.map.player=(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null;}else S.map=null;
+  if(pl)applyImportedCharacter(pl);
+  W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W.mapKey=sm?sm.key:null;W3.dead=true;
+  S.tab="dash";save();show();return;
+ }
  var mf=W.maps&&W.maps[s.world];
  if(mf&&mf.biomes&&mf.prefabs){
   document.getElementById("world").innerHTML='<div class="banner safe">⏳ Lese Karte von <b>'+esc(s.world)+'</b> … (Biome, POIs'+(mf.dtm?", 3D-Höhenkarte":"")+')</div>';
@@ -438,9 +513,9 @@ function importWorld(s,pl){
    var info=parseMapInfo(a[2]||"");
    var base={world:s.world,img:a[0],size:info.size,seed:info.seed,ver:info.ver,rwg:info.rwg,gen:info.gen,pois:parsePrefabs(a[1]),player:(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null};
    var hmJob=mf.dtm?readHeightmap(mf.dtm,256,info.size):Promise.resolve(null);
-   return hmJob.then(function(hm){if(hm)base.hm={n:hm.n,mn:hm.mn,mx:hm.mx,d:u8ToB64(hm.data)};S.map=base;W.mapImg=null;W.view=null;W.sel=null;W3.dead=true;W.curSave=null;W.tree=null;save();rWorld();});
-  }).catch(function(e){S.map=null;W.curSave=null;W.tree=null;save();rWorld();});
- } else {S.map=null;W.curSave=null;W.tree=null;save();rWorld();}
+   return hmJob.then(function(hm){if(hm)base.hm={n:hm.n,mn:hm.mn,mx:hm.mx,d:u8ToB64(hm.data)};S.map=base;if(pl)applyImportedCharacter(pl);W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W3.dead=true;S.tab="dash";save();show();});
+  }).catch(function(e){document.getElementById("world").innerHTML='<div class="banner danger">Import fehlgeschlagen: '+esc(e.message)+'</div>';});
+ } else {S.map=null;if(pl)applyImportedCharacter(pl);S.tab="dash";save();show();}
 }
 function u8ToB64(u8){var s="";for(var i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s);}
 function b64ToU8(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u;}
@@ -509,7 +584,6 @@ function worldSummaryCard(w){
 function mapFilterOn(t){return S.mapFilter[(""+t)]!==0;}
 function rMap(){
  var el=document.getElementById("map");
- W.mapImg = null; W.view = null; // force update when different map selected (biomes change)
  if(!S.map||!S.map.img){
   el.innerHTML='<div class="banner warn">🗺️ Noch keine Map. Verlinke eine Welt im Tab <b>🌍 Welt</b> und wähle dabei den <b>7DaysToDie</b>-Ordner (nicht nur Saves) — dann werden Biome + POIs gelesen.</div>'+
    '<div class="card"><h3>Warum?</h3><div class="refrow">Die Map (biomes.png) + POI-Liste (prefabs.xml) liegen in <b>GeneratedWorlds</b>, nicht in Saves. Beide stecken im <b>7DaysToDie</b>-Ordner.</div><div class="refrow">3D-Live-Map nicht möglich: die Höhenkarte ist 209 MB → würde den Browser/PC einfrieren. Diese 2D-Karte zeigt dafür <b>echte Schwierigkeits-Tiers</b> (mehr als die In-Game-Map).</div></div>';
@@ -544,24 +618,18 @@ function drawMap(){
  var ctx=cv.getContext("2d"),Wc=cv.width,Hc=cv.height,v=W.view,img=W.mapImg;
  ctx.clearRect(0,0,Wc,Hc);ctx.fillStyle="#0a0907";ctx.fillRect(0,0,Wc,Hc);
  ctx.imageSmoothingEnabled=false;ctx.drawImage(img,v.tx,v.ty,img.naturalWidth*v.k,img.naturalHeight*v.k);
+ if(W.roadImg){ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=.78;ctx.drawImage(W.roadImg,v.tx,v.ty,img.naturalWidth*v.k,img.naturalHeight*v.k);ctx.restore();}
+ if(W.waterImg){ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=.9;ctx.drawImage(W.waterImg,v.tx,v.ty,img.naturalWidth*v.k,img.naturalHeight*v.k);ctx.restore();}
  var q=S.mapSearch||"";
  (S.map.pois||[]).forEach(function(p){
   if(!mapFilterOn(p[3]))return;
   var s=poiScreen(p[1],p[2]);if(s[0]<-6||s[0]>Wc+6||s[1]<-6||s[1]>Hc+6)return;
   var hit=q&&p[0].toLowerCase().indexOf(q)>=0;
-  var isBig=p[3]>=2;
   ctx.globalAlpha=(q&&!hit)?0.18:1;
-  var sz = hit ? 8 : (isBig ? 6 : 3);
-  // better than pure points: small rects for "buildings" look; bigger for tier>=2 + roof for detail like pregen
-  ctx.fillStyle=TIERCOL[p[3]];
-  ctx.fillRect(s[0]-sz/2, s[1]-sz/2, sz, sz);
-  if(hit||isBig){ctx.lineWidth=1.5;ctx.strokeStyle="#fff";ctx.strokeRect(s[0]-sz/2-0.5, s[1]-sz/2-0.5, sz+1, sz+1);}
-  // roof line for building shape
-  if (hit || isBig) {
-    ctx.beginPath(); ctx.moveTo(s[0]-sz/2, s[1]-sz/2-1); ctx.lineTo(s[0], s[1]-sz/2-5); ctx.lineTo(s[0]+sz/2, s[1]-sz/2-1); ctx.strokeStyle="#fff"; ctx.lineWidth=1; ctx.stroke();
-    ctx.fillStyle = "#f2efe8"; ctx.font = "8px monospace";
-    ctx.fillText((p[0]||"").slice(0,12), s[0]+sz+2, s[1]-1);
-  }
+  var f=w2cFactors(),pw=Math.max(2,(p[5]||10)/f.sz*f.dw),ph=Math.max(2,(p[6]||10)/f.sz*f.dh);
+  ctx.fillStyle=TIERCOL[p[3]];ctx.fillRect(s[0]-pw/2,s[1]-ph/2,pw,ph);
+  if(hit||v.k>1.8){ctx.lineWidth=hit?2:1;ctx.strokeStyle="#fff";ctx.strokeRect(s[0]-pw/2,s[1]-ph/2,pw,ph);}
+  if(hit||v.k>4){ctx.fillStyle="#f2efe8";ctx.font="9px monospace";ctx.fillText((p[0]||"").slice(0,18),s[0]+pw/2+3,s[1]-2);}
  });
  ctx.globalAlpha=1;
  if(W.sel!=null){var sp=S.map.pois[W.sel];if(sp){var ss=poiScreen(sp[1],sp[2]);ctx.beginPath();ctx.arc(ss[0],ss[1],8,0,6.283);ctx.lineWidth=2.5;ctx.strokeStyle="#fff";ctx.stroke(); ctx.fillStyle="#f2efe8";ctx.font="9px monospace";ctx.fillText((sp[0]||"").slice(0,16),ss[0]+10,ss[1]-2);}}
@@ -570,6 +638,9 @@ function drawMap(){
 function nearestPoi(sx,sy){var best=-1,bd=1e9;(S.map.pois||[]).forEach(function(p,i){if(!mapFilterOn(p[3]))return;var s=poiScreen(p[1],p[2]);var d=(s[0]-sx)*(s[0]-sx)+(s[1]-sy)*(s[1]-sy);if(d<bd){bd=d;best=i;}});return bd<=100?best:-1;}
 function setupMap(){
  var cv=document.getElementById("mapcv");if(!cv)return;
+ if(W.mapKey!==S.map.key){W.mapKey=S.map.key;W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;}
+ if(S.map.roads&&!W.roadImg){var road=new Image();road.onload=function(){W.roadImg=road;drawMap();};road.src=S.map.roads;}
+ if(S.map.water&&!W.waterImg){var water=new Image();water.onload=function(){W.waterImg=water;drawMap();};water.src=S.map.water;}
  if(W.mapImg&&W.mapImg.src===S.map.img){fitIfNeeded();drawMap();}
  else{var img=new Image();img.onload=function(){W.mapImg=img;W.view=null;fitIfNeeded();drawMap();};img.src=S.map.img;}
  function rel(e){var r=cv.getBoundingClientRect();return [(e.clientX-r.left)*(cv.width/r.width),(e.clientY-r.top)*(cv.height/r.height)];}
@@ -590,7 +661,9 @@ function showPoiDet(){var d=document.getElementById("mapdet");if(!d)return;if(W.
  d.innerHTML='<div class="card" style="margin-top:10px;border-color:'+TIERCOL[p[3]]+'"><h3><span class="tdot" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+TIERCOL[p[3]]+'"></span> '+esc(p[0])+'</h3>'+
   '<div class="kv"><span>Tier</span><b>'+(p[3]>0?"Tier "+p[3]+" / 5":p[3]===0?"T0 (kein Kampf)":"unbekannt (Custom-POI)")+'</b></div>'+
   '<div class="kv"><span>Koordinaten</span><b>'+p[1]+", "+p[2]+'</b></div>'+
-  (dist!=null?'<div class="kv"><span>Entfernung Spawn</span><b>'+dist+' m</b></div>':"")+'</div>';
+  '<div class="kv"><span>Grundfläche</span><b>'+(p[5]||"?")+' × '+(p[6]||"?")+' Blöcke</b></div>'+
+  (dist!=null?'<div class="kv"><span>Entfernung Spawn</span><b>'+dist+' m</b></div>':"")+
+  (p[8]?'<img class="poi-preview" src="'+p[8]+'" alt="'+esc(p[0])+'">':"")+'</div>';
 }
 // ---- 3D FLY MAP (WebGL, self-contained) ----
 function v3sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
@@ -609,13 +682,13 @@ function r3D(){
    '<div class="card"><h3>Echtes Fly-Terrain</h3><div class="refrow">Subsampling der 10240²-Höhenkarte → fliegbares 3D wie die In-Game-Weltvorschau, mit Biom-Textur + POI-Markern. <b>Maus ziehen</b> = umschauen · <b>WASD</b> = fliegen · <b>R/F</b> = hoch/runter · <b>Shift</b> = schneller · <b>Scroll</b> = vor.</div></div>';
   W3.dead=true;return;
  }
- if(!S.d3v)S.d3v=15;
+ if(!S.d3v||S.d3v>4)S.d3v=1;
  el.innerHTML='<div class="card" style="margin-bottom:10px"><h3>🧊 3D-Flug · '+esc(S.map.world)+'</h3>'+
   '<div class="wstep" style="margin:0">🖱️ ziehen = umschauen · <b>W A S D</b> = fliegen · <b>R</b>/<b>F</b> = hoch/runter · <b>Shift</b> = Boost · Scrollrad = vor/zurück · Klick ins Bild zuerst.</div>'+
-  '<label class="fld">Höhen-Überhöhung</label><input type="range" id="vex" min="4" max="40" value="'+S.d3v+'" style="width:100%"></div>'+
+  '<label class="fld">Höhen-Überhöhung: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.5" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"></div>'+
   '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">WebGL lädt…</div></div>';
  try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D-Fehler: '+esc(e.message)+'</div>';W3.dead=true;return;}
- document.getElementById("vex").oninput=function(){S.d3v=+this.value;save();if(W3.buildTerrain)W3.buildTerrain();};
+ document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
 }
 function init3D(){
  if(W3.raf)cancelAnimationFrame(W3.raf);W3.dead=false;
@@ -624,26 +697,27 @@ function init3D(){
  W3.gl=gl;
  var terP=glProg(gl,
   "attribute vec3 aPos;attribute vec3 aNorm;attribute vec2 aUV;uniform mat4 uMVP;varying vec2 vUV;varying float vL;void main(){gl_Position=uMVP*vec4(aPos,1.0);vUV=aUV;vL=clamp(dot(normalize(aNorm),normalize(vec3(0.4,0.85,0.35))),0.0,1.0)*0.75+0.3;}",
-  "precision mediump float;uniform sampler2D uTex;varying vec2 vUV;varying float vL;void main(){vec4 c=texture2D(uTex,vUV);gl_FragColor=vec4(c.rgb*vL,1.0);}");
+  "precision mediump float;uniform sampler2D uTex;uniform sampler2D uRoad;uniform sampler2D uWater;uniform float uHasRoad;uniform float uHasWater;varying vec2 vUV;varying float vL;void main(){vec3 c=texture2D(uTex,vUV).rgb;vec3 road=texture2D(uRoad,vUV).rgb;vec3 water=texture2D(uWater,vUV).rgb;if(uHasRoad>0.5&&max(road.r,road.g)>.08)c=mix(c,road,.88);if(uHasWater>0.5&&water.b>.015)c=mix(c,vec3(.05,.22,.42),.9);gl_FragColor=vec4(c*vL,1.0);}");
  var poiP=glProg(gl,
   "attribute vec3 aPos;attribute vec3 aCol;uniform mat4 uMVP;varying vec3 vC;void main(){gl_Position=uMVP*vec4(aPos,1.0);gl_PointSize=7.0;vC=aCol;}",
   "precision mediump float;varying vec3 vC;void main(){vec2 d=gl_PointCoord-vec2(0.5);if(dot(d,d)>0.25)discard;gl_FragColor=vec4(vC,1.0);}");
+ var boxP=glProg(gl,
+  "attribute vec3 aPos;attribute vec3 aCol;uniform mat4 uMVP;varying vec3 vC;void main(){gl_Position=uMVP*vec4(aPos,1.0);vC=aCol;}",
+  "precision mediump float;varying vec3 vC;void main(){gl_FragColor=vec4(vC,1.0);}");
  var hm=S.map.hm,N=hm.n,data=b64ToU8(hm.d),size=S.map.size;
  // build terrain geometry
  var posB=gl.createBuffer(),normB=gl.createBuffer(),uvB=gl.createBuffer(),idxB=gl.createBuffer();
- var poiPosB=gl.createBuffer(),poiColB=gl.createBuffer();
+ var poiPosB=gl.createBuffer(),poiColB=gl.createBuffer(),boxPosB=gl.createBuffer(),boxColB=gl.createBuffer();
  function hAt(i,j){i=Math.max(0,Math.min(N-1,i));j=Math.max(0,Math.min(N-1,j));return data[i*N+j];}
- var idxCount=0,poiCount=0,maxH=0;
+ var idxCount=0,poiCount=0,boxCount=0,buildingCount=0,maxH=0,step=size/(N-1);
+ function terrainY(raw){return (raw-(hm.mn||0))/step*(S.d3v||1);}
  W3.buildTerrain=function(){
-  var hs=(S.d3v||15)*0.006; // toned down
-  var pos=new Float32Array(N*N*3),nrm=new Float32Array(N*N*3),uv=new Float32Array(N*N*2);
-  maxH=0;
-  // normalize heights to avoid extreme mountains (relative to min/max)
-  var mn = hm.mn||0, rng = Math.max(1, (hm.mx||255) - mn);
-  for(var i=0;i<N;i++)for(var j=0;j<N;j++){var o=(i*N+j);var y = ((data[o]-mn)/rng) * (S.d3v||15) * 8; if(y>maxH)maxH=y;
-   pos[o*3]=j-(N-1)/2;pos[o*3+1]=y;pos[o*3+2]=i-(N-1)/2;
-   uv[o*2]=j/(N-1);uv[o*2+1]=i/(N-1);
-   var dx=(hAt(i,j+1)-hAt(i,j-1))*hs,dz=(hAt(i+1,j)-hAt(i-1,j))*hs;
+   var pos=new Float32Array(N*N*3),nrm=new Float32Array(N*N*3),uv=new Float32Array(N*N*2);
+   maxH=0;
+   for(var i=0;i<N;i++)for(var j=0;j<N;j++){var o=(i*N+j),y=terrainY(data[o]);if(y>maxH)maxH=y;
+    pos[o*3]=j-(N-1)/2;pos[o*3+1]=y;pos[o*3+2]=i-(N-1)/2;
+    uv[o*2]=j/(N-1);uv[o*2+1]=i/(N-1);
+    var dx=terrainY(hAt(i,j+1))-terrainY(hAt(i,j-1)),dz=terrainY(hAt(i+1,j))-terrainY(hAt(i-1,j));
    var nx=-dx,ny=2.0,nz=-dz,l=Math.hypot(nx,ny,nz)||1;nrm[o*3]=nx/l;nrm[o*3+1]=ny/l;nrm[o*3+2]=nz/l;}
   var idx=[];for(var i=0;i<N-1;i++)for(var j=0;j<N-1;j++){var a=i*N+j,b=a+1,c=a+N,d=c+1;idx.push(a,c,b,b,c,d);}
   idxCount=idx.length;
@@ -651,27 +725,34 @@ function init3D(){
   gl.bindBuffer(gl.ARRAY_BUFFER,normB);gl.bufferData(gl.ARRAY_BUFFER,nrm,gl.STATIC_DRAW);
   gl.bindBuffer(gl.ARRAY_BUFFER,uvB);gl.bufferData(gl.ARRAY_BUFFER,uv,gl.STATIC_DRAW);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxB);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);W3.idxType=gl.UNSIGNED_SHORT;
-  // POIs as "buildings" (taller for higher tier + player, not just points)
-  var pp=[],pc=[];(S.map.pois||[]).forEach(function(p){if(!mapFilterOn(p[3]))return;var gj=(p[1]/size+0.5)*(N-1),gi=(0.5-p[2]/size)*(N-1);if(gj<0||gj>N-1||gi<0||gi>N-1)return;var y=hAt(Math.round(gi),Math.round(gj))*hs + (p[3]>2?4:1.5);pp.push(gj-(N-1)/2,y,gi-(N-1)/2);var col=hex2rgb(TIERCOL[p[3]]);pc.push(col[0],col[1],col[2]);});
-  if(S.map.player){var gj=(S.map.player.x/size+0.5)*(N-1),gi=(0.5-S.map.player.z/size)*(N-1);if(gj>=0&&gj<=N-1&&gi>=0&&gi<=N-1){pp.push(gj-(N-1)/2,hAt(Math.round(gi),Math.round(gj))*hs+5,gi-(N-1)/2);pc.push(0.35,0.65,1);}}
-  poiCount=pp.length/3;
-  gl.bindBuffer(gl.ARRAY_BUFFER,poiPosB);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pp),gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ARRAY_BUFFER,poiColB);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pc),gl.STATIC_DRAW);
+   var pp=[],pc=[],bp=[],bc=[];buildingCount=0;
+   function tri(a,b,c,col){[a,b,c].forEach(function(v){bp.push(v[0],v[1],v[2]);bc.push(col[0],col[1],col[2]);});}
+   function box(cx,base,cz,w,h,d,col){var x0=cx-w/2,x1=cx+w/2,z0=cz-d/2,z1=cz+d/2,y0=base,y1=base+h;
+    var v=[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1],[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],f=[[0,1,2,0,2,3],[4,6,5,4,7,6],[0,4,5,0,5,1],[1,5,6,1,6,2],[2,6,7,2,7,3],[3,7,4,3,4,0]];
+    f.forEach(function(q){tri(v[q[0]],v[q[1]],v[q[2]],col);tri(v[q[3]],v[q[4]],v[q[5]],col);});}
+   (S.map.pois||[]).forEach(function(p){if(!mapFilterOn(p[3]))return;var gj=(p[1]/size+0.5)*(N-1),gi=(0.5-p[2]/size)*(N-1);if(gj<0||gj>N-1||gi<0||gi>N-1)return;
+    var base=terrainY(hAt(Math.round(gi),Math.round(gj))),col=hex2rgb(TIERCOL[p[3]]),bw=Math.max(.35,(p[5]||10)/step),bd=Math.max(.35,(p[6]||10)/step),bh=Math.max(.25,(p[7]||6)/step);
+    box(gj-(N-1)/2,base,gi-(N-1)/2,bw,bh,bd,col);buildingCount++;
+   });
+   if(S.map.player){var gj=(S.map.player.x/size+0.5)*(N-1),gi=(0.5-S.map.player.z/size)*(N-1);if(gj>=0&&gj<=N-1&&gi>=0&&gi<=N-1){pp.push(gj-(N-1)/2,terrainY(hAt(Math.round(gi),Math.round(gj)))+2,gi-(N-1)/2);pc.push(0.35,0.65,1);}}
+   poiCount=pp.length/3;
+   boxCount=bp.length/3;
+   gl.bindBuffer(gl.ARRAY_BUFFER,poiPosB);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pp),gl.STATIC_DRAW);
+   gl.bindBuffer(gl.ARRAY_BUFFER,poiColB);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pc),gl.STATIC_DRAW);
+   gl.bindBuffer(gl.ARRAY_BUFFER,boxPosB);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(bp),gl.STATIC_DRAW);
+   gl.bindBuffer(gl.ARRAY_BUFFER,boxColB);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(bc),gl.STATIC_DRAW);
  };
  W3.buildTerrain();
- // texture from biomes image
- var tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
- gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([90,110,70,255]));
- gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
- var tim=new Image();tim.onload=function(){gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,tim);};tim.src=S.map.img;
+ function loadTex(src,pixel){var tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(pixel));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);if(src){var im=new Image();im.onload=function(){gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);};im.src=src;}return tex;}
+ var tex=loadTex(S.map.img,[90,110,70,255]),roadTex=loadTex(S.map.roads,[0,0,0,255]),waterTex=loadTex(S.map.water,[0,0,0,255]);
  // camera
- var cam=W3.cam={x:0,y:Math.max(40,maxH+50),z:N*0.55,yaw:0,pitch:-0.55};
+ var cam=W3.cam={x:0,y:Math.max(12,maxH+10),z:N*0.55,yaw:0,pitch:-0.35};
  var keys={};
  cv.addEventListener("keydown",function(e){keys[e.key.toLowerCase()]=1;if(["w","a","s","d","r","f"," "].indexOf(e.key.toLowerCase())>=0)e.preventDefault();});
  cv.addEventListener("keyup",function(e){keys[e.key.toLowerCase()]=0;});
  var drag=null;
  cv.onpointerdown=function(e){drag=[e.clientX,e.clientY];cv.focus();cv.setPointerCapture(e.pointerId);};
- cv.onpointermove=function(e){if(!drag)return;cam.yaw-=(e.clientX-drag[0])*0.005;cam.pitch=Math.max(-1.5,Math.min(1.5,cam.pitch+(e.clientY-drag[1])*0.005));drag=[e.clientX,e.clientY];}; // fixed inversion: mouse-up now pitches camera up (sign flipped)
+ cv.onpointermove=function(e){if(!drag)return;cam.yaw+=(e.clientX-drag[0])*0.005;cam.pitch=Math.max(-1.5,Math.min(1.5,cam.pitch-(e.clientY-drag[1])*0.005));drag=[e.clientX,e.clientY];};
  cv.onpointerup=function(){drag=null;};
  cv.onwheel=function(e){e.preventDefault();var f=fwd();var s=e.deltaY<0?8:-8;cam.x+=f[0]*s;cam.y+=f[1]*s;cam.z+=f[2]*s;};
  function fwd(){return [Math.cos(cam.pitch)*Math.sin(cam.yaw),Math.sin(cam.pitch),-Math.cos(cam.pitch)*Math.cos(cam.yaw)];}
@@ -682,12 +763,17 @@ function init3D(){
   gl.viewport(0,0,cv.width,cv.height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   gl.useProgram(terP);gl.uniformMatrix4fv(gl.getUniformLocation(terP,"uMVP"),false,mvp);
   bindA(gl,terP,"aPos",posB,3);bindA(gl,terP,"aNorm",normB,3);bindA(gl,terP,"aUV",uvB,2);
-  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(gl.getUniformLocation(terP,"uTex"),0);
+   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(gl.getUniformLocation(terP,"uTex"),0);
+   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,roadTex);gl.uniform1i(gl.getUniformLocation(terP,"uRoad"),1);gl.uniform1f(gl.getUniformLocation(terP,"uHasRoad"),S.map.roads?1:0);
+   gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,waterTex);gl.uniform1i(gl.getUniformLocation(terP,"uWater"),2);gl.uniform1f(gl.getUniformLocation(terP,"uHasWater"),S.map.water?1:0);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxB);gl.drawElements(gl.TRIANGLES,idxCount,W3.idxType,0);
-  gl.useProgram(poiP);gl.uniformMatrix4fv(gl.getUniformLocation(poiP,"uMVP"),false,mvp);
-  bindA(gl,poiP,"aPos",poiPosB,3);bindA(gl,poiP,"aCol",poiColB,3);
-  gl.drawArrays(gl.POINTS,0,poiCount);
-  var hud=document.getElementById("hud3");if(hud)hud.textContent="x "+Math.round(cam.x)+"  z "+Math.round(cam.z)+"  h "+Math.round(cam.y)+"   ("+poiCount+" POIs)";
+   gl.useProgram(poiP);gl.uniformMatrix4fv(gl.getUniformLocation(poiP,"uMVP"),false,mvp);
+   bindA(gl,poiP,"aPos",poiPosB,3);bindA(gl,poiP,"aCol",poiColB,3);
+   gl.drawArrays(gl.POINTS,0,poiCount);
+   gl.useProgram(boxP);gl.uniformMatrix4fv(gl.getUniformLocation(boxP,"uMVP"),false,mvp);
+   bindA(gl,boxP,"aPos",boxPosB,3);bindA(gl,boxP,"aCol",boxColB,3);
+   gl.drawArrays(gl.TRIANGLES,0,boxCount);
+   var hud=document.getElementById("hud3");if(hud)hud.textContent="x "+Math.round(cam.x)+" z "+Math.round(cam.z)+" h "+Math.round(cam.y)+" · Blick "+Math.round(cam.yaw*57.3)+"°/"+Math.round(cam.pitch*57.3)+"° · "+buildingCount+" Gebäude";
  }
  W3.renderScene=renderScene;
  var last=0;
@@ -707,37 +793,6 @@ function init3D(){
 }
 function bindA(gl,prog,name,buf,size){var l=gl.getAttribLocation(prog,name);if(l<0)return;gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,size,gl.FLOAT,false,0,0);}
 function hex2rgb(h){return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];}
-if(typeof SCAN_DATA!=="undefined"&&SCAN_DATA&&SCAN_DATA.saves&&SCAN_DATA.saves.length){W.tree=SCAN_DATA.saves;W.maps=SCAN_DATA.maps||{};W.scanned=true;}
-
-// === LAUNCHER MODE ===
-// Nur dieses eine Fenster/Button beim Start. Nichts anderes sichtbar vorher.
-document.querySelector('.wrap').style.display = 'none';
-var launcher = document.createElement('div');
-launcher.id = 'launcher';
-launcher.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;';
-launcher.innerHTML = `
-  <div class="card" style="max-width:440px;text-align:center;padding:40px;">
-    <div style="font-size:24px;font-weight:700;margin-bottom:4px;">🔨 Survival Companion</div>
-    <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">7 Days to Die</div>
-    <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0;font-size:15px;line-height:1.6;color:var(--text);">
-      Welt und Characters<br>
-      Maps<br>
-      Scannen, jetzt starten
-    </div>
-    <button onclick="startScan()" style="background:var(--acc);color:#0c0b09;font-size:18px;font-weight:700;padding:16px 48px;border:none;border-radius:11px;cursor:pointer;width:100%;">Scannen, jetzt starten</button>
-  </div>
-`;
-document.body.appendChild(launcher);
-
-function startScan() {
-  var l = document.getElementById('launcher');
-  if (l) l.remove();
-  document.querySelector('.wrap').style.display = 'block';
-  launchCompanion();   // scannt Welt + Maps
-  renderTop();
-  show();
-}
-
 renderTop();show();
 </script>
 </body>
