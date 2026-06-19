@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logo.png" width="140" alt="7DtD Survival Companion logo">
+<img src="assets/logo.png" width="140" alt="7DtD Survival Companion logo">
 
 # 7DtD Survival Companion
 
@@ -10,6 +10,8 @@
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)
 ![Offline](https://img.shields.io/badge/100%25-offline-success)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+### ⬇ [Download the latest release](https://github.com/Lampe332/7dtd-survival-companion/releases/latest)
 
 </div>
 
@@ -28,9 +30,11 @@ A single Rust executable that serves a small web app on `127.0.0.1:17873` and re
 - 🩸 **Horde night** — readiness checklist + special-enemy timeline by gamestage
 - 📦 **Loot**, 📕 **Magazines**, 📋 **Reference** — loot-stage calculator, all crafting magazines & perk books, quick reference cards
 
-## Run
+## Download & run
 
-Download and double-click **`7DtD Companion.exe`** — it opens in your default browser. Hit **Scan** to load your worlds and characters.
+1. Download **`7DtD Companion.exe`** from the [latest release](https://github.com/Lampe332/7dtd-survival-companion/releases/latest).
+2. Double-click it — it opens in your default browser. No install, no dependencies: one self-contained file.
+3. Hit **Scan** to load your worlds and characters.
 
 ## Build from source
 
