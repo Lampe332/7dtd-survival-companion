@@ -1,0 +1,52 @@
+<div align="center">
+
+# 🔨 7DtD Survival Companion
+
+**Local, offline companion app for _7 Days to Die_** — interactive world map, perk planner, and a real settings editor that writes straight back to your save.
+
+![Rust](https://img.shields.io/badge/Rust-backend-orange?logo=rust)
+![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)
+![Offline](https://img.shields.io/badge/100%25-offline-success)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+</div>
+
+---
+
+## What it is
+
+A single Rust executable that serves a small web app on `127.0.0.1:17873` and reads your **real** 7 Days to Die saves and generated worlds. No cloud, no account, no telemetry — everything stays on your machine.
+
+## Features
+
+- 🌍 **World settings editor** — edit `gameOptions.sdf` with real write-back (automatic backup + byte-exact re-encode + SandboxCode patching)
+- 🗺️ **2D map** — biomes, roads, water and every POI decoded from your world files
+- 🧊 **3D fly-through** — WebGL terrain with building boxes and distance-LOD labels
+- 🔨 **Build planner** — full 56-perk catalog, guided phase plan, imports your real `.ttp` progression
+- 🩸 **Horde night** — readiness checklist + special-enemy timeline by gamestage
+- 📦 **Loot**, 📕 **Magazines**, 📋 **Reference** — loot-stage calculator, all crafting magazines & perk books, quick reference cards
+
+## Run
+
+Download and double-click **`7DtD Companion.exe`** — it opens in your default browser. Hit **Scan** to load your worlds and characters.
+
+## Build from source
+
+```bash
+cargo build --release
+# output: target/release/seven-dtd-companion.exe
+```
+
+The frontend (`7DtD_Skill_Tracker.html`) and reference data (`src/refdata.json`) are baked into the binary via `include_str!`, so the `.exe` is fully self-contained.
+
+## Tech
+
+- **Backend:** Rust + [`tiny_http`](https://crates.io/crates/tiny_http) — file scanning, binary `.sdf` / `.ttp` parsing, settings write-back, map decoding
+- **Frontend:** vanilla JS, single file, custom WebGL for the 3D map (no framework)
+- **Platform:** Windows
+
+> ⚠️ The in-app UI is currently in **German**.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
