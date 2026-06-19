@@ -136,6 +136,12 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 .mapwrap{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0a0907;touch-action:none}
 .mapwrap canvas{display:block;width:100%;cursor:grab}.mapwrap canvas:active{cursor:grabbing}
 .maptip{position:absolute;pointer-events:none;background:rgba(10,9,7,.96);border:1px solid var(--line2);border-radius:8px;padding:5px 9px;font-size:12px;line-height:1.4;display:none;z-index:5;white-space:nowrap;font-family:var(--mono)}
+.mapfsbtn{position:absolute;top:8px;right:8px;z-index:6;background:rgba(10,9,7,.92);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:3px 9px;font-size:16px;line-height:1.1;cursor:pointer;font-family:var(--mono)}
+.mapfsbtn:hover{border-color:var(--acc);color:var(--acc)}
+.mapwrap.fs{position:fixed;inset:0;z-index:1000;width:100vw;height:100vh;border-radius:0;border:0;margin:0}
+.mapwrap.fs canvas{width:100vw;height:100vh}
+.flight-status.fs-overlay{position:absolute;top:8px;left:8px;z-index:7;width:300px;max-width:46vw;max-height:calc(100vh - 16px);overflow:auto;background:rgba(10,9,7,.94);backdrop-filter:blur(3px)}
+body.map-fs-active{overflow:hidden}
 .tierchip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line2);user-select:none;background:var(--card2)}
 .tierchip.off{opacity:.35}.tdot{width:10px;height:10px;border-radius:50%;flex:none}
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -547,6 +553,7 @@ renderTabs();
 function show(){
  if(S.tab==="map")S.tab="d3";
  document.body.dataset.tab=S.tab;
+ if(S.tab!=="d3")document.body.classList.remove("map-fs-active");
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
  try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef})[S.tab]||rWorld)();}
@@ -1590,7 +1597,7 @@ function r3D(){
     opsStat("RENDER / API","WEBGL","Hardware-accelerated local view",true)+'</div>'+
    '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…" style="width:100%;margin-bottom:6px"><div id="poiResults" class="poi-results"></div><div class="wstep" style="margin:4px 0 3px">Show buildings by tier — click to toggle:</div><div class="legend" id="d3legend">'+d3legend+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.2" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
    '<div class="card"><h3>Control Deck</h3><div class="key-grid"><span></span><span class="keycap">W</span><span></span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="keycap">R / F</span><span class="keycap wide">SHIFT · BOOST</span></div></div></div>'+
-   '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div id="poiInfo" class="poiInfo" style="display:none"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
+   '<div class="mapwrap"><button id="d3fs" class="mapfsbtn" title="Fullscreen (Esc to exit)">⛶</button><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div id="poiInfo" class="poiInfo" style="display:none"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
   try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D error: '+esc(e.message)+'</div>';W3.dead=true;return;}
   document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
   document.getElementById("d3reset").onclick=function(){r3D();};
@@ -1603,6 +1610,26 @@ function r3D(){
    pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(!mapFilterOn(p[3])){S.mapFilter[p[3]]=1;save();var ch=document.querySelector('#d3legend [data-tf="'+p[3]+'"]');if(ch)ch.classList.remove("off");if(W3.buildTerrain)W3.buildTerrain();}if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=p[0];W3.flyTo(t);}openPoiInfo(+r.dataset.pi);var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";psi.value=p[0]||"";};});
   };
   el.querySelectorAll("#d3legend [data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();c.classList.toggle("off",!mapFilterOn(t));if(W3.buildTerrain)W3.buildTerrain();};});
+  // --- Fullscreen toggle (CSS overlay; keeps POI search + tier filter live by moving the control card into the map) ---
+  W3.fs=false;document.body.classList.remove("map-fs-active");
+  var fsBtn=document.getElementById("d3fs");
+  function d3SetFs(on){
+   var mw=el.querySelector(".mapwrap"),fc=el.querySelector(".flight-status"),cvf=document.getElementById("cv3");
+   if(!mw||!cvf)return;W3.fs=!!on;
+   mw.classList.toggle("fs",on);document.body.classList.toggle("map-fs-active",on);
+   if(on){if(fc){fc.classList.add("fs-overlay");mw.appendChild(fc);}cvf.width=window.innerWidth;cvf.height=window.innerHeight;if(fsBtn)fsBtn.textContent="✕";}
+   else{if(fc){fc.classList.remove("fs-overlay");var fd=el.querySelector(".flight-deck");if(fd)fd.insertBefore(fc,fd.firstChild);}cvf.width=900;cvf.height=600;if(fsBtn)fsBtn.textContent="⛶";}
+   if(W3.clearKeys)W3.clearKeys();
+   if(W3.renderScene)W3.renderScene();
+  }
+  W3.setFs=d3SetFs;
+  if(fsBtn)fsBtn.onclick=function(){d3SetFs(!W3.fs);};
+  if(W3._fsEsc)document.removeEventListener("keydown",W3._fsEsc);
+  W3._fsEsc=function(e){if(e.key==="Escape"&&W3.fs)d3SetFs(false);};
+  document.addEventListener("keydown",W3._fsEsc);
+  if(W3._fsResize)window.removeEventListener("resize",W3._fsResize);
+  W3._fsResize=function(){if(W3.fs){var c=document.getElementById("cv3");if(c){c.width=window.innerWidth;c.height=window.innerHeight;if(W3.renderScene)W3.renderScene();}}};
+  window.addEventListener("resize",W3._fsResize);
  }
 function init3D(){
  if(W3.raf)cancelAnimationFrame(W3.raf);W3.dead=false;W3.lblPool=null;
@@ -1666,6 +1693,17 @@ function init3D(){
  var keys={};
  cv.addEventListener("keydown",function(e){keys[e.key.toLowerCase()]=1;if(["w","a","s","d","r","f"," "].indexOf(e.key.toLowerCase())>=0)e.preventDefault();});
  cv.addEventListener("keyup",function(e){keys[e.key.toLowerCase()]=0;});
+ // Stop drifting: keyup never arrives if focus/pointer leaves the canvas (click outside, tab switch) -> clear all held keys.
+ function clearKeys(){for(var k in keys)keys[k]=0;drag=null;}
+ W3.clearKeys=clearKeys;
+ cv.addEventListener("blur",clearKeys);
+ cv.addEventListener("focusout",clearKeys);
+ cv.addEventListener("pointerleave",clearKeys);
+ cv.addEventListener("lostpointercapture",function(){drag=null;});
+ if(W3._kBlur)window.removeEventListener("blur",W3._kBlur);
+ W3._kBlur=clearKeys;window.addEventListener("blur",W3._kBlur);
+ if(W3._kVis)document.removeEventListener("visibilitychange",W3._kVis);
+ W3._kVis=function(){if(document.hidden)clearKeys();};document.addEventListener("visibilitychange",W3._kVis);
  var drag=null;
  cv.onpointerdown=function(e){drag=[e.clientX,e.clientY];cv.focus();cv.setPointerCapture(e.pointerId);};
  cv.onpointermove=function(e){if(!drag)return;cam.yaw+=(e.clientX-drag[0])*0.005;cam.pitch=Math.max(-1.5,Math.min(1.5,cam.pitch-(e.clientY-drag[1])*0.005));drag=[e.clientX,e.clientY];};
