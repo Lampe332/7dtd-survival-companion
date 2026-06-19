@@ -23,7 +23,7 @@ A single Rust executable that serves a small web app on `127.0.0.1:17873` and re
 
 ## Features
 
-- 🌍 **World settings editor** — edit `gameOptions.sdf` with real write-back (automatic backup + byte-exact re-encode + SandboxCode patching)
+- 🌍 **World settings editor** — edit `gameOptions.sdf` with real write-back (automatic backup + byte-exact re-encode + SandboxCode patching), one-click **difficulty presets** (Baby → Nightmare), and a plain-English explanation for every setting
 - 🗺️ **2D map** — biomes, roads, water and every POI decoded from your world files
 - 🧊 **3D fly-through** — WebGL terrain with building boxes and distance-LOD labels
 - 🔨 **Build planner** — full 56-perk catalog, guided phase plan, imports your real `.ttp` progression
@@ -50,8 +50,7 @@ The frontend (`7DtD_Skill_Tracker.html`) and reference data (`src/refdata.json`)
 - **Backend:** Rust + [`tiny_http`](https://crates.io/crates/tiny_http) — file scanning, binary `.sdf` / `.ttp` parsing, settings write-back, map decoding
 - **Frontend:** vanilla JS, single file, custom WebGL for the 3D map (no framework)
 - **Platform:** Windows
-
-> ⚠️ The in-app UI is currently in **German**.
+- **UI language:** English
 
 ## License
 
