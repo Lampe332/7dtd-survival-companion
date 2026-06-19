@@ -291,7 +291,7 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
         let splat4 = [dir.join("splat4_half.png"), dir.join("splat4.png")]
             .into_iter()
             .find(|p| p.is_file());
-        let water_mask = splat4.and_then(|p| water_mask(&p, 768));
+        let water_mask = splat4.and_then(|p| water_mask(&p, 1536));
         maps.insert(
             world.clone(),
             WorldMap {

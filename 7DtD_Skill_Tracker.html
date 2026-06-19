@@ -1363,22 +1363,18 @@ function requestDraw(){if(W.rafPending)return;W.rafPending=true;requestAnimation
 // Build ONE overlay (built ONCE) like kui/7dtd-map: composite the FULL splat3
 // (its own alpha = the complete road + trail + path network) onto biomes, then
 // paint the server-decoded water mask on top (splat4 alpha=0 so canvas can't read it).
+// Water overlay only (splat3 is now drawn full-res directly in drawMap). Water =
+// server-decoded splat4 blue mask (canvas can't read splat4's alpha=0 itself).
 function buildMapOverlay(){
  if(!W.mapImg)return;
- var N=3072;
- var oc=document.createElement("canvas");oc.width=N;oc.height=N;var octx=oc.getContext("2d");
- var any=false;
- if(W.roadImg){octx.imageSmoothingEnabled=true;octx.drawImage(W.roadImg,0,0,N,N);any=true;} // full splat3 terrain/road texture
  var wm=S.map&&S.map.watermask;W.waterCells=0;
- if(wm&&wm.d){
-  var wd=b64ToU8(wm.d),wn=wm.n;
-  var wc=document.createElement("canvas");wc.width=N;wc.height=N;var wx=wc.getContext("2d");
-  var wo=wx.createImageData(N,N),wob=wo.data;
-  for(var i=0;i<N*N*4;i+=4){var px=(i>>2)%N,py=(i>>2)/N|0,wi=(py*wn/N)|0,wj=(px*wn/N)|0;if(wi>=wn)wi=wn-1;if(wj>=wn)wj=wn-1;
-   if(wd[wi*wn+wj]>=2){wob[i]=44;wob[i+1]=120;wob[i+2]=212;wob[i+3]=235;W.waterCells++;}}
-  wx.putImageData(wo,0,0);octx.drawImage(wc,0,0);any=true;
- }
- W.overlay=any?oc:null;
+ if(!wm||!wm.d){W.overlay=null;return;}
+ var wd=b64ToU8(wm.d),wn=wm.n,N=Math.max(1024,wn);
+ var oc=document.createElement("canvas");oc.width=N;oc.height=N;var octx=oc.getContext("2d");
+ var wo=octx.createImageData(N,N),wob=wo.data;
+ for(var i=0;i<N*N*4;i+=4){var px=(i>>2)%N,py=(i>>2)/N|0,wi=(py*wn/N)|0,wj=(px*wn/N)|0;if(wi>=wn)wi=wn-1;if(wj>=wn)wj=wn-1;
+  if(wd[wi*wn+wj]>=2){wob[i]=44;wob[i+1]=120;wob[i+2]=212;wob[i+3]=235;W.waterCells++;}}
+ octx.putImageData(wo,0,0);W.overlay=W.waterCells?oc:null;
 }
 function drawLabel(ctx,text,x,y,strong){text=(""+text).slice(0,22);ctx.lineWidth=3;ctx.lineJoin="round";ctx.strokeStyle="rgba(8,7,5,.92)";ctx.strokeText(text,x,y);ctx.fillStyle=strong?"#fff":"#ece8df";ctx.fillText(text,x,y);}
 function drawMap(){
@@ -1387,6 +1383,7 @@ function drawMap(){
  var dw=img.naturalWidth*v.k,dh=img.naturalHeight*v.k;
  ctx.clearRect(0,0,Wc,Hc);ctx.fillStyle="#0a0907";ctx.fillRect(0,0,Wc,Hc);
  ctx.imageSmoothingEnabled=false;ctx.drawImage(img,v.tx,v.ty,dw,dh);
+ if(W.roadImg){ctx.imageSmoothingEnabled=true;ctx.drawImage(W.roadImg,v.tx,v.ty,dw,dh);} // full splat3 1:1 — keeps every city street at any zoom
  if(W.overlay){ctx.imageSmoothingEnabled=true;ctx.drawImage(W.overlay,v.tx,v.ty,dw,dh);}
  var q=S.mapSearch||"", f=w2cFactors(), labels=[];
  (S.map.pois||[]).forEach(function(p){
