@@ -1008,7 +1008,7 @@ function ctlHTML(o,sstate){
  if(o.control==="select"&&o.options&&o.options.length){
   var sel='<select class="setinput" data-opt="'+name+'">';
   if(sstate.presetDefault)sel+='<option value="" selected>— Preset Default —</option>';
-  o.options.forEach(function(op){var on=String(sstate.cur)===String(op.v);sel+='<option value="'+esc(op.v)+'"'+(on?" selected":"")+'>'+esc(op.v)+'</option>';});
+  o.options.forEach(function(op){var on=String(sstate.cur)===String(op.v);sel+='<option value="'+esc(op.v)+'"'+(on?" selected":"")+'>'+esc(op.label||op.v)+'</option>';});
   return sel+'</select>';
  }
  if(o.control==="bool"){var on=sstate.cur===true||sstate.cur===1||sstate.cur==="1"||sstate.cur==="True";return '<select class="setinput" data-opt="'+name+'"><option value="true"'+(on?" selected":"")+'>On</option><option value="false"'+(!on?" selected":"")+'>Off</option></select>';}
