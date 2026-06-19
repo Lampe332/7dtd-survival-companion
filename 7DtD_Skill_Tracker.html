@@ -1224,7 +1224,7 @@ function importWorld(s,pl){
   var sm=W.maps&&W.maps[s.world];
   if(sm){S.map=sm;S.map.player=(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null;}else S.map=null;
   if(pl)applyImportedCharacter(pl);
-  W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W.mapKey=sm?sm.key:null;W3.dead=true;
+  W.mapImg=null;W.roadImg=null;W.waterImg=null;W.overlay=null;W.view=null;W.sel=null;W.mapKey=sm?sm.key:null;W3.dead=true;
   finishImport(pl);return;
  }
  var mf=W.maps&&W.maps[s.world];
@@ -1232,9 +1232,9 @@ function importWorld(s,pl){
   document.getElementById("world").innerHTML='<div class="banner safe">Reading map data from <b>'+esc(s.world)+'</b>… Biomes, POIs'+(mf.dtm?", 3D heightmap":"")+'.</div>';
   Promise.all([fileToDataURL(mf.biomes),mf.prefabs.text(),mf.mapinfo?mf.mapinfo.text():Promise.resolve("")]).then(function(a){
    var info=parseMapInfo(a[2]||"");
-   var base={world:s.world,img:a[0],size:info.size,seed:info.seed,ver:info.ver,rwg:info.rwg,gen:info.gen,pois:parsePrefabs(a[1]),player:(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null};
+   var base={world:s.world,key:s.world,img:a[0],size:info.size,seed:info.seed,ver:info.ver,rwg:info.rwg,gen:info.gen,pois:parsePrefabs(a[1]),player:(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null};
    var hmJob=mf.dtm?readHeightmap(mf.dtm,256,info.size):Promise.resolve(null);
-   return hmJob.then(function(hm){if(hm)base.hm={n:hm.n,mn:hm.mn,mx:hm.mx,d:u8ToB64(hm.data)};S.map=base;if(pl)applyImportedCharacter(pl);W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W3.dead=true;finishImport(pl);});
+   return hmJob.then(function(hm){if(hm)base.hm={n:hm.n,mn:hm.mn,mx:hm.mx,d:u8ToB64(hm.data)};S.map=base;if(pl)applyImportedCharacter(pl);W.mapImg=null;W.roadImg=null;W.waterImg=null;W.overlay=null;W.view=null;W.sel=null;W3.dead=true;finishImport(pl);});
   }).catch(function(e){document.getElementById("world").innerHTML='<div class="banner danger">Import failed: '+esc(e.message)+'</div>';});
  } else {S.map=null;if(pl)applyImportedCharacter(pl);finishImport(pl);}
 }
