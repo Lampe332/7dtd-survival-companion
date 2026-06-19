@@ -1360,22 +1360,25 @@ function requestDraw(){if(W.rafPending)return;W.rafPending=true;requestAnimation
 // every frame (the old lag). WATER = splat4 BLUE channel (the game's real water
 // mask, faint ≤30; same source the 3D map samples) amplified to clear blue. ROADS
 // = splat3 RED channel (asphalt). High res preserves thin rivers + paths.
+// Build ONE overlay (built ONCE) like kui/7dtd-map: composite the FULL splat3
+// (its own alpha = the complete road + trail + path network) onto biomes, then
+// paint the server-decoded water mask on top (splat4 alpha=0 so canvas can't read it).
 function buildMapOverlay(){
  if(!W.mapImg)return;
- var N=2048;
+ var N=3072;
  var oc=document.createElement("canvas");oc.width=N;oc.height=N;var octx=oc.getContext("2d");
- var out=octx.createImageData(N,N),o=out.data,any=false;
- function samp(img){if(!img)return null;var c=document.createElement("canvas");c.width=N;c.height=N;var x=c.getContext("2d");try{x.drawImage(img,0,0,N,N);return x.getImageData(0,0,N,N).data;}catch(e){return null;}}
- var rd=samp(W.roadImg);                                  // roads: splat3 red channel
- var wm=S.map&&S.map.watermask, wd=null, wn=0;             // water: server-decoded blue mask (canvas can't read splat4's alpha=0)
- if(wm&&wm.d){wd=b64ToU8(wm.d);wn=wm.n;}
- W.waterCells=0;
- for(var i=0;i<N*N*4;i+=4){var px=(i>>2)%N, py=(i>>2)/N|0;
-  if(rd&&(rd[i]>14||(px>0&&rd[i-4]>14)||(px<N-1&&rd[i+4]>14)||(py>0&&rd[i-(N<<2)]>14)||(py<N-1&&rd[i+(N<<2)]>14))){o[i]=255;o[i+1]=178;o[i+2]=92;o[i+3]=255;any=true;}
-  if(wd){var wi=(py*wn/N)|0,wj=(px*wn/N)|0;if(wi>=wn)wi=wn-1;if(wj>=wn)wj=wn-1;
-   if(wd[wi*wn+wj]>=2){o[i]=44;o[i+1]=120;o[i+2]=212;o[i+3]=245;any=true;W.waterCells++;}}
+ var any=false;
+ if(W.roadImg){octx.imageSmoothingEnabled=true;octx.drawImage(W.roadImg,0,0,N,N);any=true;} // full splat3 terrain/road texture
+ var wm=S.map&&S.map.watermask;W.waterCells=0;
+ if(wm&&wm.d){
+  var wd=b64ToU8(wm.d),wn=wm.n;
+  var wc=document.createElement("canvas");wc.width=N;wc.height=N;var wx=wc.getContext("2d");
+  var wo=wx.createImageData(N,N),wob=wo.data;
+  for(var i=0;i<N*N*4;i+=4){var px=(i>>2)%N,py=(i>>2)/N|0,wi=(py*wn/N)|0,wj=(px*wn/N)|0;if(wi>=wn)wi=wn-1;if(wj>=wn)wj=wn-1;
+   if(wd[wi*wn+wj]>=2){wob[i]=44;wob[i+1]=120;wob[i+2]=212;wob[i+3]=235;W.waterCells++;}}
+  wx.putImageData(wo,0,0);octx.drawImage(wc,0,0);any=true;
  }
- octx.putImageData(out,0,0);W.overlay=any?oc:null;
+ W.overlay=any?oc:null;
 }
 function drawLabel(ctx,text,x,y,strong){text=(""+text).slice(0,22);ctx.lineWidth=3;ctx.lineJoin="round";ctx.strokeStyle="rgba(8,7,5,.92)";ctx.strokeText(text,x,y);ctx.fillStyle=strong?"#fff":"#ece8df";ctx.fillText(text,x,y);}
 function drawMap(){
