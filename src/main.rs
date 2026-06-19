@@ -140,12 +140,26 @@ fn main() {
         open_browser(&launch_url());
     });
 
-    for request in server.incoming_requests() {
+    // Worker pool: a slow /api/scan must not freeze asset/write/health requests.
+    let server = Arc::new(server);
+    let mut workers = Vec::new();
+    for _ in 0..8 {
+        let server = server.clone();
         let paths = paths.clone();
         let cache = cache.clone();
-        if let Err(error) = handle(request, &paths, &cache) {
-            eprintln!("[7DtD] Request-Fehler: {error}");
-        }
+        workers.push(thread::spawn(move || loop {
+            match server.recv() {
+                Ok(request) => {
+                    if let Err(error) = handle(request, &paths, &cache) {
+                        eprintln!("[7DtD] Request-Fehler: {error}");
+                    }
+                }
+                Err(_) => break,
+            }
+        }));
+    }
+    for worker in workers {
+        let _ = worker.join();
     }
 }
 
@@ -166,6 +180,22 @@ fn handle(
             );
         }
         return match write_settings(paths, &body) {
+            Ok(value) => respond_json(request, &value),
+            Err(error) => {
+                respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
+            }
+        };
+    }
+    if request.method() == &Method::Post && path == "/api/restore-settings" {
+        let mut body = String::new();
+        if let Err(error) = request.as_reader().read_to_string(&mut body) {
+            return respond_status_json(
+                request,
+                StatusCode(400),
+                &json!({"ok": false, "error": format!("Body unlesbar: {error}")}),
+            );
+        }
+        return match restore_settings(paths, &body) {
             Ok(value) => respond_json(request, &value),
             Err(error) => {
                 respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
@@ -255,7 +285,13 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
             if !sdf.is_file() {
                 continue;
             }
-            let settings = parse_sdf(&fs::read(&sdf).unwrap_or_default());
+            let settings = match fs::read(&sdf) {
+                Ok(bytes) => parse_sdf(&bytes),
+                Err(error) => {
+                    eprintln!("[7DtD] gameOptions.sdf unlesbar, Save übersprungen ({}): {error}", sdf.display());
+                    continue;
+                }
+            };
             let players = parse_players(&save_dir);
             saves.push(Save {
                 id: format!("{world} / {save_name}"),
@@ -771,6 +807,12 @@ fn parse_map_info(path: &Path) -> MapInfo {
 }
 
 fn sample_heightmap(path: &Path, size: usize) -> Result<HeightMap, String> {
+    // Guard against a bogus HeightMapSize: < N would read past the row buffer (OOB panic),
+    // a huge value would trigger a giant allocation/abort. Caller uses .ok() → drops the
+    // heightmap instead of crashing the scan thread.
+    if size < HEIGHTMAP_N || size > 32768 {
+        return Err(format!("Unplausible HeightMapSize: {size}"));
+    }
     let mut file = fs::File::open(path).map_err(|e| e.to_string())?;
     let step = (size / HEIGHTMAP_N).max(1);
     let row_bytes = size * 2;
@@ -803,6 +845,14 @@ fn sample_heightmap(path: &Path, size: usize) -> Result<HeightMap, String> {
 /// down to n×n. Max-pool (not average) keeps 1-px rivers from vanishing. Returns
 /// None if the layer holds no water at all.
 fn water_mask(path: &Path, n: usize) -> Option<WaterMask> {
+    // Never decode the full 10240² splat (~400MB RGBA in RAM). image_dimensions reads
+    // only the header, so we bail before allocating if a full-res splat slipped through
+    // (the caller already prefers the 5120² _half variant).
+    if let Ok((w, h)) = image::image_dimensions(path) {
+        if w > 6144 || h > 6144 {
+            return None;
+        }
+    }
     let img = image::open(path).ok()?.into_rgba8();
     let (w, h) = img.dimensions();
     let (sx, sy) = ((w as usize / n).max(1), (h as usize / n).max(1));
@@ -858,6 +908,10 @@ fn serve_world_asset(request: tiny_http::Request, paths: &Paths, url: &str) -> R
         );
     }
     let world = decode_segment(parts[1]);
+    // validate AFTER percent-decoding: `..%5c..%5c` only becomes `..\..\` here
+    if safe_segment(&world).is_err() {
+        return respond_status_json(request, StatusCode(403), &json!({"error":"Ungültiger Welt-Name"}));
+    }
     let file = parts[2];
     if !matches!(
         file,
@@ -870,7 +924,14 @@ fn serve_world_asset(request: tiny_http::Request, paths: &Paths, url: &str) -> R
     ) {
         return respond_status_json(request, StatusCode(403), &json!({"error":"Datei gesperrt"}));
     }
-    let path = paths.appdata.join("GeneratedWorlds").join(world).join(file);
+    let root = paths.appdata.join("GeneratedWorlds");
+    let path = root.join(&world).join(file);
+    // defence in depth: a resolved path must stay under the worlds root
+    if let (Ok(rp), Ok(rr)) = (path.canonicalize(), root.canonicalize()) {
+        if !rp.starts_with(&rr) {
+            return respond_status_json(request, StatusCode(403), &json!({"error":"Pfad gesperrt"}));
+        }
+    }
     serve_file(request, &path, "image/png")
 }
 
@@ -882,9 +943,13 @@ fn serve_poi_asset(request: tiny_http::Request, paths: &Paths, url: &str) -> Res
         .trim_start_matches("/poi/")
         .strip_suffix(".jpg")
         .unwrap_or("");
+    let decoded = decode_segment(name);
+    if decoded.is_empty() || safe_segment(&decoded).is_err() {
+        return respond_status_json(request, StatusCode(403), &json!({"error":"Ungültiger Name"}));
+    }
     let path = install
         .join("Data/Prefabs/POIs")
-        .join(format!("{}.jpg", decode_segment(name)));
+        .join(format!("{decoded}.jpg"));
     serve_file(request, &path, "image/jpeg")
 }
 
@@ -1186,14 +1251,50 @@ fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
         .unwrap_or(0);
     let backup = dir.join(format!("gameOptions.sdf.bak.{stamp}"));
     fs::copy(&sdf, &backup).map_err(|e| format!("Backup fehlgeschlagen (nichts geschrieben): {e}"))?;
-    fs::write(&sdf, &new_bytes).map_err(|e| format!("Schreiben fehlgeschlagen: {e}"))?;
+    // atomic replace: write a temp file in the same dir, then rename over the live file,
+    // so a crash/standby mid-write can never leave a half-written gameOptions.sdf.
+    let tmp = dir.join("gameOptions.sdf.tmp");
+    fs::write(&tmp, &new_bytes).map_err(|e| format!("Schreiben fehlgeschlagen: {e}"))?;
+    fs::rename(&tmp, &sdf).map_err(|e| format!("Ersetzen fehlgeschlagen: {e}"))?;
 
     Ok(json!({
         "ok": true,
         "changed": changed,
         "details": details,
         "backup": backup.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(),
+        "backupPath": backup.display().to_string(),
         "bytes": new_bytes.len(),
+    }))
+}
+
+/// Restore the most recent gameOptions.sdf.bak.* over the live file — the UI's undo.
+fn restore_settings(paths: &Paths, body: &str) -> Result<Value, String> {
+    let req: Value = serde_json::from_str(body).map_err(|e| format!("JSON-Fehler: {e}"))?;
+    let world = req["world"].as_str().ok_or("'world' fehlt")?;
+    let save = req["save"].as_str().ok_or("'save' fehlt")?;
+    safe_segment(world)?;
+    safe_segment(save)?;
+    let dir = paths.appdata.join("Saves").join(world).join(save);
+    let sdf = dir.join("gameOptions.sdf");
+    // newest backup by the unix stamp suffix
+    let mut backups: Vec<(u64, std::path::PathBuf)> = fs::read_dir(&dir)
+        .map_err(|e| format!("Save-Ordner nicht lesbar: {e}"))?
+        .flatten()
+        .filter_map(|entry| {
+            let path = entry.path();
+            let name = path.file_name()?.to_string_lossy().into_owned();
+            let stamp = name.strip_prefix("gameOptions.sdf.bak.")?;
+            Some((stamp.parse::<u64>().unwrap_or(0), path))
+        })
+        .collect();
+    backups.sort_by_key(|(stamp, _)| *stamp);
+    let Some((_, newest)) = backups.pop() else {
+        return Err("Kein Backup gefunden — es wurde noch nichts geschrieben.".into());
+    };
+    fs::copy(&newest, &sdf).map_err(|e| format!("Restore fehlgeschlagen: {e}"))?;
+    Ok(json!({
+        "ok": true,
+        "restored": newest.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(),
     }))
 }
 

@@ -382,15 +382,16 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
     <div class="launchlogo">☣</div>
     <h1>Survival&nbsp;Companion</h1>
     <div class="launchtag">Your offline 7 Days to Die command center · <b>V3.0 Dead Hot Summer</b></div>
-    <div class="launchfeat"><span>Live saves</span><span>World editor</span><span>2D / 3D maps</span><span>Build planner</span><span>Magazine tracking</span></div>
+    <div class="launchfeat"><span>Live saves</span><span>World editor</span><span>3D map</span><span>Build planner</span><span>Magazine tracking</span></div>
     <button class="btn launchbtn" id="scanbtn">Scan Worlds &amp; Survivors</button>
     <div class="launchstatus" id="launchstatus">100% local · offline · no cloud · one self-contained EXE</div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;line-height:1.55;color:var(--dim);max-width:460px;margin-left:auto;margin-right:auto">Scanning only <b>reads</b> your local saves to show your worlds, character and settings. Nothing is written to your game until you explicitly press <b>Write to World</b> in the World tab — and that always makes a backup first.</div>
   </div>
 </div>
 <div class="wrap">
 <div class="top">
   <div class="logo"><span class="brand-mark">7D</span><span class="brand-copy"><b>Survival Companion</b><small>Wasteland Operations Console</small></span></div>
-  <div class="dayctl"><button id="dm">−</button><div><div class="dl">Day</div><div class="dv" id="dayv">1</div></div><button id="dp">+</button></div>
+  <div class="dayctl"><button id="dm">−</button><div><div class="dl">Day</div><input class="dv" id="dayv" type="text" inputmode="numeric" value="1" title="Type a day number or use −/+" style="width:52px;background:transparent;border:none;color:inherit;font:inherit;text-align:center;padding:0"></div><button id="dp">+</button></div>
   <span class="icon" id="exp" title="Export/Import">⇅</span>
 </div>
 <div class="tabs" id="tabs"></div>
@@ -493,8 +494,10 @@ var TIERCOL={"-1":"#6f6a5c","0":"#8a8478","1":"#5cc47a","2":"#9bd14a","3":"#f5b7
 var TIERLBL={"-1":"?","0":"T0","1":"T1","2":"T2","3":"T3","4":"T4","5":"T5"};
 var SANDORDER=["RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","HeadshotMultiplier","CrouchSpeed","WalkSpeed","RunSpeed","JumpStrength","StaminaUsage","StaminaRegen","PlayerLevelBonusApplied","JarRefund","ShowHealthBars","ShowEnemyDamage","NewbieCoat","HeadshotMode","IncomingDamage","XPMultiplier","ShowXP","EncumbranceModifier","ItemDegradation","LoseItemsOnDeathType","LoseItemsOnDeathCount","DegradeItemsOnDeath","DegradeAmountOnDeath","DeathPenalty","DropOnDeath","DropOnQuit","InfectionRate","EnemySpawnMode","EntityDamage","BlockDamageAI","BlockDamageAIBM","ZombieMove","ZombieMoveNight","ZombieFeralMove","ZombieBMMove","ZombieFeralSense","AISmellMode","AllowZombieDigging","ZombieRageChance","EntityIncomingDamage","MaxEnemyTier","BiomeZombieRespawn","BiomeAnimalRespawn","BiomeEnemyDensity","ZombiesEatAnimals","BloodMoonFrequency","BloodMoonRange","BloodMoonWarning","BloodMoonEnemyCount","AirDropFrequency","AirDropMarker","AirDropRandomTime","BiomeProgression","TemperatureSurvival","StormFreq","StormWarning","HeatMapSensitivity","GlobalGSModifier","BiomeGSModifier","GlobalLSModifier","BiomeLSModifier","POITierLSModifier","GlobalTSModifier","DayNightLength","DayLightLength","AllowMap","AllowCompass","AllowScreenMarkers","ShowLocationInfo","ShowDayTime","WorkstationsInTheWild","MaxTechType","LootRespawnDays","LootTimer","LootMaxTier","GlobalLootCount","FoodLootCount","DrinkLootCount","MedicalLootCount","AmmoLootCount","ResourceLootCount","ArmorLootCount","MeleeLootCount","RangedLootCount","DukesLootCount","CraftingMagazinesLootCount","TreasureMapChance","LootBagChance","CropOutput","SeedDropOutput","CropGrowthSpeed","BackpackCrafting","WorkstationCrafting","CraftingProgression","CraftingTime","CraftingInput","CraftingOutput","CraftingMaxTier","MiningOutput","HarvestingOutput","ScrappingOutput","SmeltingType","DewCollectorTime","DewCollectorOutput","DewCollectorInput","ApiaryTime","ApiaryOutput","ApiaryInput","RepairTypes","MaxDegradationAmount","PointsPerMagazine","SkillGainRate","SkillPointsPerLevel","QuestsEnabled","IntroQuestEnabled","TraderToTraderQuestsEnabled","StarterSkillPoints","QuestsPerTier","QuestProgressionDailyLimit","BuriedQuestsEnabled","POIQuestsEnabled","TraderDialog","TraderHours","TradersEnabled","VendingEnabled","TraderSellPrices","TraderBuyPrices","TraderProtection","TraderResetInterval","TraderItemAbundance","TraderBuyLimit","TraderMaxTier","VendingResetInterval","VendingItemAbundance","ChallengesEnabled","IntroChallengesEnabled","VehicleFuelUsage","VehicleEntityDamage","VehicleBlockDamage","VehicleSelfDamage","ElectricalOutput","SillyCelebrate","SillyBigHeads","SillyTinyZombies","SillySounds","SillyLowGravity","SillyBlackandWhite"];
 var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XP Only","Injured","Permadeath"]},"DropOnDeath":{"d":["Nothing","Everything","Toolbelt","Backpack","Delete Everything"]},"DropOnQuit":{"d":["Nothing","Everything","Toolbelt","Backpack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Off","Day","Night","All"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morning","Evening"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unlimited"]}};
-var TABS=[["world","World"],["d3","Map"],["dash","Dashboard"],["build","Build"],["horde","Horde"],["loot","Loot"],["mags","Magazines"],["ref","Reference"]];
-var S=JSON.parse(lg("7dtd-companion")||"null")||{tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,col:{},world:null};
+var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["horde","Horde"],["loot","Loot"],["mags","Magazines"],["ref","Reference"]];
+function loadState(){var raw=lg("7dtd-companion");if(!raw)return {};try{return JSON.parse(raw)||{};}catch(e){try{ls("7dtd-companion.bak",raw);}catch(_){}return {};}}
+function normalizeState(s){s=(s&&typeof s==="object")?s:{};var d={tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},col:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,world:null};s=Object.assign({},d,s);if(!BUILDS[s.cur])s.cur="sledge";if(!BIOMES[s.biome])s.biome="Forest";["builds","mag","ready","col"].forEach(function(k){if(typeof s[k]!=="object"||!s[k])s[k]={};});if(typeof s.day!=="number"||s.day<1)s.day=1;if(typeof s.lvl!=="number"||s.lvl<1)s.lvl=22;return s;}
+var S=normalizeState(loadState());
 var W={tree:null,curSave:null,maps:{},mapImg:null,roadImg:null,waterImg:null,view:null,sel:null,mapKey:null,scanned:false};
 var W3={dead:true,gl:null,raf:0};
 var RD=null,UIA={},EDIT={},EDIT_CTX=null;
@@ -515,12 +518,13 @@ function humanKey(s){return (s||"").replace(/([a-z0-9])([A-Z])/g,"$1 $2").replac
 function save(){var p=JSON.parse(JSON.stringify(S));delete p.map;delete p.playerProgression;ls("7dtd-companion",JSON.stringify(p));}
 function bstate(){if(!S.builds[S.cur])S.builds[S.cur]={chk:{},ext:[]};return S.builds[S.cur];}
 // ---- top ----
-function renderTop(){document.getElementById("dayv").textContent=S.day;}
+function renderTop(){var d=document.getElementById("dayv");if(!d)return;if(d.tagName==="INPUT")d.value=S.day;else d.textContent=S.day;}
 document.getElementById("dp").onclick=function(){S.day++;save();renderTop();show();};
 document.getElementById("dm").onclick=function(){if(S.day>1)S.day--;save();renderTop();show();};
+(function(){var di=document.getElementById("dayv");if(di&&di.tagName==="INPUT")di.onchange=function(){var v=parseInt(this.value,10);if(!(v>=1))v=1;S.day=v;save();renderTop();show();};})();
 document.getElementById("exp").onclick=function(){
  var blob=JSON.stringify(S);var inp=prompt("EXPORT / IMPORT\nCopy this code as a backup, or paste a saved code and press OK to restore it:",blob);
- if(inp&&inp!==blob){try{var n=JSON.parse(inp);S=n;save();location.reload();}catch(e){alert("Invalid companion data.");}}
+ if(inp&&inp!==blob){var n;try{n=JSON.parse(inp);}catch(e){alert("Invalid companion data.");return;}if(!n||typeof n!=="object"){alert("Invalid companion data.");return;}S=normalizeState(n);save();location.reload();}
 };
 // ---- tabs ----
 var tb=document.getElementById("tabs");
@@ -534,7 +538,13 @@ function show(){
  document.body.dataset.tab=S.tab;
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
- (({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef})[S.tab]||rWorld)();
+ try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef})[S.tab]||rWorld)();}
+ catch(e){showRenderError(e);}
+}
+function showRenderError(e){
+ var el=document.getElementById(S.tab)||document.body;
+ el.innerHTML='<div class="banner danger" style="margin:16px">⚠ This view failed to render — your saved state may be corrupt. <button class="btn" id="stReset" style="margin-left:8px">Reset to defaults</button><div style="opacity:.6;margin-top:6px;font-size:11px">'+esc(e&&e.message?e.message:String(e))+'</div></div>';
+ var b=document.getElementById("stReset");if(b)b.onclick=function(){try{ls("7dtd-companion.bak",lg("7dtd-companion")||"");}catch(_){}try{localStorage.removeItem("7dtd-companion");}catch(_){}location.reload();};
 }
 // ---- calc ----
 function bm(){var f=S.freq||10;var next=S.day%f===0?S.day:Math.ceil(S.day/f)*f;return {next:next,until:next-S.day,today:S.day%f===0&&S.day>0};}
@@ -571,14 +581,14 @@ function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
    opsStat("CLOCK / DAY",S.day,"Next Blood Moon: day "+b.next)+
    opsStat("CONTACT / D-"+b.until,b.until,bmc+" enemies configured")+
    opsStat("THREAT / GS",gs,gs>=147?"Demolisher possible":gs>=80?"Wights and Cops active":"Standard threat pool")+
-   opsStat("SUPPLY / LS",ls2,lootTier(ls2),true)+
+   opsStat("SUPPLY / LS",ls2,lootTier(ls2),true,"Loot Stage: controls item quality you find. Rises with level, biome and POI tier. Separate from Game Stage.")+
    opsStat("BUILD / ROUTE",bp+"%",esc(BUILDS[S.cur].name),false)+
-   opsStat("DEFENSE / GRADE",rs.g,rs.p+"% Horde readiness")+'</div>';
+   opsStat("DEFENSE / GRADE",rs.g,rs.p+"% Horde readiness",false,"Readiness grade A–F from your Horde prep checklist. F = not yet prepared — it is a to-do list, not an error.")+'</div>';
  document.getElementById("dash").innerHTML=hero("Survivor Dashboard","Live operation overview","Track the next Blood Moon, imported character status, build progress and current loot pressure.","tab_dash")+ban+overview+'<div class="dashboard-core">'+status+quick+'</div>';
  document.querySelectorAll("#dash [data-go]").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};});
 }
 function card(h,sub,body){return '<div class="card"><h3>'+h+'</h3>'+body+'</div>';}
-function opsStat(code,value,label,small){return '<div class="ops-stat"><div class="ops-code">'+code+'</div><div class="ops-value'+(small?" small":"")+'">'+value+'</div><div class="ops-label">'+label+'</div><div class="ops-signal"></div></div>';}
+function opsStat(code,value,label,small,tip){return '<div class="ops-stat"'+(tip?' title="'+esc(tip)+'"':'')+'><div class="ops-code">'+code+(tip?' <span style="opacity:.55;cursor:help">ⓘ</span>':'')+'</div><div class="ops-value'+(small?" small":"")+'">'+value+'</div><div class="ops-label">'+label+'</div><div class="ops-signal"></div></div>';}
 function opsLead(code,pct,value,title,desc,col){return '<div class="ops-stat ops-lead"><div class="ring">'+ringSVG(pct,col||"var(--tab-hot)",94)+'<div class="rt"><span class="big">'+value+'</span></div></div><div class="ops-lead-copy"><div class="ops-code">'+code+'</div><b>'+title+'</b><p>'+desc+'</p></div></div>';}
 // ---- BUILD ----
 function rBuild(){var st=bstate();
@@ -694,9 +704,9 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  var html=hero("Horde Command","Blood Moon battle station","Turn preparation into a live combat board: arm each system, clear critical failures and track threats before the first wave.","tab_horde")+ban+
   '<div class="horde-overview">'+
    '<div class="card readiness-core"><div class="readiness-dial">'+ringSVG(rs.p,ringCol,118)+'<div class="readiness-grade">'+rs.g+'<small>'+rs.p+'% READY</small></div></div>'+
-    '<div class="readiness-copy"><div class="statusline">'+status+'</div><p>Critical systems carry double weight. Reach 90% before contact; anything lower leaves a known failure point in the defense.</p><div class="bar"><div class="fillb" style="width:'+rs.p+'%"></div></div></div></div>'+
+    '<div class="readiness-copy"><div class="statusline">'+status+'</div><p>Critical systems carry double weight. Reach 90% before contact; anything lower leaves a known failure point in the defense.</p><p style="opacity:.7;font-size:11.5px">Grades: A ≥90% · B ≥75% · C ≥55% · D ≥35% · F below. <b>F just means not yet prepared</b> — it is a checklist, not an error.</p><div class="bar"><div class="fillb" style="width:'+rs.p+'%"></div></div></div></div>'+
    '<div class="card horde-stat"><span class="code">COUNTDOWN / D-'+b.until+'</span><div><div class="value">'+b.until+'</div><div class="unit">days to contact</div></div><div class="signal"></div></div>'+
-   '<div class="card horde-stat"><span class="code">THREAT / GS</span><div><div class="value">'+gs+'</div><div class="unit">current Game Stage</div></div><div class="signal"></div></div>'+
+   '<div class="card horde-stat" title="Game Stage: hidden difficulty from your level + days survived. Higher = tougher, more numerous zombies and better loot."><span class="code">THREAT / GS ⓘ</span><div><div class="value">'+gs+'</div><div class="unit">current Game Stage</div></div><div class="signal"></div></div>'+
    '<div class="card horde-stat"><span class="code">WAVE / CAP</span><div><div class="value">'+bmc+'</div><div class="unit">configured enemies</div></div><div class="signal"></div></div>'+
   '</div><div class="horde-groups">'+prepGroups.map(groupHTML).join("")+'</div>';
  var threats=[
@@ -747,7 +757,7 @@ function rLoot(){var gs=gamestage(),ls2=lootstage();
  '<div class="ops-strip">'+
   opsLead("LOOT STAGE / LIVE",Math.min(100,Math.round(ls2/290*100)),ls2,"Current Loot Band",lootTier(ls2)+" in "+S.biome+".","#d0a84e")+
   opsStat("THREAT / GS",gs,gs>=147?"Demolisher tier":gs>=80?"Special infected active":"Standard threats")+
-  opsStat("BIOME / MULT",BIOMES[S.biome].toFixed(1)+"×",S.biome+" reward multiplier")+
+  opsStat("BIOME / MULT",(BIOMES[S.biome]||1).toFixed(1)+"×",S.biome+" reward multiplier")+
   opsStat("RISK / ZONE",risk,"Current biome exposure",true)+
   opsStat("NEXT / BAND",nextLs,"Loot Stage target")+'</div>'+
  '<div class="loot-console"><div class="card loot-form"><h3>Loot Projection Console</h3>'+
@@ -767,29 +777,29 @@ function rLoot(){var gs=gamestage(),ls2=lootstage();
  html+='<div class="grid g2" style="margin-top:12px"><div class="card"><h3>High-Value Sources</h3><div class="refrow lq"><b>Weapons & ammo</b> — military POIs, Shotgun Messiah, police stations and gun safes.</div><div class="refrow lq"><b>Magazines</b> — Crack-a-Book, bookshelves, mailboxes and quest rewards.</div><div class="refrow lq"><b>Medical</b> — Pop-N-Pills, hospitals, clinics and medicine cabinets.</div><div class="refrow lq"><b>Endgame gear</b> — hardened T4/T5 chests, air drops and Infested quest rooms.</div></div>'+
  '<div class="card"><h3>Field Notes</h3><div class="refrow lq">Harder biomes increase Loot Stage; Wasteland offers the highest reward and highest risk.</div><div class="refrow lq">Loot Stage and Game Stage are separate values.</div><div class="refrow lq">Complete POIs to reach the final loot room instead of abandoning the route early.</div><div class="refrow lq">Crafting progression still depends on magazines, not high-tier weapon drops.</div></div></div>';
  document.getElementById("loot").innerHTML=html;
- document.getElementById("il").oninput=function(){S.lvl=+this.value;save();rLoot();};
+ document.getElementById("il").onchange=function(){S.lvl=+this.value||1;save();rLoot();};
  document.getElementById("ib").onchange=function(){S.biome=this.value;save();rLoot();};
- document.getElementById("ill").oninput=function(){S.ll=+this.value;save();rLoot();};
+ document.getElementById("ill").onchange=function(){S.ll=+this.value||0;save();rLoot();};
  document.querySelectorAll("#loot [data-biome]").forEach(function(c){c.onclick=function(){S.biome=c.dataset.biome;save();rLoot();};});
  var lq=document.getElementById("lootq");if(lq)lq.oninput=function(){S.lootq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#loot .lq").forEach(function(r){r.style.display=(!q||(r.dataset.txt||r.textContent.toLowerCase()).indexOf(q)>=0)?"":"none";});};
 }
 // ---- MAGS ----
 function rMags(){if(!S.books)S.books={};
  var magNow=0,magMax=0,magDone=0,priorityNow=0,priorityMax=0,bookNow=0,bookDone=0;
- MAGS.forEach(function(m,i){var v=S.mag[i]||0;magNow+=v;magMax+=m[1];if(v>=m[1])magDone++;if(m[3]){priorityNow+=v;priorityMax+=m[1];}});
+ MAGS.forEach(function(m,i){if(m[5]==="book")return;var v=S.mag[i]||0;magNow+=v;magMax+=m[1];if(v>=m[1])magDone++;if(m[3]){priorityNow+=v;priorityMax+=m[1];}});
  BOOKS.forEach(function(b,i){var v=S.books[i]||0;bookNow+=v;if(v>=7)bookDone++;});
  var magPct=magMax?Math.round(magNow/magMax*100):0,priorityPct=priorityMax?Math.round(priorityNow/priorityMax*100):0;
  var html=hero("Magazine Archive","Progression ledger","Track crafting magazine levels and all nineteen seven-volume perk book collections.","tab_mags")+
   '<div class="mag-overview">'+
    opsStat("CRAFTING / TOTAL",magPct+"%",magNow+" of "+magMax+" progression points")+
-   opsStat("SKILLS / MAXED",magDone,MAGS.length+" tracked magazine lines")+
+   opsStat("SKILLS / MAXED",magDone,MAGS.filter(function(m){return m[5]!=="book";}).length+" tracked magazine lines")+
    opsStat("BOOKS / COMPLETE",bookDone,bookNow+" of "+(BOOKS.length*7)+" volumes logged")+
    opsStat("PRIORITY / SLEDGE",priorityPct+"%",priorityNow+" of "+priorityMax+" priority progress")+'</div>'+
   '<div class="card"><h3>Archive Search</h3><div class="sub">Crafting magazines unlock recipes and quality. Completed perk book series grant permanent bonuses. ★ marks priorities for the active Sledge doctrine.</div>'+
   '<input class="searchbar" id="magq" placeholder="Search magazines or perk books…" value="'+esc(S.magq||"")+'" style="margin-top:10px;margin-bottom:0"></div>';
  if(S.importedPlayer)html+='<div class="banner safe" style="margin-top:10px">Crafting progress imported from <b>'+esc(S.importedPlayer.name)+'</b>. Values are crafting levels and may not equal physical magazine count when Points per Magazine is modified.</div>';
  // Crafting magazines grouped by category
- var groups={};MAGS.forEach(function(m,i){var cat=MAGCAT[m[2]]||MAGCAT[m[0]]||"Other";(groups[cat]=groups[cat]||[]).push(i);});
+ var groups={};MAGS.forEach(function(m,i){if(m[5]==="book")return;var cat=MAGCAT[m[2]]||MAGCAT[m[0]]||"Other";(groups[cat]=groups[cat]||[]).push(i);});
  ["Weapons","Tools & Technology","Survival","Vehicles","Other"].forEach(function(cat,ci){
   var idxs=groups[cat];if(!idxs)return;
   var entries="";
@@ -812,6 +822,15 @@ function rMags(){if(!S.books)S.books={};
  var mq=document.getElementById("magq");if(mq)mq.oninput=function(){S.magq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#mags .mag-section").forEach(function(sec){var any=false;sec.querySelectorAll(".magrow").forEach(function(r){var on=!q||(r.dataset.txt||"").indexOf(q)>=0;r.style.display=on?"":"none";if(on)any=true;});sec.style.display=any?"":"none";});};
 }
 // ---- REF ----
+var PRIMER=[
+ ["What is a Blood Moon?","Every few in-game days (this world: every 10) a night-time horde swarms your base until dawn — this world throws 64 zombies at you. It is the main combat event: build a defensible base and stock ammo before it. Watch the day counter in the top bar to see it coming."],
+ ["Game Stage (GS)","A hidden difficulty score built from your level plus days survived. Higher GS means tougher, more numerous zombies and better loot. It is why a horde on night 30 is far deadlier than on night 3."],
+ ["Loot Stage (LS)","Controls the quality of items you find. It rises with your level, the biome (harsher biome = better loot) and the building tier. Higher LS walks you from primitive → iron → steel → endgame gear."],
+ ["How perks work","You earn skill points per level and spend them on 5 attributes (Perception, Strength, Fortitude, Agility, Intellect). Each perk has 5 ranks gated behind its attribute level. Important: perks no longer unlock crafting — reading skill magazines does that."],
+ ["POI tiers (T0–T5)","Every building (POI) has a difficulty tier. T1 is a quick clear; T5 (factories, skyscrapers, hospitals) is a long, dangerous dungeon with many zombies but the best loot and quest rewards. The 3D Map colours buildings by tier."],
+ ["Feral & Demolisher","Feral zombies are faster, tougher horde variants — this world runs Nightmare speed, so they sprint day and night. A Demolisher is a special zombie carrying a chest explosive: hit its head or legs, never the chest, or it detonates and blows a hole in your base."],
+ ["Navezgane vs RWG","Navezgane is the fixed, hand-built map. RWG (Random World Generation) builds a fresh procedural map per seed — your world is one of these. Both share the same POIs, zombies and rules."]
+];
 function rRef(){
  if(!S.refcol)S.refcol={};
  var html=hero("Field Reference","Survival doctrine","Compact rules for the current world, sledge combat, crafting, infection, bases and progression thresholds.","tab_ref")+
@@ -820,7 +839,9 @@ function rRef(){
    opsStat("WORLD / MODE",S.world?"LINKED":"LOCAL",S.world?esc(S.world.world):"No active world",true)+
    opsStat("BUILD / ACTIVE","SLEDGE",esc(BUILDS[S.cur].name),true)+
    opsStat("NOTES / CHARS",(S.notes||"").length,"Locally stored field notes")+'</div>'+
-  '<div class="ref-console"><input class="searchbar" id="refq" placeholder="Search the field reference…" value="'+esc(S.refq||"")+'"><div class="ref-count" id="refcount">'+REF.length+' MODULES VISIBLE</div></div><div class="ref-grid">';
+  '<div class="ref-console"><input class="searchbar" id="refq" placeholder="Search the field reference…" value="'+esc(S.refq||"")+'"><div class="ref-count" id="refcount">'+REF.length+' MODULES VISIBLE</div></div>'+
+  '<div class="module-title">New here? Start with the basics <span>BEGINNER PRIMER</span></div><div class="ref-grid">'+PRIMER.map(function(p){return '<div class="card"><h3>'+esc(p[0])+'</h3><p style="color:#b7b0a8;font-size:12.5px;line-height:1.55;margin:6px 0 0">'+esc(p[1])+'</p></div>';}).join("")+'</div>'+
+  '<div class="module-title">Expert doctrine <span>FIELD MANUAL · SEARCHABLE</span></div><div class="ref-grid">';
  REF.forEach(function(r,i){var rows=r[1].map(function(kv){return '<div class="kv"><span style="color:var(--muted)">'+esc(kv[0])+'</span><b style="font-family:inherit;font-weight:600;text-align:right;max-width:62%">'+esc(kv[1])+'</b></div>';}).join("");
   html+='<div class="card refcard'+(S.refcol[i]?" compact":"")+'" data-ri="'+i+'" data-txt="'+esc((r[0]+" "+r[1].map(function(k){return k[0]+" "+k[1];}).join(" ")).toLowerCase())+'"><h3 data-code="R-'+String(i+1).padStart(2,"0")+'">'+r[0]+'</h3>'+rows+'</div>';});
  html+='</div><div class="module-title">Personal Field Log <span>AUTO-SAVED LOCALLY</span></div><div class="card"><h3>Field Notes</h3><textarea id="nt" placeholder="Base coordinates, objectives, supply reminders…">'+esc(S.notes||"")+'</textarea></div>';
@@ -873,7 +894,7 @@ function renderWorldGate(){
    choices+='<div class="gate-choice" data-gsave="'+i+'"><div class="gate-choice-mark">'+(v3?"3.0":"2.x")+'</div><div><b>'+esc(s.save)+'</b><small>'+pls.length+' survivor'+(pls.length===1?"":"s")+' · '+(v3?"Dead Hot Summer":"Legacy world")+'</small></div><span class="gate-choice-go">Select ›</span></div>';
   });
  });
- if(!choices)choices='<div class="banner warn" style="grid-column:1/-1;margin:0">No local worlds were discovered. You can continue without a world and link one later from World Control.</div>';
+ if(!choices)choices='<div class="banner warn" style="grid-column:1/-1;margin:0"><b>No saves found.</b> The scan looked in <code>%AppData%\\Roaming\\7DaysToDie\\Saves</code>. If your saves live elsewhere (a custom Steam library, or Documents redirected to OneDrive), click <b>Continue without World</b> below, then open the <b>World</b> tab → <b>Link a World Manually</b> and point it at your <code>7DaysToDie</code> folder. Make sure you have launched the game at least once so the save folder exists.</div>';
  box.innerHTML=gateHeader(1,"Select a World","Choose the save that should power maps, settings, progression and live operation data. The app stays locked until you select a world or explicitly continue without one.")+
   '<div class="gate-summary">'+opsStat("SCAN / SAVES",(W.tree||[]).length,"Local save folders found")+opsStat("SCAN / WORLDS",Object.keys(byW).length,"Unique worlds available")+opsStat("SCAN / SURVIVORS",survivors,"Character profiles detected")+'</div>'+
   '<div class="gate-worlds">'+choices+'</div><div class="gate-actions"><span class="ops-code">Nothing is imported until you select a save.</span><button class="gate-skip" id="gateNoWorld">Continue without World</button></div>';
@@ -894,7 +915,15 @@ function renderCharacterGate(s){
 }
 function unlockApp(){
  var launch=document.getElementById("launcher");launch.classList.add("hide");launch.classList.remove("wizard");
- S.tab="dash";save();renderTop();show();
+ S.tab="dash";save();renderTop();show();showIntroCoach();
+}
+function showIntroCoach(){
+ if(S.seenIntro||document.getElementById("introCoach"))return;
+ var d=document.createElement("div");d.id="introCoach";d.className="banner safe";
+ d.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:min(560px,calc(100% - 24px));z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.5)";
+ d.innerHTML='<b>Quick start:</b> the tabs across the top switch views — <b>Dashboard</b> (status), <b>Build</b> (perk plan), <b>Horde</b> (blood-moon prep), <b>3D Map</b> (your world), <b>Reference</b> (a beginner primer + doctrine). Only the <b>World</b> tab ever writes to your game; everything else is read-only. <button class="btn" id="introClose" style="margin-left:8px">Got it</button>';
+ document.body.appendChild(d);
+ document.getElementById("introClose").onclick=function(){S.seenIntro=true;save();d.remove();};
 }
 function completeGate(s,pl){importWorld(s,pl);unlockApp();}
 function enterWithoutWorld(){
@@ -945,12 +974,18 @@ function rowImportedDone(name,prog){
 function bookCount(prog,prefix){
   return Object.keys(prog||{}).filter(function(k){return k.indexOf(prefix)===0&&k.indexOf("complete")<0&&prog[k]>0;}).length;
 }
+function charIdentity(pl){return pl?(pl.steam||((pl.name||"?")+"|"+(pl.level||0))):null;}
 function applyImportedCharacter(pl){
   var prog=pl&&pl.progression||{};S.playerProgression=prog;S.lvl=pl&&pl.level||S.lvl;S.cur=detectBuild(prog);
-  var st=bstate();st.chk={};var gi=0;
-  BUILDS[S.cur].phases.forEach(function(ph){ph[4].forEach(function(it){gi++;st.chk["c"+gi]=rowImportedDone(it[0],prog);});});
-  MAGS.forEach(function(m,i){S.mag[i]=m[5]==="book"?Math.min(m[1],bookCount(prog,m[4])):Math.min(m[1],progressionValue(prog,m[4]));});
-  S.importedPlayer=pl?{name:pl.name,level:pl.level}:null;save();
+  // Only overwrite the user's manual perk checks + magazine edits when the imported
+  // character actually changed; re-importing the SAME survivor preserves manual edits.
+  var newId=charIdentity(pl),oldId=charIdentity(S.importedPlayer);
+  if(!(newId&&oldId&&newId===oldId)){
+    var st=bstate();st.chk={};var gi=0;
+    BUILDS[S.cur].phases.forEach(function(ph){ph[4].forEach(function(it){gi++;st.chk["c"+gi]=rowImportedDone(it[0],prog);});});
+    MAGS.forEach(function(m,i){S.mag[i]=m[5]==="book"?Math.min(m[1],bookCount(prog,m[4])):Math.min(m[1],progressionValue(prog,m[4]));});
+  }
+  S.importedPlayer=pl?{name:pl.name,level:pl.level,steam:pl.steam}:null;save();
 }
 // ---- WELT: gameOptions.sdf binary parser (verifiziert gegen echte Saves) ----
 function esc(s){return (""+s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
@@ -1095,7 +1130,8 @@ function settingsEditor(world,save,st){
    '<button class="btn" id="setexpand">Expand All</button><button class="btn" id="setcollapse">Collapse All</button>'+
    '<label class="chk"><input type="checkbox" id="setonlych"'+(onlyCh?" checked":"")+'> changed only</label>'+
    '</div></div>';
- var savebar='<div class="savebar" id="savebar"><div class="sbinfo" id="sbinfo">No pending changes</div><button class="btn sbbtn" id="setrevert">Discard</button><button class="btn sbsave" id="setsave" disabled>Write to World</button></div>';
+ var restoreBtn=S.lastBackup?'<button class="btn" id="setrestore" title="Copy the most recent backup back over gameOptions.sdf (undo your last write)">↩ Restore last backup</button>':'';
+ var savebar='<div class="savebar" id="savebar"><div class="sbinfo" id="sbinfo">No pending changes</div>'+restoreBtn+'<button class="btn sbbtn" id="setrevert">Discard</button><button class="btn sbsave" id="setsave" disabled>Write to World</button></div>';
  var help='<aside class="sethelp" id="sethelp"><div class="sethelp-kicker">Setting Intelligence</div><div class="sethelp-symbol">?</div><h3 id="sethelpTitle">Hover over a question mark</h3><p id="sethelpText">Every setting now has a dedicated explanation. Hover over or focus a question-mark icon to inspect its purpose, current value, source and impact.</p><div class="sethelp-grid"><div class="sethelp-fact"><span>Configuration Key</span><b id="sethelpKey">—</b></div><div class="sethelp-fact"><span>Current Value</span><b id="sethelpValue">—</b></div><div class="sethelp-fact"><span>Data Source</span><b id="sethelpSource">—</b></div><div class="sethelp-fact"><span>Impact</span><b id="sethelpRisk">—</b></div></div><div class="sethelp-tip" id="sethelpTip">The explanation text is loaded from <b>src/refdata.json</b>, so it can be improved centrally without changing this interface.</div></aside>';
  var msg=S.setMsg?('<div class="banner '+(S.setMsg.ok?"safe":"danger")+'">'+esc(S.setMsg.text)+'</div>'):'';
  return msg+head+presets+ctrls+'<div class="settings-workspace"><div class="settings-list">'+body+'</div>'+help+'</div>'+savebar;
@@ -1132,6 +1168,7 @@ function wireSettingsEditor(){
  var sv=document.getElementById("setsave");if(sv)sv.onclick=doWriteSettings;
  root.querySelectorAll(".presetbtn").forEach(function(b){b.onclick=function(){applyPreset(b.dataset.preset);};});
  var rv=document.getElementById("setrevert");if(rv)rv.onclick=function(){EDIT={};S.setMsg=null;save();rWorld();};
+ var rs=document.getElementById("setrestore");if(rs)rs.onclick=doRestore;
  refreshSaveBar();
 }
 function onSettingChange(inp){
@@ -1160,6 +1197,9 @@ function refreshSaveBar(){
 function applyOnlyChangedFilter(){applySettingSearch();}
 function applySettingSearch(){
  var q=(S.setq||"").toLowerCase(), only=!!S.setchanged;
+ // never let "changed only" strand the user on an empty list: auto-clear it when
+ // there is nothing pending (e.g. a fresh session where EDIT is empty again).
+ if(only&&!Object.keys(EDIT).length){only=false;S.setchanged=false;save();var oc0=document.getElementById("setonlych");if(oc0)oc0.checked=false;}
  document.querySelectorAll("#world [data-acc]").forEach(function(a){
   var anyVisible=false;
   a.querySelectorAll(".setrow").forEach(function(r){
@@ -1172,6 +1212,8 @@ function applySettingSearch(){
  });
 }
 function doWriteSettings(){
+ var nch=Object.keys(EDIT).length;if(!nch||!EDIT_CTX)return;
+ if(!confirm("Write "+nch+" change"+(nch>1?"s":"")+" to gameOptions.sdf?\n\nWorld: "+EDIT_CTX.world+"  /  "+EDIT_CTX.save+"\n\nA timestamped backup is made first. Close 7 Days to Die before writing, then reload the save in-game to apply."))return;
  var plain={},sandbox={};
  Object.keys(EDIT).forEach(function(name){var e=EDIT[name];if(e.target==="sandbox")sandbox[name]=e.value;else plain[name]=e.value;});
  var body={world:EDIT_CTX.world,save:EDIT_CTX.save,plain:plain,sandbox:sandbox};
@@ -1180,9 +1222,21 @@ function doWriteSettings(){
   .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
   .then(function(res){
    if(!res.ok||!res.d.ok){S.setMsg={ok:false,text:"Save failed: "+(res.d.error||"unknown error")+". No settings were changed."};save();rWorld();return;}
-   S.setMsg={ok:true,text:res.d.changed+" setting(s) written to the world. Backup: "+res.d.backup+". Reload the world in-game to apply them."};
+   S.lastBackup={world:EDIT_CTX.world,save:EDIT_CTX.save};
+   S.setMsg={ok:true,text:res.d.changed+" setting(s) written. Backup saved to "+(res.d.backupPath||res.d.backup)+". Close 7 Days to Die, then reload this save in-game to apply. Use “Restore last backup” to undo."};
    EDIT={};save();
    reloadSavesThen(function(){rWorld();});
+  })
+  .catch(function(e){S.setMsg={ok:false,text:"Network error: "+e.message};save();rWorld();});
+}
+function doRestore(){
+ var lb=S.lastBackup;if(!lb)return;
+ if(!confirm("Restore the most recent backup for "+lb.world+" / "+lb.save+"?\n\nThis copies the last gameOptions.sdf backup back over the current file, undoing your last write. Close 7 Days to Die first."))return;
+ fetch("/api/restore-settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({world:lb.world,save:lb.save})})
+  .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+  .then(function(res){
+   if(!res.ok||!res.d.ok){S.setMsg={ok:false,text:"Restore failed: "+(res.d.error||"unknown error")};save();rWorld();return;}
+   S.setMsg={ok:true,text:"Restored backup "+res.d.restored+". Reload this save in-game to apply."};EDIT={};save();reloadSavesThen(function(){rWorld();});
   })
   .catch(function(e){S.setMsg={ok:false,text:"Network error: "+e.message};save();rWorld();});
 }
@@ -1264,8 +1318,17 @@ function parseMapInfo(xml){
  return {size:size||10240,seed:p("Seed"),ver:p("GameVersion"),rwg:p("RandomGeneratedWorld"),gen:{Forest:p("Forest"),BurntForest:p("BurntForest"),Desert:p("Desert"),Snow:p("Snow"),Wasteland:p("Wasteland"),Rivers:p("Rivers"),Towns:p("Towns")}};
 }
 function parsePrefabs(xml){
- var pois=[],re=/<decoration[^>]*\bname="([^"]+)"[^>]*\bposition="(-?\d+),(-?\d+),(-?\d+)"/g,m;
- while((m=re.exec(xml))){var nm=m[1];if(/^(part_|rwg_tile_|rubble_|remnant_|wilderness_filler_|lot_|deco_|crater_)/.test(nm))continue;var t=POITIER.hasOwnProperty(nm)?POITIER[nm]:-1;pois.push([nm,+m[2],+m[4],t]);}
+ // prefabs.xml position = SW footprint corner. The backend scan shifts each POI by
+ // half its (rotation-adjusted) PrefabSize to centre it. This browser-only manual path
+ // has no install access for real sizes, so we mirror the backend's unknown-size
+ // default (16×16) + rotation swap so POIs are centred, not pinned to the SW corner.
+ var pois=[],re=/<decoration[^>]*\bname="([^"]+)"[^>]*\bposition="(-?\d+),(-?\d+),(-?\d+)"[^>]*\brotation="(\d+)"/g,m;
+ while((m=re.exec(xml))){
+  var nm=m[1];if(/^(part_|rwg_tile_|rubble_|remnant_|wilderness_filler_|lot_|deco_|crater_)/.test(nm))continue;
+  var t=POITIER.hasOwnProperty(nm)?POITIER[nm]:-1;
+  var rot=+m[5]||0,w=16,d=16;if(rot%2===1){var tmp=w;w=d;d=tmp;}
+  pois.push([nm,+m[2]+((w/2)|0),+m[4]+((d/2)|0),t,rot,w,d,8]);
+ }
  return pois;
 }
 // ---- WELT render ----
@@ -1305,6 +1368,7 @@ function rWorld(){
    opsStat("SURVIVORS / FOUND",pls.length,"Profiles available for import")+
    opsStat("SETTINGS / MODE",v3?"SANDBOX":"LEGACY",v3?"SandboxCode editor":"Plain-key editor",true)+
    opsStat("MAP / DATA",W.maps&&W.maps[s.world]?"READY":"NONE",W.maps&&W.maps[s.world]?"GeneratedWorlds linked":"No map package detected",true)+'</div>';
+  h+=charImportCard(pls);
   h+=settingsEditor(s.world,s.save,st);
  }
  var el=document.getElementById("world");el.innerHTML=h;
@@ -1314,6 +1378,13 @@ function rWorld(){
  el.querySelectorAll("[data-back]").forEach(function(x){x.onclick=function(){if(x.dataset.back==="pick")W.tree=null;W.curSave=null;rWorld();};});
  el.querySelectorAll("[data-go]").forEach(function(x){x.onclick=function(){S.importMsg=null;S.tab=x.dataset.go;save();show();};});
  if(document.getElementById("savebar"))wireSettingsEditor();
+}
+function charImportCard(pls){
+ var rows=(pls||[]).map(function(p,i){return '<div class="wi" data-pl="'+i+'"><div class="wn">'+esc(p.name||("Survivor "+(i+1)))+'</div><div class="wmeta">Level '+(p.level||"?")+(p.login?' · '+esc(p.login):'')+'</div><div style="color:var(--acc2);font-weight:700;font-size:18px">›</div></div>';}).join("");
+ return '<div class="card" style="margin:12px 0 10px"><h3>Import a Survivor</h3>'+
+  '<div class="wstep">Importing reads a character’s level and perks to auto-fill the build planner. Re-importing the same survivor keeps your manual edits.</div>'+
+  (rows||'<div class="wstep" style="color:var(--dim)">No survivor profiles found in this save.</div>')+
+  '<div class="wi" data-pl="-1"><div class="wn">Continue without a character</div><div class="wmeta">Load the world / map only</div><div style="color:var(--acc2);font-weight:700;font-size:18px">›</div></div></div>';
 }
 function worldSummaryCard(w){
  return '<div class="card" style="margin:12px 0 10px"><h3>Current World</h3>'+

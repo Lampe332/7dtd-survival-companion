@@ -25,7 +25,7 @@ A single Rust executable that serves a small web app on `127.0.0.1:17873` and re
 
 - 🌍 **World settings editor** — edit `gameOptions.sdf` with real write-back (automatic backup + byte-exact re-encode + SandboxCode patching), one-click **difficulty presets** (Baby → Nightmare), and a plain-English explanation for every setting
 - 🗺️ **3D world map** — WebGL terrain (biomes, roads, water) decoded from your world files; fly the camera, search 2000+ POIs with fly-to, filter by difficulty tier, and **click any building** for an info panel: prefab preview image, tier, size, max zombies, quest types and distance to your base
-- 🔨 **Build planner** — full 56-perk catalog, guided phase plan, imports your real `.ttp` progression
+- 🔨 **Build planner** — full 57-perk catalog, guided phase plan, imports your real `.ttp` progression
 - 🩸 **Horde night** — readiness checklist + special-enemy timeline by gamestage
 - 📦 **Loot**, 📕 **Magazines**, 📋 **Reference** — loot-stage calculator, all crafting magazines & perk books, quick reference cards
 
