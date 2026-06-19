@@ -1338,7 +1338,7 @@ function rMap(){
    '<div class="legend">'+legend+'</div>'+
    '<div class="wstep" style="margin:0">Scroll to zoom · drag to pan · click for POI details · blue marker = survivor spawn</div>'+
    '<div class="map-actions"><button class="btn" id="mapreset">Reset View</button><button class="btn" data-mapspawn="'+(m.player?1:0)+'">'+(m.player?"Spawn Linked":"No Spawn Data")+'</button></div></div>';
- var canv='<div class="mapwrap"><canvas id="mapcv" width="800" height="800"></canvas><div class="maptip" id="maptip"></div></div>';
+ var canv='<div class="mapwrap"><canvas id="mapcv" width="2048" height="2048"></canvas><div class="maptip" id="maptip"></div></div>';
  var det='<div id="mapdet"></div>';
  el.innerHTML=hero("Tactical Map","2D world intelligence","Inspect biomes, roads, water, POI tiers and the imported survivor spawn.","tab_map")+
   '<div class="ops-strip">'+
@@ -1379,7 +1379,7 @@ function buildMapOverlay(){
 function drawLabel(ctx,text,x,y,strong){text=(""+text).slice(0,22);ctx.lineWidth=3;ctx.lineJoin="round";ctx.strokeStyle="rgba(8,7,5,.92)";ctx.strokeText(text,x,y);ctx.fillStyle=strong?"#fff":"#ece8df";ctx.fillText(text,x,y);}
 function drawMap(){
  var cv=document.getElementById("mapcv");if(!cv||!W.mapImg||!W.view)return;
- var ctx=cv.getContext("2d"),Wc=cv.width,Hc=cv.height,v=W.view,img=W.mapImg;
+ var ctx=cv.getContext("2d");ctx.setTransform(cv.width/800,0,0,cv.height/800,0,0);var Wc=800,Hc=800,v=W.view,img=W.mapImg;
  var dw=img.naturalWidth*v.k,dh=img.naturalHeight*v.k;
  ctx.clearRect(0,0,Wc,Hc);ctx.fillStyle="#0a0907";ctx.fillRect(0,0,Wc,Hc);
  ctx.imageSmoothingEnabled=false;ctx.drawImage(img,v.tx,v.ty,dw,dh);
@@ -1412,18 +1412,18 @@ function setupMap(){
  if(S.map.roads&&!W.roadImg){var road=new Image();road.onload=function(){W.roadImg=road;tryOverlay();};road.onerror=tryOverlay;road.src=S.map.roads;}
  if(W.mapImg&&W.mapImg.src===S.map.img){fitIfNeeded();tryOverlay();requestDraw();}
  else{var img=new Image();img.onload=function(){W.mapImg=img;W.view=null;fitIfNeeded();tryOverlay();requestDraw();};img.src=S.map.img;}
- function rel(e){var r=cv.getBoundingClientRect();return [(e.clientX-r.left)*(cv.width/r.width),(e.clientY-r.top)*(cv.height/r.height)];}
+ function rel(e){var r=cv.getBoundingClientRect();return [(e.clientX-r.left)*(800/r.width),(e.clientY-r.top)*(800/r.height)];}
  var drag=null,moved=false;
  cv.onwheel=function(e){e.preventDefault();if(!W.view)return;var p=rel(e),f=e.deltaY<0?1.15:1/1.15,fit=W.view.fit,nk=Math.max(fit*0.95,Math.min(fit*60,W.view.k*f)),ra=nk/W.view.k;W.view.tx=p[0]-(p[0]-W.view.tx)*ra;W.view.ty=p[1]-(p[1]-W.view.ty)*ra;W.view.k=nk;requestDraw();};
  cv.onpointerdown=function(e){drag=rel(e);moved=false;cv.setPointerCapture(e.pointerId);};
  cv.onpointermove=function(e){var p=rel(e);
   if(drag){var dx=p[0]-drag[0],dy=p[1]-drag[1];if(Math.abs(dx)+Math.abs(dy)>3)moved=true;W.view.tx+=dx;W.view.ty+=dy;drag=p;requestDraw();return;}
   var tip=document.getElementById("maptip"),i=nearestPoi(p[0],p[1]),r=cv.getBoundingClientRect();
-  if(i>=0){var po=S.map.pois[i];tip.innerHTML='<b>'+esc(po[0])+'</b> · '+TIERLBL[po[3]]+(po[3]>0?" — Tier "+po[3]:po[3]===0?" — no combat":" — unknown tier")+'<br>'+po[1]+", "+po[2];tip.style.display="block";var s=poiScreen(po[1],po[2]);tip.style.left=Math.min(cv.clientWidth-140,(s[0]*r.width/cv.width)+10)+"px";tip.style.top=Math.max(0,(s[1]*r.height/cv.height)-10)+"px";}
+  if(i>=0){var po=S.map.pois[i];tip.innerHTML='<b>'+esc(po[0])+'</b> · '+TIERLBL[po[3]]+(po[3]>0?" — Tier "+po[3]:po[3]===0?" — no combat":" — unknown tier")+'<br>'+po[1]+", "+po[2];tip.style.display="block";var s=poiScreen(po[1],po[2]);tip.style.left=Math.min(cv.clientWidth-140,(s[0]*r.width/800)+10)+"px";tip.style.top=Math.max(0,(s[1]*r.height/800)-10)+"px";}
   else tip.style.display="none";};
  cv.onpointerup=function(e){var p=rel(e);if(!moved){var i=nearestPoi(p[0],p[1]);W.sel=i>=0?i:null;showPoiDet();requestDraw();}drag=null;};
  cv.onpointerleave=function(){var t=document.getElementById("maptip");if(t)t.style.display="none";};
- function fitIfNeeded(){if(!W.mapImg)return;if(!W.view){var fit=cv.width/W.mapImg.naturalWidth;W.view={k:fit,fit:fit,tx:0,ty:0};}}
+ function fitIfNeeded(){if(!W.mapImg)return;if(!W.view){var fit=800/W.mapImg.naturalWidth;W.view={k:fit,fit:fit,tx:0,ty:0};}}
 }
 function showPoiDet(){var d=document.getElementById("mapdet");if(!d)return;if(W.sel==null){d.innerHTML="";return;}
  var p=S.map.pois[W.sel],pl=S.map.player,dist=pl?Math.round(Math.sqrt((p[1]-pl.x)*(p[1]-pl.x)+(p[2]-pl.z)*(p[2]-pl.z))):null;
