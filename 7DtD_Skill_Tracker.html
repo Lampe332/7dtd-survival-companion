@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
 <title>7 Days to Die · Survival Companion</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -81,7 +82,7 @@ input[type=number]{font-family:var(--mono);font-weight:700}
 .refrow{font-size:13.5px;padding:5px 0;color:var(--muted)}.refrow b{color:var(--text);font-weight:600}
 .foot{color:var(--dim);font-size:12px;margin-top:26px;text-align:center;line-height:1.8}
 .foot b{color:var(--muted)}
-.launch{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden;
+.launch{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto;
  background:radial-gradient(1100px 620px at 50% -10%,rgba(239,122,53,.20),transparent 60%),radial-gradient(900px 600px at 50% 115%,rgba(216,59,50,.16),transparent 60%),var(--bg)}
 .launch.hide{display:none}
 .launchbox{position:relative;width:min(480px,100%);text-align:center;padding:40px 34px 30px;border-radius:24px;
@@ -98,6 +99,18 @@ input[type=number]{font-family:var(--mono);font-weight:700}
 .launchbtn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(239,122,53,.45)}
 .launchbtn:disabled{opacity:.6;transform:none;cursor:default}
 .launchstatus{min-height:20px;margin-top:14px;font-size:12.5px;color:var(--dim)}
+.launch.wizard{align-items:flex-start;padding-block:clamp(24px,7vh,76px)}
+.launch.wizard .launchbox{width:min(1040px,100%);padding:32px;text-align:left}
+.gate-head{display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:16px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.08)}
+.gate-mark{display:grid;place-items:center;width:58px;height:58px;border:1px solid rgba(240,120,47,.42);border-radius:7px;color:#ffd4a4;background:linear-gradient(145deg,#2b2018,#12171b);font:800 17px/1 var(--display);box-shadow:0 0 28px rgba(240,120,47,.12)}
+.gate-step{color:var(--acc2);font:700 9px/1 var(--mono);letter-spacing:1.8px;text-transform:uppercase}.gate-head h2{margin-top:7px;color:#f5eee6;font:780 25px/1.05 var(--display);letter-spacing:.3px;text-transform:uppercase}.gate-head p{margin-top:7px;color:#a59e97;font-size:12.5px;line-height:1.45}
+.gate-progress{display:flex;gap:7px}.gate-progress span{width:46px;height:3px;border-radius:2px;background:#34383b}.gate-progress span.on{background:linear-gradient(90deg,var(--blood),var(--acc2));box-shadow:0 0 10px rgba(240,120,47,.22)}
+.gate-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:16px 0}.gate-summary .ops-stat{min-height:104px}.gate-summary .ops-value{margin-top:19px;font-size:25px}
+.gate-worlds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.gate-world-group{grid-column:1/-1;margin:14px 2px 1px;color:#cfc7bf;font:740 10px/1 var(--display);letter-spacing:1px;text-transform:uppercase}.gate-world-group::before{content:"";display:inline-block;width:7px;height:7px;margin-right:9px;border:1px solid var(--acc);transform:rotate(45deg);background:rgba(240,120,47,.12)}
+.gate-choice{position:relative;display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;min-height:82px;padding:13px 15px;border:1px solid rgba(255,255,255,.09);border-radius:6px;background:linear-gradient(145deg,#181d21,#111519);cursor:pointer;transition:.17s}.gate-choice:hover{transform:translateY(-2px);border-color:rgba(240,120,47,.5);background:linear-gradient(145deg,#20262b,#14191d);box-shadow:0 14px 30px rgba(0,0,0,.25)}
+.gate-choice-mark{display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(240,120,47,.35);border-radius:5px;color:#ffc17f;background:rgba(240,120,47,.08);font:800 13px/1 var(--mono)}.gate-choice b{display:block;color:#eee7df;font:730 14px/1.2 var(--display)}.gate-choice small{display:block;margin-top:5px;color:#8f8982;font-size:11px}.gate-choice-go{color:var(--acc2);font:720 10px/1 var(--mono);letter-spacing:.8px;text-transform:uppercase}
+.gate-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07)}.gate-skip,.gate-back{width:auto;padding:10px 14px;border:1px solid rgba(255,255,255,.1);border-radius:5px;background:#101417;color:#aaa39c;font:700 10px/1 var(--display);letter-spacing:.7px;text-transform:uppercase;cursor:pointer}.gate-skip:hover,.gate-back:hover{color:#fff;border-color:rgba(240,120,47,.45);background:rgba(240,120,47,.08)}
+.gate-selected{margin:16px 0;padding:16px 18px;border:1px solid rgba(240,120,47,.24);border-radius:7px;background:linear-gradient(90deg,rgba(240,120,47,.09),rgba(20,24,28,.9))}.gate-selected .ops-code{color:var(--acc2)}.gate-selected b{display:block;margin-top:9px;color:#fff;font:760 18px/1 var(--display);text-transform:uppercase}.gate-selected span{display:block;margin-top:6px;color:#99928b;font-size:12px}
 .imported{border-color:rgba(90,166,255,.45);background:rgba(90,166,255,.08)}
 .skillchips{display:flex;flex-wrap:wrap;gap:6px}.skillchip{font-size:12px;padding:5px 9px;border-radius:999px;background:var(--card2);border:1px solid var(--line2)}
 .skillchip b{color:var(--next)}.poi-preview{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-top:10px}
@@ -186,23 +199,183 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 /* ---- 3D building labels ---- */
 .map3lbl{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .lbl3d{position:absolute;transform:translate(-50%,-130%);background:rgba(10,9,7,.82);border:1px solid var(--line2);border-left-width:3px;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 2px #000;pointer-events:none}
+
+/* ---- Wasteland command interface ---- */
+:root{
+ --bg:#090b0d;--bg2:#0e1114;--card:#14181c;--card2:#1a1f24;--glass:rgba(11,14,17,.93);
+ --line:rgba(255,255,255,.075);--line2:rgba(255,151,66,.22);
+ --text:#f2eee7;--muted:#a9a29a;--dim:#69645f;
+ --acc:#f0782f;--acc2:#f6b24a;--blood:#b82d24;--done:#6fa778;--next:#e69742;--star:#ffd266;
+ --tab-rgb:240,120,47;--tab-hot:#f0782f;--tab-cold:#f6b24a;
+ --display:"Segoe UI Variable Display","Segoe UI",Arial,sans-serif;
+ --shadow:0 18px 50px rgba(0,0,0,.28);
+}
+html{min-height:100%;background:#090b0d}
+body{position:relative;isolation:isolate;min-height:100vh;padding:0 22px 96px;overflow-x:hidden;color:var(--text);font-family:"Segoe UI Variable Text","Segoe UI",Arial,sans-serif;background:#090b0d}
+body[data-tab="world"]{--tab-rgb:235,118,45;--tab-hot:#ed762e;--tab-cold:#f5b84e}
+body[data-tab="map"],body[data-tab="d3"]{--tab-rgb:61,158,174;--tab-hot:#3d9eae;--tab-cold:#70d3c7}
+body[data-tab="dash"]{--tab-rgb:239,151,57;--tab-hot:#ef9739;--tab-cold:#f3c45f}
+body[data-tab="build"]{--tab-rgb:98,165,199;--tab-hot:#62a5c7;--tab-cold:#8ed0dc}
+body[data-tab="horde"]{--tab-rgb:211,54,43;--tab-hot:#d3362b;--tab-cold:#ff8a54}
+body[data-tab="loot"]{--tab-rgb:202,145,48;--tab-hot:#ca9130;--tab-cold:#edc860}
+body[data-tab="mags"]{--tab-rgb:157,121,196;--tab-hot:#9d79c4;--tab-cold:#c5a0e5}
+body[data-tab="ref"]{--tab-rgb:111,167,120;--tab-hot:#6fa778;--tab-cold:#9dcc9b}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
+ radial-gradient(650px 650px at 5% 42%,transparent 0 36%,rgba(var(--tab-rgb),.055) 36.15% 36.35%,transparent 36.5% 44%,rgba(var(--tab-rgb),.03) 44.15% 44.35%,transparent 44.5%),
+ radial-gradient(520px 520px at 97% 68%,transparent 0 40%,rgba(var(--tab-rgb),.04) 40.2% 40.45%,transparent 40.6% 51%,rgba(var(--tab-rgb),.025) 51.2% 51.45%,transparent 51.6%),
+ radial-gradient(1100px 620px at 50% -190px,rgba(var(--tab-rgb),.20),transparent 70%),
+ radial-gradient(750px 580px at 108% 38%,rgba(125,25,20,.13),transparent 72%),
+ linear-gradient(180deg,#111519 0%,#0b0e11 46%,#080a0c 100%);background-repeat:no-repeat;background-size:cover;transition:background .35s ease}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.62;background:
+ linear-gradient(rgba(var(--tab-rgb),.032) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(var(--tab-rgb),.032) 1px,transparent 1px),
+ linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px),
+ repeating-linear-gradient(118deg,transparent 0 17px,rgba(255,255,255,.009) 17px 18px);
+ background-size:128px 128px,128px 128px,24px 24px,24px 24px,auto;
+ -webkit-mask-image:linear-gradient(90deg,#000 0,rgba(0,0,0,.28) 28%,rgba(0,0,0,.28) 72%,#000 100%);
+ mask-image:linear-gradient(90deg,#000 0,rgba(0,0,0,.28) 28%,rgba(0,0,0,.28) 72%,#000 100%)}
+.wrap{width:100%;max-width:1320px;min-height:calc(100vh - 96px);margin:0 auto}
+.top{min-height:92px;padding:19px 4px 15px;display:flex;align-items:center;gap:18px;border-bottom:1px solid rgba(255,255,255,.08);position:relative}
+.top::after{content:"";position:absolute;left:0;bottom:-1px;width:240px;height:2px;background:linear-gradient(90deg,var(--blood),var(--acc),var(--acc2),transparent)}
+.logo{position:relative;display:flex;align-items:center;gap:12px;flex:1;min-width:260px;padding-left:17px;font-family:var(--display);text-transform:uppercase;text-shadow:0 2px 12px #000}
+.logo::before{content:"";position:absolute;left:0;top:2px;bottom:3px;width:5px;border-radius:1px;background:linear-gradient(180deg,var(--acc2),var(--acc),var(--blood));box-shadow:0 0 20px rgba(240,120,47,.25)}
+.brand-mark{display:grid;place-items:center;width:43px;height:43px;border:1px solid rgba(255,151,66,.28);border-radius:6px;color:#ffd7a5;background:linear-gradient(145deg,#282017,#14171a);font-size:15px;font-weight:850;letter-spacing:-.5px;box-shadow:inset 0 1px rgba(255,255,255,.04)}
+.brand-copy{display:block}.brand-copy b{display:block;font-size:25px;font-weight:800;letter-spacing:.35px}.logo small{display:block;margin-top:3px;color:#d3964a;font:650 9px/1.2 var(--mono);letter-spacing:2.05px}
+.dayctl,.icon{border:1px solid rgba(255,166,83,.25);border-radius:6px;background:linear-gradient(180deg,#1b2025,#111519);box-shadow:inset 0 1px rgba(255,255,255,.04),0 8px 24px rgba(0,0,0,.24)}
+.dayctl{gap:8px;padding:6px}.dayctl button{width:32px;height:32px;border-radius:4px;background:#20262b;color:#d8d1c8}.dayctl button:hover{background:var(--acc);color:#111}
+.dayctl .dv{font-size:17px;min-width:55px}.dayctl .dl{font-size:9px;color:#918a82;letter-spacing:1.5px}.icon{padding:10px 12px;color:#aaa29a}.icon:hover{color:#fff;border-color:var(--acc)}
+.tabs{counter-reset:nav;display:grid;grid-template-columns:repeat(9,minmax(88px,1fr));gap:4px;position:sticky;top:8px;z-index:30;margin:13px 0 22px;padding:5px;overflow:visible;border:1px solid rgba(255,145,59,.18);border-radius:8px;background:rgba(10,13,16,.94);backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(0,0,0,.24)}
+.tab{counter-increment:nav;position:relative;min-height:52px;padding:16px 9px 9px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid transparent;border-radius:5px;color:#928d87;font-family:var(--display);font-size:11px;font-weight:760;letter-spacing:.8px;text-transform:uppercase;transition:background .18s,border-color .18s,color .18s,transform .18s}
+.tab::before{content:"0" counter(nav);position:absolute;top:5px;left:8px;color:#565c60;font:650 8px/1 var(--mono);letter-spacing:.8px}
+.tab::after{content:"";position:absolute;left:24%;right:24%;bottom:3px;height:2px;border-radius:2px;background:transparent;transition:.18s}
+.tab:hover{color:#f5eee6;background:rgba(255,255,255,.035);transform:translateY(-1px)}
+.tab.on{color:#fff4e8;border-color:rgba(var(--tab-rgb),.46);background:linear-gradient(180deg,rgba(var(--tab-rgb),.30),rgba(var(--tab-rgb),.08));box-shadow:inset 0 1px rgba(255,255,255,.05),0 0 22px rgba(var(--tab-rgb),.09)}
+.tab.on::before{color:var(--tab-cold)}.tab.on::after{background:linear-gradient(90deg,var(--tab-hot),var(--tab-cold));box-shadow:0 0 10px rgba(var(--tab-rgb),.5)}
+.sec.on{position:relative;animation:fade .2s ease-out}
+.sec.on::before{content:"";position:absolute;z-index:-1;left:-18px;right:-18px;top:-10px;height:330px;pointer-events:none;border-top:1px solid rgba(var(--tab-rgb),.07);background:linear-gradient(90deg,rgba(var(--tab-rgb),.025),transparent 14%,transparent 86%,rgba(var(--tab-rgb),.025));clip-path:polygon(0 0,100% 0,100% 88%,98% 88%,98% 94%,2% 94%,2% 88%,0 88%)}
+.hero{position:relative;margin-bottom:18px;padding:25px 28px 23px;overflow:hidden;border:1px solid rgba(255,147,61,.18);border-radius:8px;background:linear-gradient(115deg,rgba(31,37,42,.98),rgba(20,24,28,.98) 58%,rgba(66,27,24,.62));box-shadow:var(--shadow)}
+.hero::before{content:"";position:absolute;inset:0;background:
+ linear-gradient(90deg,rgba(var(--tab-rgb),.035) 1px,transparent 1px),
+ linear-gradient(rgba(var(--tab-rgb),.035) 1px,transparent 1px),
+ radial-gradient(circle at 91% 50%,transparent 0 72px,rgba(var(--tab-rgb),.11) 73px 74px,transparent 75px 94px,rgba(var(--tab-rgb),.06) 95px 96px,transparent 97px);
+ background-size:34px 34px,34px 34px,auto;opacity:.55}
+.hero::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--tab-cold),var(--tab-hot),var(--blood));box-shadow:0 0 24px rgba(var(--tab-rgb),.28)}
+.hero-copy{position:relative;z-index:1;max-width:850px}.eyebrow{margin-bottom:9px;color:#eaa354;font:700 10px/1 var(--mono);letter-spacing:2.1px;text-transform:uppercase}
+.hero h1{font:780 31px/1.05 var(--display);letter-spacing:.25px;text-transform:uppercase;text-shadow:0 2px 12px #000}
+.hero p{max-width:780px;margin-top:8px;color:#b9b1a8;font-size:13px;line-height:1.55}
+.hero-state{position:absolute;z-index:1;right:24px;top:22px;display:flex;align-items:center;gap:7px;color:#817c77;font:650 9px/1 var(--mono);letter-spacing:1.25px}.hero-state::before{content:"";width:7px;height:7px;border-radius:50%;background:#719b71;box-shadow:0 0 10px rgba(113,155,113,.7)}
+.hero-telemetry{position:absolute;z-index:1;right:24px;bottom:19px;display:flex;gap:14px;color:rgba(255,255,255,.32);font:600 8px/1 var(--mono);letter-spacing:1.5px;text-transform:uppercase}.hero-telemetry span:first-child{color:rgba(var(--tab-rgb),.72)}
+.card,.ph,.acc,.wi,.pcard,.lcard{border:1px solid var(--line);border-radius:7px;background:linear-gradient(145deg,rgba(24,29,34,.98),rgba(17,21,25,.98));box-shadow:0 10px 32px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.018)}
+.card{position:relative;padding:20px;overflow:hidden}.card::before{content:"";position:absolute;top:0;left:0;width:72px;height:2px;background:linear-gradient(90deg,var(--blood),var(--tab-hot),transparent)}
+.card::after{content:"";position:absolute;right:7px;bottom:7px;width:12px;height:12px;border-right:1px solid rgba(var(--tab-rgb),.22);border-bottom:1px solid rgba(var(--tab-rgb),.22);pointer-events:none}
+.card:hover{border-color:rgba(var(--tab-rgb),.24)}
+.card h3,.magcat,.perkgrph{margin-bottom:12px;color:#dcd5cc;font-family:var(--display);font-size:12px;font-weight:740;letter-spacing:1.15px;text-transform:uppercase}
+.grid{gap:12px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.big{color:#fff5e9;font:760 42px/.95 var(--display);letter-spacing:-1px}.sub{color:#99928a;font-size:12px}
+.kv{padding:9px 0;border-color:rgba(255,255,255,.065);font-size:13px}.kv span{color:#bcb5ad}.kv b{color:#eee8e0;font-size:12.5px}
+.banner{padding:14px 17px;border-width:1px 1px 1px 4px;border-radius:6px;background-image:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.banner.safe{color:#cce5d2;border-color:rgba(91,170,112,.40);background:linear-gradient(90deg,rgba(48,106,65,.28),rgba(27,53,36,.18))}
+.banner.warn{color:#f4cf8a;border-color:rgba(239,176,72,.42);background:linear-gradient(90deg,rgba(124,82,24,.25),rgba(62,43,22,.16))}
+.banner.danger{color:#ffaaa2;border-color:rgba(203,54,45,.55);background:linear-gradient(90deg,rgba(123,32,28,.34),rgba(54,22,21,.18))}
+input,select,textarea,button.btn{border:1px solid rgba(255,255,255,.11);border-radius:6px;background:#0f1316;color:#eee8e0;transition:border-color .16s,box-shadow .16s,background .16s}
+input,select,textarea{padding:10px 12px}input::placeholder,textarea::placeholder{color:#716d68}
+input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(240,120,47,.68);box-shadow:0 0 0 3px rgba(240,120,47,.10)}
+button.btn{padding:9px 13px;font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.45px;text-transform:uppercase;cursor:pointer}
+button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);background:linear-gradient(180deg,rgba(133,43,27,.82),rgba(76,30,22,.9));transform:translateY(-1px)}
+.quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.qbtn{min-width:0;padding:12px 10px;border:1px solid rgba(255,255,255,.09);border-radius:5px;background:#171c20;color:#bbb4ac;font-family:var(--display);font-size:11px;font-weight:720;letter-spacing:.6px;text-transform:uppercase;transition:.16s}
+.statpill{border:1px solid rgba(255,255,255,.06);background:#0f1316}.statpill.ok{color:#93ce8b}
+.ring{width:94px;height:94px}.bar{height:7px;border-radius:3px;background:#090c0f}.fillb{border-radius:3px;background:linear-gradient(90deg,var(--blood),var(--acc),var(--acc2))}
+.wi{position:relative;margin-top:8px;padding:14px 16px;border-color:rgba(255,255,255,.08);background:linear-gradient(90deg,#181d21,#121619)}
+.wi::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:2px;background:#51463e;transition:.16s}.wi:hover{border-color:rgba(240,120,47,.35);background:linear-gradient(90deg,#20252a,#15191d);transform:translateX(2px)}.wi:hover::before{background:var(--acc)}
+.wi .wn{font-size:14px}.wi .wmeta{color:#928b84}
+.world-group{display:flex;align-items:center;gap:9px;margin:18px 3px 5px;color:#d7d0c8;font-family:var(--display);font-size:12px;font-weight:720;letter-spacing:.7px;text-transform:uppercase}.world-group::before{content:"";width:7px;height:7px;border:1px solid rgba(240,120,47,.55);transform:rotate(45deg);background:rgba(240,120,47,.14)}
+.ph{margin-top:13px;overflow:hidden}.phh{padding:15px 17px;border-left-width:3px;background:rgba(255,255,255,.012)}.phh:hover{background:rgba(255,255,255,.035)}
+.row,.perkrow{padding:11px 12px;border-radius:5px}.row:hover,.perkrow:hover{background:rgba(255,255,255,.03)}
+.row.next{border-color:rgba(230,151,66,.55);background:rgba(230,151,66,.065)}.row.done .cbx{background:#6d9b72;border-color:#6d9b72}
+.cbx{border-radius:4px;background:#111519}.perkrow.picked{border-color:rgba(246,178,74,.4);background:rgba(246,178,74,.065)}
+.filterchips{gap:7px}.fchip,.tierchip{padding:6px 11px;border-radius:999px;border-color:rgba(255,255,255,.10);background:#111519;color:#99938c}.fchip.on{color:#ffd191;border-color:rgba(246,178,74,.42);background:rgba(246,178,74,.09)}
+.acc{margin-bottom:9px;overflow:hidden}.acch{padding:14px 17px;border-left-width:3px}.acch:hover{background:rgba(255,255,255,.025)}
+.setrow{padding:12px 16px;border-color:rgba(255,255,255,.055)}.setrow.changed{background:rgba(230,151,66,.07);box-shadow:inset 3px 0 var(--next)}
+.setval-ro{border:1px solid rgba(255,255,255,.045);border-radius:5px;background:#0e1215}.savebar{border-radius:7px;background:rgba(10,13,16,.96);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.enemy-grid,.loot-grid,.biome-grid,.attr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.enemy-card,.loot-card{position:relative;min-height:108px;padding:17px;overflow:hidden;border:1px solid rgba(255,255,255,.075);border-left:3px solid #504941;border-radius:6px;background:linear-gradient(145deg,#181d21,#111519)}
+.enemy-card::after,.loot-card::after{content:"";position:absolute;right:-38px;bottom:-55px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(240,120,47,.055),transparent 70%)}
+.enemy-card .cap,.loot-card .cap{position:relative;z-index:1;color:#e8e1d9;font:730 14px/1.25 var(--display);letter-spacing:.4px;text-transform:uppercase}
+.enemy-card .meta,.loot-card .meta{margin-top:7px;color:#8e8881;font:400 11px/1.45 "Segoe UI";letter-spacing:0;text-transform:none}
+.enemy-card.active{border-color:rgba(195,59,46,.38);border-left-color:#c84938;box-shadow:inset 0 0 28px rgba(168,25,25,.08)}.enemy-card.locked{opacity:.48;filter:saturate(.35)}
+.biome-card{min-height:124px;border-radius:6px;border-color:rgba(255,255,255,.085);background:#101417;transition:transform .16s,border-color .16s}.biome-card:hover{transform:translateY(-2px);border-color:rgba(240,120,47,.4)}
+.biome-card img{height:96px;filter:saturate(.8) contrast(1.08)}.biome-card .cap{padding:10px 11px;color:#e8e1d9;background:#111519;font:720 11px/1.2 var(--display);letter-spacing:.55px}
+.mapwrap{border-radius:7px;border-color:rgba(255,151,66,.20);box-shadow:var(--shadow)}.maptip{border-radius:5px;background:rgba(8,11,13,.96)}
+.tbl th{padding:9px;color:#8e8881}.tbl td{padding:10px 9px;border-color:rgba(255,255,255,.055)}
+.foot{margin-top:28px;padding:19px 0 0;border-top:1px solid rgba(255,255,255,.07);color:#5f5b57;font-size:10px;letter-spacing:1.15px;text-transform:uppercase}
+.launch{background:radial-gradient(750px 480px at 50% 34%,rgba(164,47,25,.17),transparent 72%),linear-gradient(145deg,#090b0d,#111519 52%,#080a0c)}
+.launchbox{width:min(610px,100%);padding:46px 42px 38px;border:1px solid rgba(255,145,59,.25);border-radius:10px;background:linear-gradient(145deg,rgba(25,30,35,.98),rgba(12,15,18,.99));box-shadow:0 35px 100px rgba(0,0,0,.55)}
+.launchbox::before{border-radius:10px}.launchlogo{font-size:60px;animation:none}.launchbox h1{color:#f4eee5;background:none;font:780 41px/1 var(--display);letter-spacing:.6px;text-transform:uppercase}.launchbtn{border-radius:6px;color:#fff;background:linear-gradient(135deg,#9d2e24,#e2692b);box-shadow:0 12px 30px rgba(157,46,36,.22)}
+.horde-overview{display:grid;grid-template-columns:minmax(360px,1.25fr) repeat(3,minmax(150px,.55fr));gap:12px;margin-bottom:12px}
+.readiness-core{min-height:190px;display:grid;grid-template-columns:126px 1fr;align-items:center;gap:20px;border-color:rgba(211,54,43,.32);background:radial-gradient(360px 200px at 0 50%,rgba(211,54,43,.15),transparent 70%),linear-gradient(145deg,#1c2024,#111519)}
+.readiness-dial{position:relative;width:118px;height:118px;display:grid;place-items:center}.readiness-dial svg{position:absolute;inset:0;transform:rotate(-90deg);filter:drop-shadow(0 0 9px rgba(211,54,43,.22))}
+.readiness-grade{position:relative;text-align:center;font:800 43px/.85 var(--display);color:#fff}.readiness-grade small{display:block;margin-top:8px;color:#928b84;font:650 9px/1 var(--mono);letter-spacing:1.4px}
+.readiness-copy .statusline{color:var(--tab-cold);font:760 18px/1.1 var(--display);letter-spacing:.8px;text-transform:uppercase}.readiness-copy p{max-width:430px;margin:8px 0 14px;color:#99928a;font-size:12px;line-height:1.5}
+.readiness-copy .bar{height:8px}.readiness-copy .fillb{background:linear-gradient(90deg,#8c201d,var(--tab-hot),var(--tab-cold));box-shadow:0 0 12px rgba(211,54,43,.3)}
+.horde-stat{min-height:190px;display:flex;flex-direction:column;justify-content:space-between}.horde-stat .code{color:#6e6964;font:650 8px/1 var(--mono);letter-spacing:1.4px}.horde-stat .value{color:#fff;font:780 36px/.95 var(--display)}.horde-stat .unit{margin-top:5px;color:#a7a099;font-size:11px}.horde-stat .signal{width:100%;height:3px;background:linear-gradient(90deg,var(--tab-hot),transparent)}
+.horde-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.prep-group{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.075);border-radius:8px;background:linear-gradient(155deg,rgba(25,30,35,.98),rgba(13,17,20,.98));box-shadow:0 14px 38px rgba(0,0,0,.2)}
+.prep-group::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(var(--tab-rgb),.045),transparent 40%)}.prep-group.ready{border-color:rgba(111,167,120,.32);box-shadow:inset 0 0 30px rgba(77,137,88,.055),0 14px 38px rgba(0,0,0,.2)}
+.prep-head{position:relative;display:flex;align-items:center;gap:10px;padding:15px 15px 13px;border-bottom:1px solid rgba(255,255,255,.07)}
+.prep-index{display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(var(--tab-rgb),.35);border-radius:4px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.08);font:750 11px/1 var(--mono)}
+.prep-title{flex:1}.prep-title b{display:block;font:750 12px/1.15 var(--display);letter-spacing:.85px;text-transform:uppercase}.prep-title small{display:block;margin-top:4px;color:#77736e;font:600 9px/1 var(--mono);letter-spacing:.7px}
+.prep-arm{position:relative;width:auto;padding:6px 8px;border:1px solid rgba(255,255,255,.1);border-radius:4px;background:#101417;color:#98918a;font:700 9px/1 var(--mono);letter-spacing:.7px;text-transform:uppercase;cursor:pointer}.prep-arm:hover{border-color:rgba(var(--tab-rgb),.55);color:#fff;background:rgba(var(--tab-rgb),.12)}
+.prep-list{position:relative;padding:7px}
+.prep-item{display:grid;grid-template-columns:29px 1fr auto;align-items:center;gap:9px;min-height:62px;margin:5px 0;padding:9px 10px;border:1px solid transparent;border-radius:5px;background:rgba(255,255,255,.018);cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
+.prep-item:hover{transform:translateX(3px);border-color:rgba(var(--tab-rgb),.25);background:rgba(var(--tab-rgb),.055)}
+.prep-check{display:grid;place-items:center;width:27px;height:27px;border:1px solid rgba(255,255,255,.17);border-radius:4px;color:transparent;background:#0d1114;font:800 15px/1 var(--mono);transition:.18s}
+.prep-name{color:#d9d2ca;font-size:12.5px;font-weight:620;line-height:1.25}.prep-note{margin-top:3px;color:#756f69;font-size:10px;line-height:1.3}.prep-state{color:#625e5a;font:700 8px/1 var(--mono);letter-spacing:.8px}
+.prep-item.critical .prep-state{color:#bd675e}.prep-item.done{border-color:rgba(111,167,120,.18);background:rgba(86,143,96,.055)}.prep-item.done .prep-check{color:#07100a;border-color:#75b47e;background:#75b47e;box-shadow:0 0 14px rgba(111,167,120,.22)}.prep-item.done .prep-name{color:#9fafa0}.prep-item.done .prep-state{color:#76b37e}
+.horde-threats{counter-reset:threat;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.horde-threats .enemy-card{counter-increment:threat;min-height:132px;padding-top:38px}.horde-threats .enemy-card::before{content:"T-" counter(threat,decimal-leading-zero);position:absolute;left:15px;top:14px;color:#68635e;font:700 9px/1 var(--mono);letter-spacing:1.2px}.horde-threats .enemy-card.active::before{color:#df6a5f}.threat-status{display:inline-flex;margin-top:12px;padding:4px 7px;border:1px solid rgba(255,255,255,.08);border-radius:3px;color:#77716b;font:700 8px/1 var(--mono);letter-spacing:.8px}.enemy-card.active .threat-status{color:#ff9285;border-color:rgba(195,59,46,.35);background:rgba(195,59,46,.08)}
+.protocol-list{position:relative}.protocol-step{display:grid;grid-template-columns:54px 1fr;gap:13px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}.protocol-step:last-child{border-bottom:0}.protocol-time{color:var(--tab-cold);font:720 11px/1.3 var(--mono)}.protocol-copy{color:#9e9790;font-size:12px;line-height:1.4}.protocol-copy b{display:block;margin-bottom:2px;color:#e2dbd3;font-family:var(--display);text-transform:uppercase;letter-spacing:.45px}
+.ops-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin:0 0 12px}
+.ops-stat{position:relative;min-height:128px;padding:17px 18px 15px;overflow:hidden;border:1px solid rgba(255,255,255,.075);border-radius:7px;background:linear-gradient(150deg,rgba(25,30,35,.98),rgba(14,18,21,.98));box-shadow:0 12px 34px rgba(0,0,0,.18)}
+.ops-stat::before{content:"";position:absolute;left:0;top:0;width:64px;height:2px;background:linear-gradient(90deg,var(--tab-hot),transparent)}.ops-stat::after{content:"";position:absolute;right:8px;bottom:8px;width:11px;height:11px;border-right:1px solid rgba(var(--tab-rgb),.26);border-bottom:1px solid rgba(var(--tab-rgb),.26)}
+.ops-stat:hover{border-color:rgba(var(--tab-rgb),.27);background:linear-gradient(150deg,rgba(30,36,41,.99),rgba(15,19,23,.99))}
+.ops-code{color:#827c76;font:690 9.5px/1 var(--mono);letter-spacing:1.15px;text-transform:uppercase}.ops-value{margin-top:23px;color:#fff;font:780 31px/.95 var(--display);letter-spacing:-.45px}.ops-value.small{font-size:18px;line-height:1.15;letter-spacing:0}.ops-label{margin-top:8px;color:#b4ada6;font-size:12.5px;line-height:1.4}.ops-signal{position:absolute;left:18px;right:18px;bottom:14px;height:2px;background:linear-gradient(90deg,var(--tab-hot),rgba(var(--tab-rgb),.05))}
+.ops-lead{grid-column:span 2;min-height:128px;display:grid;grid-template-columns:104px 1fr;align-items:center;gap:18px;background:radial-gradient(300px 180px at 0 50%,rgba(var(--tab-rgb),.14),transparent 72%),linear-gradient(150deg,rgba(25,30,35,.98),rgba(14,18,21,.98))}
+.ops-lead .ring{width:94px;height:94px}.ops-lead .big{font-size:24px}.ops-lead-copy b{display:block;color:var(--tab-cold);font:760 17px/1.1 var(--display);letter-spacing:.65px;text-transform:uppercase}.ops-lead-copy p{margin-top:8px;color:#9c958e;font-size:11.5px;line-height:1.45}
+.module-title{display:flex;align-items:center;gap:10px;margin:19px 2px 9px;color:#d9d2ca;font:740 11px/1 var(--display);letter-spacing:1.15px;text-transform:uppercase}.module-title::before{content:"";width:20px;height:2px;background:var(--tab-hot);box-shadow:0 0 10px rgba(var(--tab-rgb),.3)}.module-title span{margin-left:auto;color:#65615d;font:650 8px/1 var(--mono);letter-spacing:1px}
+.command-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.command-tile{position:relative;min-height:105px;padding:16px;border:1px solid rgba(255,255,255,.075);border-radius:6px;background:rgba(18,23,27,.92);cursor:pointer;transition:.17s}.command-tile:hover{transform:translateY(-2px);border-color:rgba(var(--tab-rgb),.42);background:rgba(var(--tab-rgb),.075);box-shadow:0 13px 28px rgba(0,0,0,.22)}.command-tile .num{color:var(--tab-cold);font:720 9px/1 var(--mono)}.command-tile b{display:block;margin-top:18px;color:#e5ded6;font:750 12px/1 var(--display);letter-spacing:.7px;text-transform:uppercase}.command-tile small{display:block;margin-top:6px;color:#817b75;font-size:10px;line-height:1.35}.command-tile::after{content:"›";position:absolute;right:14px;top:50%;color:rgba(var(--tab-rgb),.65);font-size:21px}
+.dashboard-core{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}.status-board .kv{padding:11px 0}.status-board .kv:first-of-type{padding-top:3px}
+.dashboard-overview{grid-template-columns:repeat(4,minmax(0,1fr))}
+.build-console{display:grid;grid-template-columns:minmax(260px,.65fr) 1.35fr;gap:12px;margin-bottom:13px}.build-progress{display:grid;grid-template-columns:105px 1fr;align-items:center;gap:18px}.build-progress .ring{width:100px;height:100px}.build-progress .big{font-size:27px}.build-controls{display:flex;flex-direction:column;justify-content:center}.build-controls select{margin-top:9px}
+#build{counter-reset:phase}.ph{counter-increment:phase}.phh::before{content:"P-0" counter(phase);color:var(--pa);font:720 9px/1 var(--mono);letter-spacing:.7px}.phh>span:first-child{display:none}.ph .body{background:linear-gradient(90deg,rgba(var(--tab-rgb),.018),transparent)}
+.loot-console{display:grid;grid-template-columns:.72fr 1.28fr;gap:12px}.loot-form{background:radial-gradient(280px 180px at 0 100%,rgba(var(--tab-rgb),.11),transparent 72%),linear-gradient(145deg,rgba(24,29,34,.98),rgba(17,21,25,.98))}.loot-form .fld{color:#8f8983;font:650 9px/1 var(--mono);letter-spacing:.85px;text-transform:uppercase}.loot-projection{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.loot-projection .ops-stat{min-height:150px}.biome-card.active{border-color:var(--tab-hot);box-shadow:0 0 0 1px rgba(var(--tab-rgb),.22),0 12px 28px rgba(0,0,0,.25)}.biome-card{cursor:pointer}
+.mag-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.mag-section{margin-top:12px;padding:14px;border:1px solid rgba(255,255,255,.07);border-radius:8px;background:rgba(13,17,20,.78)}.mag-section-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}.mag-section-code{display:grid;place-items:center;width:35px;height:30px;border:1px solid rgba(var(--tab-rgb),.32);border-radius:4px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.07);font:720 9px/1 var(--mono)}.mag-section-head b{font:750 12px/1 var(--display);letter-spacing:.8px;text-transform:uppercase}.mag-section-head small{margin-left:auto;color:#77716b;font:650 9px/1 var(--mono)}.mag-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.mag-entry{position:relative;padding:13px 150px 13px 14px;border:1px solid rgba(255,255,255,.065);border-radius:5px;background:#151a1e}.mag-entry:hover{border-color:rgba(var(--tab-rgb),.27);background:rgba(var(--tab-rgb),.045)}.mag-entry.priority{box-shadow:inset 2px 0 var(--tab-hot)}.mag-entry.complete{border-color:rgba(111,167,120,.25);background:rgba(79,130,87,.055)}.mag-name{font-size:13px;font-weight:680}.mag-meta{margin-top:3px;color:#807a74;font-size:10px}.mag-entry .stepper{position:absolute;right:12px;top:11px}.mag-entry .stepper button{width:25px;height:25px;border-radius:4px}.mag-entry .stepper .mc{min-width:48px;font-size:11px}.mag-entry .bar{margin-top:12px;height:5px}
+.ref-console{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px}.ref-console .searchbar{margin:0}.ref-count{padding:11px 14px;border:1px solid rgba(var(--tab-rgb),.24);border-radius:6px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.055);font:700 10px/1 var(--mono);letter-spacing:.8px;white-space:nowrap}.ref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ref-grid .refcard{margin:0!important;min-height:185px}.refcard h3::before{content:attr(data-code);margin-right:8px;color:var(--tab-cold);font:720 9px/1 var(--mono)}.refcard{cursor:pointer;transition:.17s}.refcard:hover{transform:translateY(-2px);border-color:rgba(var(--tab-rgb),.3)}.refcard.compact{min-height:0}.refcard.compact .kv{display:none}.refcard.compact h3{margin:0}
+.world-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.world-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.world-catalog .world-group{grid-column:1/-1;margin-top:14px}.world-catalog .wi{margin:0;min-height:72px}.wi::after{content:"OPEN";color:#6c6762;font:700 8px/1 var(--mono);letter-spacing:.8px}.wi:hover::after{color:var(--tab-cold)}
+.map-console{display:grid;grid-template-columns:.78fr 1.22fr;gap:10px;margin-bottom:10px}.map-console .card{margin:0!important}.mapwrap{position:relative}.mapwrap::before{content:"TACTICAL GRID / LIVE";position:absolute;z-index:4;right:10px;top:10px;padding:6px 8px;border:1px solid rgba(var(--tab-rgb),.25);border-radius:3px;color:rgba(255,255,255,.55);background:rgba(7,10,12,.78);font:650 8px/1 var(--mono);letter-spacing:1px;pointer-events:none}.map-actions{display:flex;gap:7px;margin-top:10px}.map-actions .btn{flex:1}
+.flight-deck{display:grid;grid-template-columns:1.2fr .8fr;gap:10px;margin-bottom:10px}.key-grid{display:grid;grid-template-columns:repeat(3,36px);gap:5px;justify-content:center;align-content:center}.keycap{display:grid;place-items:center;height:34px;border:1px solid rgba(var(--tab-rgb),.27);border-radius:4px;color:#ddd5cd;background:#11161a;font:720 10px/1 var(--mono);box-shadow:inset 0 -3px rgba(0,0,0,.28)}.keycap.wide{grid-column:span 3}.flight-status{display:flex;flex-direction:column;justify-content:center}.flight-status b{color:var(--tab-cold);font:750 13px/1 var(--display);letter-spacing:.7px;text-transform:uppercase}.flight-status p{margin-top:7px;color:#8e8881;font-size:11px;line-height:1.45}
+.settings-workspace{display:grid;grid-template-columns:minmax(0,1fr) 330px;align-items:start;gap:12px}.settings-list{min-width:0}.sethelp{position:sticky;top:78px;min-height:330px;padding:21px;border:1px solid rgba(240,120,47,.22);border-radius:7px;background:radial-gradient(260px 190px at 100% 0,rgba(240,120,47,.09),transparent 70%),linear-gradient(150deg,#191e22,#101417);box-shadow:0 18px 42px rgba(0,0,0,.25)}
+.sethelp::before{content:"";position:absolute;left:0;top:0;width:78px;height:2px;background:linear-gradient(90deg,var(--acc),transparent)}.sethelp-kicker{color:var(--acc2);font:700 9px/1 var(--mono);letter-spacing:1.4px;text-transform:uppercase}.sethelp-symbol{display:grid;place-items:center;width:42px;height:42px;margin:18px 0 15px;border:1px solid rgba(240,120,47,.38);border-radius:50%;color:#ffc078;background:rgba(240,120,47,.08);font:800 20px/1 var(--display)}.sethelp h3{margin:0 0 10px;color:#f1eae2;font:760 17px/1.15 var(--display);letter-spacing:.35px;text-transform:none}.sethelp p{color:#b2aba4;font-size:13px;line-height:1.65}.sethelp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}.sethelp-fact{padding:10px;border:1px solid rgba(255,255,255,.065);border-radius:5px;background:#11161a}.sethelp-fact span{display:block;color:#716c67;font:680 8px/1 var(--mono);letter-spacing:.9px;text-transform:uppercase}.sethelp-fact b{display:block;margin-top:7px;color:#ddd6ce;font-size:11px;line-height:1.35;word-break:break-word}.sethelp-tip{margin-top:14px;padding:11px 12px;border-left:2px solid var(--acc);color:#8e8881;background:rgba(240,120,47,.045);font-size:11px;line-height:1.5}
+.sethelpq{display:inline-grid;place-items:center;width:20px;height:20px;margin-left:3px;border:1px solid rgba(240,120,47,.36);border-radius:50%;color:#f2a04e;background:rgba(240,120,47,.07);font:800 11px/1 var(--display);cursor:help;transition:.16s}.sethelpq:hover,.sethelpq:focus{outline:none;color:#111;border-color:var(--acc2);background:var(--acc2);box-shadow:0 0 13px rgba(240,120,47,.3)}.setrow.help-active{background:rgba(240,120,47,.055);box-shadow:inset 2px 0 var(--acc)}.setlbl{gap:7px}
+@media(max-width:1120px){.horde-overview{grid-template-columns:repeat(3,1fr)}.readiness-core{grid-column:1/-1}.horde-groups{grid-template-columns:1fr}.horde-threats{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-workspace{grid-template-columns:1fr}.sethelp{position:relative;top:auto;order:-1;min-height:0}.gate-worlds{grid-template-columns:1fr}}
+@media(max-width:900px){body{padding-inline:13px}.tabs{display:flex;overflow-x:auto}.tab{min-width:105px;flex:0 0 105px}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.enemy-grid,.loot-grid,.biome-grid,.attr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-core,.build-console,.loot-console,.map-console,.flight-deck{grid-template-columns:1fr}.dashboard-overview,.mag-overview,.world-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){body{padding-inline:9px}.top{min-height:auto;padding-top:14px}.logo{min-width:210px}.brand-mark{width:38px;height:38px}.brand-copy b{font-size:20px}.logo small{letter-spacing:1.3px}.dayctl{order:2}.hero{padding:21px 19px}.hero h1{font-size:26px}.hero-state,.hero-telemetry{display:none}.g2,.g3{grid-template-columns:1fr}.quick{grid-template-columns:repeat(2,minmax(0,1fr))}.enemy-grid,.loot-grid,.biome-grid,.attr-grid,.horde-threats,.command-grid,.mag-grid,.ref-grid,.world-catalog,.dashboard-overview,.mag-overview,.world-overview,.gate-summary{grid-template-columns:1fr}.ops-lead{grid-column:auto;grid-template-columns:1fr;text-align:center}.ops-lead .ring{margin:auto}.mag-entry{padding:54px 14px 13px}.mag-entry .stepper{left:12px;right:auto;top:10px}.horde-overview{grid-template-columns:1fr}.readiness-core{grid-template-columns:1fr;text-align:center}.readiness-dial{margin:auto}.setrow{align-items:flex-start;flex-direction:column}.setctl{width:100%;max-width:none}.launchbox{padding:34px 22px}.launchbox h1{font-size:31px}.launch.wizard{padding:10px}.launch.wizard .launchbox{padding:19px}.gate-head{grid-template-columns:46px 1fr}.gate-mark{width:46px;height:46px}.gate-progress{display:none}.gate-choice{grid-template-columns:38px 1fr}.gate-choice-mark{width:36px;height:36px}.gate-choice-go{display:none}.gate-actions{align-items:stretch;flex-direction:column}.gate-skip,.gate-back{width:100%}.sethelp-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="launch" id="launcher">
   <div class="launchbox">
-    <div class="launchlogo">🔨</div>
+    <div class="launchlogo">☣</div>
     <h1>Survival&nbsp;Companion</h1>
-    <div class="launchtag">Dein 7 Days to Die Begleiter · <b>V3.0 Dead Hot Summer</b></div>
-    <div class="launchfeat"><span>🌍 echte Saves</span><span>⚙️ Welt-Editor</span><span>🗺️ 2D/3D-Karte</span><span>🔨 Build-Planer</span><span>📕 Magazine</span></div>
-    <button class="btn launchbtn" id="scanbtn">⚔️ Welten &amp; Charaktere scannen</button>
-    <div class="launchstatus" id="launchstatus">100&nbsp;% lokal · offline · keine Cloud · keine BAT, kein Python</div>
+    <div class="launchtag">Your offline 7 Days to Die command center · <b>V3.0 Dead Hot Summer</b></div>
+    <div class="launchfeat"><span>Live saves</span><span>World editor</span><span>2D / 3D maps</span><span>Build planner</span><span>Magazine tracking</span></div>
+    <button class="btn launchbtn" id="scanbtn">Scan Worlds &amp; Survivors</button>
+    <div class="launchstatus" id="launchstatus">100% local · offline · no cloud · one self-contained EXE</div>
   </div>
 </div>
 <div class="wrap">
 <div class="top">
-  <div class="logo">🔨 Survival Companion</div>
-  <div class="dayctl"><button id="dm">−</button><div><div class="dl">Tag</div><div class="dv" id="dayv">1</div></div><button id="dp">+</button></div>
+  <div class="logo"><span class="brand-mark">7D</span><span class="brand-copy"><b>Survival Companion</b><small>Wasteland Operations Console</small></span></div>
+  <div class="dayctl"><button id="dm">−</button><div><div class="dl">Day</div><div class="dv" id="dayv">1</div></div><button id="dp">+</button></div>
   <span class="icon" id="exp" title="Export/Import">⇅</span>
 </div>
 <div class="tabs" id="tabs"></div>
@@ -215,28 +388,28 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 <div id="loot" class="sec"></div>
 <div id="mags" class="sec"></div>
 <div id="ref" class="sec"></div>
-<div class="foot">Alles <b>lokal gespeichert</b> · <b>offline</b> · keine Cloud · ⇅ = Export/Import deines Fortschritts</div>
+<div class="foot">All data <b>stored locally</b> · <b>offline</b> · no cloud · ⇅ exports or imports your progress</div>
 </div>
 <script>
 function lg(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function ls(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 var BUILDS={
-"sledge":{name:"🔨 Sledge (Solo) — validiert",sub:"Solo · Insane · Nightmare · pure Skull Crusher",done:13,phases:[
-["⚡","Damage online","Lvl 1-10","p0",[["Skull Crusher R1","",0],["→ Strength 2","",0],["→ Strength 3","",0],["Skull Crusher R2","+20%, 30% Knockdown",0],["Cardio R1","Stamina — Pflicht",0],["Pain Tolerance R1","anti-Stun — Pflicht",0],["Siphoning Strikes R1","+2 HP pro Kill",0],["Pack Mule R1","",0],["Pack Mule R2","",0],["→ Strength 4","",0],["→ Strength 5","",0],["Skull Crusher R3","+30%, Kill = Stamina zurück",0],["Miner 69'er R1","schneller minen + XP",0],["Pack Mule R3","25% Schaden-Ignorieren",0]]],
-["🛡️","Survival + Essen","Lvl 11-30","p1",[["→ Fortitude 2","",0],["→ Fortitude 3","",0],["Pain Tolerance R2","40% Stun-Schutz",0],["Siphoning Strikes R2","4 HP/Kill",0],["Living Off The Land R1","doppelte Ernte + billigere Plots",1],["Master Chef R1","weniger Zutaten + schneller kochen",1],["Cardio R2","",0],["→ Fortitude 4","",0],["→ Fortitude 5","",0],["Pain Tolerance R3","60% Stun-Schutz",0],["Siphoning Strikes R3","6 HP/Kill",0],["Cardio R3","",0],["Hard Target R1","−5% beim Laufen (R1 reicht)",0],["Miner 69'er R2","",0],["Mother Lode R1","mehr Rohstoffe",0],["Pack Mule R4","",0],["→ Strength 6","2 Punkte",0],["→ Strength 7","2 Punkte",0],["Skull Crusher R4","+40%, 60% KD",0]]],
-["🔥","Strength voll + Essen","Lvl 31-48","p2",[["Living Off The Land R2","+50% Extra-Ernte",0],["Master Chef R2","Essen aus Müll",0],["Big and Fast R1","schneller schwingen",0],["Big and Fast R2","",0],["Big and Fast R3","",0],["Strength Mastery R1","Miner's Mending = Selbstheilung",0],["Strength Mastery R2","",0],["Strength Mastery R3","",0],["→ Strength 8","2 Punkte",0],["→ Strength 9","3 Punkte",0],["Strength Mastery R4","Head Hunter — +50% Köpfe ab",1],["→ Strength 10","3 Punkte",0],["Skull Crusher R5","+50%, 75% Knockdown",1],["Strength Mastery R5","Schadensschutz nach Kills",1],["Big and Fast R4","",0],["Big and Fast R5","",0],["LOTL R3 + Master Chef R3","dreifache Ernte",0]]],
-["❤️","HP-Wand + Flucht","Lvl 49-70","p3",[["→ Fortitude 6","2 Punkte",0],["Fortitude Mastery R1","stoppt Bluten",0],["→ Fortitude 7","2 Punkte",0],["Pain Tolerance R4","80% Stun-Schutz",0],["Cardio R4","+25 Stamina",0],["Siphoning Strikes R4","8 HP/Kill",0],["→ Fortitude 8","2 Punkte",0],["Fortitude Mastery R2","",0],["Fortitude Mastery R3","",0],["→ Fortitude 9","3 Punkte",0],["Fortitude Mastery R4","+50 Leben",1],["→ Fortitude 10","3 Punkte",0],["Pain Tolerance R5","komplett Stun-immun",1],["Cardio R5","+50 Stamina gesamt",1],["Siphoning Strikes R5","+10 HP/Kill",1],["Fortitude Mastery R5","+100 Leben gesamt",1],["→ Agility-Splash → Parkour (optional)","kein Fall-Schaden + Flucht",0]]],
-["🧰","Rest-Komfort","ab Lvl 70","p4",[["Mother Lode","doppelte Rohstoffe",0],["Pack Mule R4-5","",0],["Light Armor","Preacher-Set",0]]]
+"sledge":{name:"Sledge (Solo) — Validated",sub:"Solo · Insane · Nightmare · pure Skull Crusher",done:13,phases:[
+["⚡","Damage Online","Lvl 1-10","p0",[["Skull Crusher R1","",0],["→ Strength 2","",0],["→ Strength 3","",0],["Skull Crusher R2","+20%, 30% knockdown",0],["Cardio R1","Mandatory stamina",0],["Pain Tolerance R1","Mandatory anti-stun",0],["Siphoning Strikes R1","+2 HP per kill",0],["Pack Mule R1","",0],["Pack Mule R2","",0],["→ Strength 4","",0],["→ Strength 5","",0],["Skull Crusher R3","+30%, kills restore stamina",0],["Miner 69'er R1","Faster mining + XP",0],["Pack Mule R3","25% damage ignore",0]]],
+["🛡️","Survival & Food","Lvl 11-30","p1",[["→ Fortitude 2","",0],["→ Fortitude 3","",0],["Pain Tolerance R2","40% stun resistance",0],["Siphoning Strikes R2","4 HP per kill",0],["Living Off The Land R1","Double harvest + cheaper plots",1],["Master Chef R1","Fewer ingredients + faster cooking",1],["Cardio R2","",0],["→ Fortitude 4","",0],["→ Fortitude 5","",0],["Pain Tolerance R3","60% stun resistance",0],["Siphoning Strikes R3","6 HP per kill",0],["Cardio R3","",0],["Hard Target R1","−5% while moving; R1 is enough",0],["Miner 69'er R2","",0],["Mother Lode R1","More resources",0],["Pack Mule R4","",0],["→ Strength 6","2 points",0],["→ Strength 7","2 points",0],["Skull Crusher R4","+40%, 60% knockdown",0]]],
+["🔥","Max Strength & Food","Lvl 31-48","p2",[["Living Off The Land R2","+50% extra harvest",0],["Master Chef R2","Cook from basic ingredients",0],["Big and Fast R1","Faster swings",0],["Big and Fast R2","",0],["Big and Fast R3","",0],["Strength Mastery R1","Miner's Mending self-heal",0],["Strength Mastery R2","",0],["Strength Mastery R3","",0],["→ Strength 8","2 points",0],["→ Strength 9","3 points",0],["Strength Mastery R4","Head Hunter: +50% decapitation",1],["→ Strength 10","3 points",0],["Skull Crusher R5","+50%, 75% knockdown",1],["Strength Mastery R5","Damage protection after kills",1],["Big and Fast R4","",0],["Big and Fast R5","",0],["LOTL R3 + Master Chef R3","Triple harvest",0]]],
+["❤️","HP Wall & Escape","Lvl 49-70","p3",[["→ Fortitude 6","2 points",0],["Fortitude Mastery R1","Stops bleeding",0],["→ Fortitude 7","2 points",0],["Pain Tolerance R4","80% stun resistance",0],["Cardio R4","+25 stamina",0],["Siphoning Strikes R4","8 HP per kill",0],["→ Fortitude 8","2 points",0],["Fortitude Mastery R2","",0],["Fortitude Mastery R3","",0],["→ Fortitude 9","3 points",0],["Fortitude Mastery R4","+50 health",1],["→ Fortitude 10","3 points",0],["Pain Tolerance R5","Full stun immunity",1],["Cardio R5","+50 total stamina",1],["Siphoning Strikes R5","+10 HP per kill",1],["Fortitude Mastery R5","+100 total health",1],["→ Agility splash → Parkour (optional)","No fall damage + escape",0]]],
+["🧰","Late Comfort","Lvl 70+","p4",[["Mother Lode","Double resources",0],["Pack Mule R4-5","",0],["Light Armor","Preacher set",0]]]
 ]},
-"shotgun":{name:"💥 Schrot-Bruiser (Strength)",sub:"Vorlage · Strength · Boomstick",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Boomstick R1-3","Schrot-Schaden",0],["→ Strength 5","",0],["Pain Tolerance R1","",0],["Pack Mule R1","",0],["Miner 69'er R1","",0]]],["🛡️","Survival","Lvl 13-30","p1",[["→ Fortitude 5","",0],["Pain Tolerance R2-3","",0],["Cardio R1-2","",0],["LOTL + Master Chef R1","",1],["→ Strength 7","",0],["Boomstick R4","",0]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Strength 10","",0],["Boomstick R5","",1],["Strength Mastery R4-5","",1],["Mother Lode","",0]]],["❤️","HP","Lvl 49+","p3",[["Fortitude → 10","",0],["Fortitude Mastery","+100 Leben",1],["Pain Tolerance R5","",1]]],["🧰","Komfort","ab 70","p4",[["LOTL/Chef","",0],["Light Armor","",0]]]]},
-"sniper":{name:"🎯 Sniper (Perception)",sub:"Vorlage · Dead Eye + Penetrator",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Dead Eye R1-3","",0],["→ Perception 5","",0],["The Penetrator R1","",0],["Pain Tolerance R1","",0]]],["🛡️","Mobilität","Lvl 13-30","p1",[["→ Perception 7","",0],["Dead Eye R4","",0],["Run and Gun R1-3","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Perception 10","",0],["Dead Eye R5","",1],["Penetrator R5","",1]]],["❤️","HP","Lvl 49+","p3",[["Fortitude Mastery","+100 Leben",1],["Pain Tolerance R4-5","",1],["Parkour","",1]]],["🧰","Komfort","ab 70","p4",[["Salvage Operations","",0],["Light Armor","",0]]]]},
-"mg":{name:"🔫 MG-Tank (Fortitude)",sub:"Vorlage · Machine Gunner",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Machine Gunner R1-3","",0],["→ Fortitude 5","",0],["Pain Tolerance R1-2","",0],["Healing Factor R1","",0]]],["🛡️","Tank","Lvl 13-30","p1",[["→ Fortitude 7","",0],["Machine Gunner R4","",0],["Pain Tolerance R3-4","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Fortitude 10","",0],["Machine Gunner R5","",1],["Fortitude Mastery","+100 Leben",1]]],["❤️","Splash","Lvl 49+","p3",[["Strength → 5 + Pack Mule","",0],["Parkour","",1]]],["🧰","Komfort","ab 70","p4",[["Mother Lode","",0],["Light Armor","",0]]]]},
-"stealth":{name:"🗡️ Assassine (Agility)",sub:"Vorlage · Stealth + Pistole",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Gunslinger R1-3","",0],["→ Agility 5","",0],["Hidden Strike R1","",0],["Parkour R1","",0]]],["🛡️","Stealth","Lvl 13-30","p1",[["→ Agility 7","",0],["Gunslinger R4","",0],["Hidden Strike R2-3","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Agility 10","",0],["Gunslinger R5","",1],["Parkour R5","",1]]],["❤️","HP","Lvl 49+","p3",[["Fortitude Mastery","",1],["Pain Tolerance R3-5","",1]]],["🧰","Komfort","ab 70","p4",[["Light Armor","",0],["LOTL/Chef","",0]]]]}
+"shotgun":{name:"Shotgun Bruiser (Strength)",sub:"Template · Strength · Boomstick",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Boomstick R1-3","Shotgun damage",0],["→ Strength 5","",0],["Pain Tolerance R1","",0],["Pack Mule R1","",0],["Miner 69'er R1","",0]]],["🛡️","Survival","Lvl 13-30","p1",[["→ Fortitude 5","",0],["Pain Tolerance R2-3","",0],["Cardio R1-2","",0],["LOTL + Master Chef R1","",1],["→ Strength 7","",0],["Boomstick R4","",0]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Strength 10","",0],["Boomstick R5","",1],["Strength Mastery R4-5","",1],["Mother Lode","",0]]],["❤️","Health","Lvl 49+","p3",[["Fortitude → 10","",0],["Fortitude Mastery","+100 health",1],["Pain Tolerance R5","",1]]],["🧰","Comfort","Lvl 70+","p4",[["LOTL / Chef","",0],["Light Armor","",0]]]]},
+"sniper":{name:"Sniper (Perception)",sub:"Template · Dead Eye + Penetrator",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Dead Eye R1-3","",0],["→ Perception 5","",0],["The Penetrator R1","",0],["Pain Tolerance R1","",0]]],["🛡️","Mobility","Lvl 13-30","p1",[["→ Perception 7","",0],["Dead Eye R4","",0],["Run and Gun R1-3","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Perception 10","",0],["Dead Eye R5","",1],["Penetrator R5","",1]]],["❤️","Health","Lvl 49+","p3",[["Fortitude Mastery","+100 health",1],["Pain Tolerance R4-5","",1],["Parkour","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Salvage Operations","",0],["Light Armor","",0]]]]},
+"mg":{name:"Machine Gun Tank (Fortitude)",sub:"Template · Machine Gunner",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Machine Gunner R1-3","",0],["→ Fortitude 5","",0],["Pain Tolerance R1-2","",0],["Healing Factor R1","",0]]],["🛡️","Tank","Lvl 13-30","p1",[["→ Fortitude 7","",0],["Machine Gunner R4","",0],["Pain Tolerance R3-4","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Fortitude 10","",0],["Machine Gunner R5","",1],["Fortitude Mastery","+100 health",1]]],["❤️","Splash","Lvl 49+","p3",[["Strength → 5 + Pack Mule","",0],["Parkour","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Mother Lode","",0],["Light Armor","",0]]]]},
+"stealth":{name:"Assassin (Agility)",sub:"Template · Stealth + Handgun",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Gunslinger R1-3","",0],["→ Agility 5","",0],["Hidden Strike R1","",0],["Parkour R1","",0]]],["🛡️","Stealth","Lvl 13-30","p1",[["→ Agility 7","",0],["Gunslinger R4","",0],["Hidden Strike R2-3","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Agility 10","",0],["Gunslinger R5","",1],["Parkour R5","",1]]],["❤️","Health","Lvl 49+","p3",[["Fortitude Mastery","",1],["Pain Tolerance R3-5","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Light Armor","",0],["LOTL / Chef","",0]]]]}
 };
-var EXTRAS=[["Lucky Looter","+25% Loot, +80% schneller looten","General",0],["Salvage Operations","Geld + Stahl beim Schrotten","Perception",0],["Treasure Hunter","vergrabene Schätze","Perception",0],["From The Shadows","leiser + schneller schleichen","Agility",0],["Better Barter","bessere Trader-Preise","Intellect",0],["Advanced Engineering","schneller craften","Intellect",0],["Physician","Meds heilen mehr","Intellect",0],["The Huntsman","+100% Fleisch/Leder","Fortitude",0],["Iron Gut","−25% Food/Water","Fortitude",1],["Junk Miner","+100% Junk-Rohstoffe","Strength",0],["Grand Slam","50% Ragdoll (Sprint)","Strength",1],["Hard Target R2-5","−25% NUR beim Laufen (Funnel schwach)","Agility",1]];
+var EXTRAS=[["Lucky Looter","+25% loot, +80% faster looting","General",0],["Salvage Operations","Money and steel from salvage","Perception",0],["Treasure Hunter","Buried treasure","Perception",0],["From The Shadows","Quieter and faster sneaking","Agility",0],["Better Barter","Better trader prices","Intellect",0],["Advanced Engineering","Faster crafting","Intellect",0],["Physician","Stronger medical items","Intellect",0],["The Huntsman","+100% meat and leather","Fortitude",0],["Iron Gut","−25% food and water use","Fortitude",1],["Junk Miner","+100% junk resources","Strength",0],["Grand Slam","50% ragdoll on sprint attack","Strength",1],["Hard Target R2-5","−25% only while moving; weak in a funnel","Agility",1]];
 var EXTRA_PHASE={"The Huntsman":1,"Iron Gut":1,"Hard Target R2-5":1,"From The Shadows":2,"Grand Slam":2,"Physician":3,"Lucky Looter":4,"Salvage Operations":4,"Treasure Hunter":4,"Better Barter":4,"Advanced Engineering":4,"Junk Miner":4};
 var MAGS=[
-["Sledge Saga",7,"Briefkästen · Completion = Stamina-Fix",1,"perksledgesaga","book"],
+["Sledge Saga",7,"Mailboxes · Completion fixes stamina",1,"perksledgesaga","book"],
 ["Tools Digest",100,"Harvesting Tools",0,"craftingharvestingtools"],
 ["Handy Land",50,"Repair Tools",0,"craftingrepairtools"],
 ["Scrapping 4 Fun",75,"Salvage Tools",0,"craftingsalvagetools"],
@@ -261,58 +434,69 @@ var MAGS=[
 ["Forge Ahead",75,"Workstations",1,"craftingworkstations"],
 ["Vehicle Adventures",100,"Vehicles",0,"craftingvehicles"]
 ];
-// Magazin-Kategorien (label -> Gruppe), Indizes von MAGS bleiben unangetastet
-var MAGCAT={"Knuckles":"🗡️ Waffen","Blades":"🗡️ Waffen","Clubs":"🗡️ Waffen","Sledgehammers":"🗡️ Waffen","Bows":"🗡️ Waffen","Spears":"🗡️ Waffen","Handguns":"🗡️ Waffen","Shotguns":"🗡️ Waffen","Rifles":"🗡️ Waffen","Machine Guns":"🗡️ Waffen","Explosives":"🗡️ Waffen","Harvesting Tools":"🔧 Werkzeug & Technik","Repair Tools":"🔧 Werkzeug & Technik","Salvage Tools":"🔧 Werkzeug & Technik","Workstations":"🔧 Werkzeug & Technik","Electrician":"🔧 Werkzeug & Technik","Traps":"🔧 Werkzeug & Technik","Robotics":"🔧 Werkzeug & Technik","Armor":"🛡️ Überleben","Medical":"🛡️ Überleben","Food":"🛡️ Überleben","Seeds":"🛡️ Überleben","Vehicles":"🚗 Fahrzeuge","Briefkästen · Completion = Stamina-Fix":"🗡️ Waffen"};
-// Perk-Buch-Reihen (19 Serien × 7 Bände) — separat von Crafting-Magazinen
+// Magazine categories. MAGS indices stay stable for localStorage compatibility.
+var MAGCAT={"Knuckles":"Weapons","Blades":"Weapons","Clubs":"Weapons","Sledgehammers":"Weapons","Bows":"Weapons","Spears":"Weapons","Handguns":"Weapons","Shotguns":"Weapons","Rifles":"Weapons","Machine Guns":"Weapons","Explosives":"Weapons","Harvesting Tools":"Tools & Technology","Repair Tools":"Tools & Technology","Salvage Tools":"Tools & Technology","Workstations":"Tools & Technology","Electrician":"Tools & Technology","Traps":"Tools & Technology","Robotics":"Tools & Technology","Armor":"Survival","Medical":"Survival","Food":"Survival","Seeds":"Survival","Vehicles":"Vehicles","Mailboxes · Completion fixes stamina":"Weapons"};
+// Perk book series, tracked separately from crafting magazines.
 var BOOKS=[
- ["The Art of Mining","Bergbau / Abbau","Miner 69'er"],
- ["The Automatic Weapon Handbook","Automatikwaffen","Machine Gunner"],
- ["Batter Up!","Keulen & Schläger","Pummel Pete"],
- ["Bar Brawler","Schlagringe / Fäuste","The Brawler"],
- ["The Fireman's Almanac","Feuer / Molotov / Hitze","—"],
- ["The Great Heist","Schlösser / Tresore","Lock Picking"],
- ["The Hunter's Journal","Jagd / Tiere","Animal Tracker"],
- ["Lucky Looter","Looten","Lucky Looter"],
+ ["The Art of Mining","Mining and harvesting","Miner 69'er"],
+ ["The Automatic Weapon Handbook","Automatic weapons","Machine Gunner"],
+ ["Batter Up!","Clubs and bats","Pummel Pete"],
+ ["Bar Brawler","Knuckles and fists","The Brawler"],
+ ["The Fireman's Almanac","Fire, Molotovs and heat","—"],
+ ["The Great Heist","Locks and safes","Lock Picking"],
+ ["The Hunter's Journal","Hunting and animals","Animal Tracker"],
+ ["Lucky Looter","Looting","Lucky Looter"],
  ["Magnum Enforcer",".44 Magnum","Gunslinger"],
  ["The Night Stalker","Stealth","From The Shadows"],
- ["Pistol Pete","Pistolen","Gunslinger"],
- ["Ranger's Guide to Archery","Bögen","Archery"],
- ["Shotgun Messiah","Schrotflinten","Boomstick"],
- ["Sledge Saga","Vorschlaghämmer","Skull Crusher"],
- ["Sniper","Scharfschützengewehre","Dead Eye"],
- ["Spear Hunter","Speere","Spear Master"],
- ["Urban Combat","Keulen/Klingen urban","Hidden Strike"],
- ["Tech Junkie","Robotik / Elektrik","Electrocutioner"],
- ["Wasteland Treasures","Schätze / Schrott","Salvage Operations"]
+ ["Pistol Pete","Pistols","Gunslinger"],
+ ["Ranger's Guide to Archery","Bows","Archery"],
+ ["Shotgun Messiah","Shotguns","Boomstick"],
+ ["Sledge Saga","Sledgehammers","Skull Crusher"],
+ ["Sniper","Sniper rifles","Dead Eye"],
+ ["Spear Hunter","Spears","Spear Master"],
+ ["Urban Combat","Urban clubs and blades","Hidden Strike"],
+ ["Tech Junkie","Robotics and electricity","Electrocutioner"],
+ ["Wasteland Treasures","Treasure and salvage","Salvage Operations"]
 ];
-var READY=[["Base voll repariert (Stahl-Lane)","",2],["Sledge auf voller Durability + 1 Ersatz-Sledge","",2],["3+ Repair Kits dabei","",1],["10+ First Aid Bandages / Kits","",2],["Honey + Vitamins (Infektion)","",1],["Essen + Wasser >70% + Vorrat","",1],["Grandpa's Moonshine (Opener) + Mega Crush (Panik)","",1],["Forge AUS (Screamer)","",1],["Dach gegen Vultures","",1],["Escape-Route / Bail-Luke frei","",2]];
+var READY=[["Base fully repaired; steel combat lane","",2],["Sledge at full durability + one spare","",2],["Carry at least 3 Repair Kits","",1],["10+ First Aid Bandages or Kits","",2],["Honey + Vitamins for infection","",1],["Food and water above 70% + reserves","",1],["Grandpa's Moonshine opener + Mega Crush panic button","",1],["Forge OFF to avoid Screamers","",1],["Roof secured against Vultures","",1],["Escape route and bail hatch clear","",2]];
 var REF=[
-["⚙️ Deine Settings",[["Schwierigkeit","Insane — du 50% / Gegner 250%"],["Headshot-Mult","125% (Sledge-Köpfe!)"],["XP","125%"],["Zombie-Speed","Nightmare (Tag+Nacht)"],["Feral Sense","Night"],["Block-Damage","Gegner 85% / Blutmond 65%"],["Blood Moon","alle 10 Tage · 64 Gegner"],["Skillpunkte","2 pro Level (Skill Gain Amount=2)"]]],
-["🔨 Sledge-Regeln",[["Power-Attack","2,24× Schaden, 2× Stamina"],["Normale Zombies","KOPF treffen (×125% Headshot)"],["Demolisher","Body/BEIN — nie Brust (zündet!), nie Shotgun"],["Stamina","Cardio + Skull Crusher + Sledge-Saga-Completion"],["Mutanten","schwer Kopf zu treffen = härtester Gegner"]]],
-["🦠 Infektion (Insane = tödlich)",[["Verhindern","Vitamins (12 Min immun)"],["Heilen","Antibiotika −25% · Herbal −10% · Honey −5%"],["Hard-Counter","Preacher Light-Armor (Infekt-Resist bis 100% @Q6)"],["Bridge","Honey + Vitamins horten ab Tag 1"]]],
-["🏰 Base (Melee-Funnel)",[["Prinzip","EINE 1-breite Engstelle, einzeln kämpfen"],["Material","Stahl, ≥13 hoch (anti-dig)"],["Forge",">32 Blöcke unter Boden (Screamer)"],["Insel","Wasser stoppt Zombies NICHT (laufen am Grund) → Funnel-Turm + Ufer-Spikes"],["Demolisher","im Funnel einzeln, Body/Bein"]]],
-["🌍 Biome (Loot × Gefahr)",[["Forest","×0.9 · sicher"],["Burnt","×1.1 · Hitze/Rauch"],["Desert","×1.3 · extreme Hitze"],["Snow","×1.2 · Kälte"],["Wasteland","×1.5 · Radiation, tödlich, bestes Loot"]]],
-["🧬 Die 5 Attribute",[["Perception","Präzisionswaffen (Gewehre/Speere/Sprengstoff) + Scavenging"],["Strength","Wucht (Keule/Sledge/Schrot) + Abbau/Bau"],["Fortitude","Zähigkeit (Fäuste/MG) + Leben/Heilung"],["Agility","Finesse (Bogen/Pistole/Klingen) + Athletik/Stealth"],["Intellect","Tech (Baton/Robotik) + Crafting/Trader/Einfluss"]]],
-["📈 Attribut-Kosten (Punkte)",[["Stufe 2-5","je 1 Punkt"],["Stufe 6-8","je 2 Punkte"],["Stufe 9-10","je 3 Punkte"],["1→10 gesamt","16 Punkte"],["Punkte/Level","2 (V3.0-Standard)"]]],
-["🛠️ Crafting-System",[["Rezepte freischalten","über Magazine LESEN (nicht Perks!)"],["Perks","erhöhen nur die Drop-Chance des passenden Magazins"],["Qualitäts-Tiers","Primitiv → Eisen → Stahl (Magazin-Level)"],["Star-Loot (3.0)","gelootete Waffen rollen Bonus-Werte"],["Combine Bench (3.0)","2 Items zu Super-Waffe mergen"]]],
-["💊 Wichtige Buffs",[["Vitamins","12 Min Infektions-Immunität"],["Grandpa's Moonshine","Stamina-Buff (Blutmond-Opener)"],["Mega Crush","Stamina + Speed (Panik-Knopf)"],["Nerd Goggles","+XP-Buff (Leveln)"],["Coffee","Stamina-Regen"]]],
-["💰 Händler & Quests",[["Quest-Belohnung","Tier wählbar — höchste lohnt fast immer"],["Trader-Schutz","Spawn-/Schadensfreie Zone"],["Daily-Limit","begrenzt Quests/Tag (Welt-Setting)"],["Infested-Quest (3.0)","Loot-Tier-Bonus, beste Gear-Quelle bei hoher LS"]]],
-["🎯 Game-Stage-Schwellen",[["Ferals","ab GS ~37"],["Cops/Spucker","ab GS ~80"],["Wights","ab GS ~120"],["Demolisher/Radiated","ab GS ~147"],["Formel","GS=(Level+min(Tag,Level))×1.2"]]]
+["⚙️ Active Settings",[["Difficulty","Insane — you deal 50%, enemies deal 250%"],["Headshot Multiplier","125% — aim sledge attacks at the head"],["XP","125%"],["Zombie Speed","Nightmare by day and night"],["Feral Sense","Night"],["Block Damage","Enemies 85%, Blood Moon 65%"],["Blood Moon","Every 10 days · 64 enemies"],["Skill Points","2 per level"]]],
+["🔨 Sledge Rules",[["Power Attack","2.24× damage, 2× stamina"],["Normal Zombies","Hit the head for the 125% multiplier"],["Demolisher","Body or legs; never chest, never shotgun"],["Stamina","Cardio + Skull Crusher + Sledge Saga completion"],["Mutants","Hard head target; highest melee threat"]]],
+["🦠 Infection",[["Prevention","Vitamins grant 12 minutes of immunity"],["Treatment","Antibiotics −25% · Herbal −10% · Honey −5%"],["Hard Counter","Preacher Light Armor can reach 100% infection resistance at Q6"],["Early Plan","Stockpile Honey and Vitamins from day one"]]],
+["🏰 Melee Funnel Base",[["Principle","One block-wide choke; fight targets individually"],["Material","Steel, at least 13 blocks high"],["Forge","More than 32 blocks underground to limit Screamers"],["Island","Water does not stop zombies; use a funnel tower"],["Demolisher","Isolate in the funnel and hit body or legs"]]],
+["🌍 Biome Risk & Loot",[["Forest","×0.9 · safest"],["Burnt Forest","×1.1 · heat and smoke"],["Desert","×1.3 · extreme heat"],["Snow","×1.2 · cold"],["Wasteland","×1.5 · radiation, lethal, best loot"]]],
+["🧬 Five Attributes",[["Perception","Precision weapons and scavenging"],["Strength","Impact weapons, mining and construction"],["Fortitude","Toughness, health and recovery"],["Agility","Finesse, athletics and stealth"],["Intellect","Technology, crafting, traders and influence"]]],
+["📈 Attribute Costs",[["Levels 2-5","1 point each"],["Levels 6-8","2 points each"],["Levels 9-10","3 points each"],["Total 1→10","16 points"],["Points per Level","2 in this world"]]],
+["🛠️ Crafting System",[["Unlock Recipes","Read magazines; perks do not unlock recipes"],["Perks","Only increase matching magazine drop weight"],["Quality Tiers","Primitive → Iron → Steel through magazine level"],["Star Loot","Looted weapons can roll boosted stats"],["Combine Bench","Merge two items into a stronger base item"]]],
+["💊 Critical Buffs",[["Vitamins","12 minutes of infection immunity"],["Grandpa's Moonshine","Stamina boost for the Blood Moon opener"],["Mega Crush","Emergency stamina and speed"],["Nerd Goggles","XP boost"],["Coffee","Stamina regeneration"]]],
+["💰 Traders & Quests",[["Quest Reward","Choose the highest useful tier"],["Trader Protection","Safe spawn and damage-free zone"],["Daily Limit","Caps quest progression per day"],["Infested Quest","Bonus loot tier and strong high-LS gear source"]]],
+["🎯 Game Stage Thresholds",[["Ferals","GS ~37"],["Cops","GS ~80"],["Wights","GS ~120"],["Demolisher / Radiated","GS ~147"],["Formula","GS=(Level+min(Day,Level))×1.2"]]]
 ];
 var BIOMES={"Forest":0.9,"Plains":1.0,"Burnt Forest":1.1,"Snow":1.2,"Desert":1.3,"Wasteland":1.5};
 var POITIER={"abandoned_house_01":0,"abandoned_house_02":0,"abandoned_house_03":0,"abandoned_house_04":0,"abandoned_house_05":0,"abandoned_house_06":0,"abandoned_house_07":0,"abandoned_house_08":0,"abandoned_house_09":0,"abandoned_house_10":0,"apartments_01":4,"apartments_02":5,"apartments_03":3,"apartments_04":2,"apartments_05":2,"apartments_06":5,"army_camp_01":4,"army_camp_02":4,"army_camp_03":4,"army_camp_04":3,"army_camp_05":4,"army_camp_06":4,"army_camp_07":4,"army_camp_08":3,"army_camp_09":4,"army_camp_10":4,"auto_mechanic_01":2,"bank_01":2,"bank_02":3,"bar_01":1,"barn_01":0,"barn_02":2,"barn_03":2,"base_military_01":5,"base_survivor_02":3,"body_shop_01":2,"bombshelter_01":2,"bombshelter_02":3,"bombshelter_03":1,"bombshelter_04":1,"bombshelter_05":0,"bombshelter_06":0,"bombshelter_07":1,"bombshelter_08":1,"bombshelter_09":1,"bombshelter_10":1,"bombshelter_11":0,"bowling_alley_01":4,"bowling_alley_02":3,"bunker_00":5,"business_burnt_01":2,"business_burnt_02":2,"cabin_01":1,"cabin_02":1,"cabin_03":2,"cabin_04":1,"cabin_05":1,"cabin_06":1,"cabin_07":1,"cabin_08":1,"cabin_09":1,"cabin_10":1,"cabin_11":1,"cabin_12":1,"cabin_13":2,"cabin_14":1,"cabin_15":1,"cabin_16":1,"cabin_17":2,"cabin_18":2,"cabin_20":3,"carlot_01":2,"carlot_02":3,"cave_01":1,"cave_02":1,"cave_03":1,"cave_06":1,"cave_07":0,"cave_09":4,"cave_10":0,"cave_11":1,"cave_12":2,"cave_14":0,"cave_17":1,"cave_18":1,"cave_19":2,"cave_20":1,"cemetery_01":1,"cemetery_02":2,"church_01":4,"church_02":1,"city_center_01":4,"commercial_strip_01":2,"commercial_strip_02":2,"commercial_strip_03":3,"commercial_strip_04":2,"commercial_strip_05":3,"commercial_strip_07":2,"country_junkyard_01":0,"country_junkyard_02":3,"countrytown_business_01":2,"countrytown_business_02":2,"countrytown_business_03":3,"countrytown_business_04":2,"countrytown_business_05":4,"countrytown_business_06":2,"countrytown_business_07":2,"countrytown_business_08":3,"countrytown_business_09":3,"countrytown_business_10":1,"countrytown_business_11":3,"countrytown_business_12":3,"countrytown_business_13":1,"countrytown_business_14":2,"countrytown_business_15":3,"countrytown_business_16":1,"countrytown_business_17":2,"courthouse_med_01":4,"crater_deco_01":0,"crater_deco_02":0,"crater_deco_03":0,"diner_01":1,"diner_02":1,"diner_03":1,"diner_04":1,"diner_07":3,"downtown_building_01":3,"downtown_building_02":4,"downtown_building_03":4,"downtown_building_04":3,"downtown_building_05":2,"downtown_business_06":2,"downtown_business_07":2,"downtown_filler_01":2,"downtown_filler_02":3,"downtown_filler_03":3,"downtown_filler_04":2,"downtown_filler_05":3,"downtown_filler_06":3,"downtown_filler_07":4,"downtown_filler_09":1,"downtown_filler_11":3,"downtown_filler_12":3,"downtown_filler_13":2,"downtown_filler_14":2,"downtown_filler_15":2,"downtown_filler_21":3,"downtown_filler_22":3,"downtown_filler_23":3,"downtown_filler_24":3,"downtown_filler_25":3,"downtown_filler_26":2,"downtown_filler_27":3,"downtown_filler_29":2,"downtown_filler_30":3,"downtown_filler_31":3,"downtown_filler_park_01":0,"downtown_filler_park_02":0,"downtown_filler_park_03":0,"downtown_filler_park_04":0,"downtown_filler_park_05":0,"downtown_filler_plaza_01":0,"downtown_filler_plaza_02":0,"downtown_filler_plaza_03":0,"downtown_filler_plaza_04":0,"downtown_filler_plaza_05":0,"downtown_park_01":0,"downtown_park_02":0,"downtown_park_03":0,"downtown_parking_lot_01":2,"downtown_strip_01":4,"downtown_strip_02":4,"downtown_strip_03":4,"downtown_strip_04":4,"downtown_strip_05":4,"downtown_strip_07":4,"downtown_strip_09":3,"downtown_strip_10":3,"downtown_strip_11":4,"downtown_strip_12":4,"factory_01":5,"factory_02":5,"factory_03":5,"farm_01":2,"farm_02":3,"farm_03":2,"farm_04":2,"farm_05":3,"farm_06":3,"farm_07":2,"farm_08":2,"farm_10":2,"farm_11":2,"farm_12":1,"farm_13":3,"farm_14":2,"farm_15":3,"farm_16":4,"farm_17":2,"farm_18":4,"farm_19":3,"farm_20":4,"fastfood_01":1,"fastfood_02":1,"fastfood_03":1,"fastfood_04":0,"fastfood_05":1,"fastfood_06":3,"fastfood_07":2,"field_concert_01":3,"fire_station_01":2,"fire_station_02":3,"fire_station_03":3,"fire_station_04":2,"football_stadium":5,"funeral_home_01":1,"gas_station_01":1,"gas_station_02":1,"gas_station_03":1,"gas_station_04":1,"gas_station_05":4,"gas_station_06":0,"gas_station_07":1,"gas_station_08":1,"gas_station_09":1,"gas_station_10":1,"gas_station_11":1,"gas_station_12":3,"hospital_01":5,"hotel_01":4,"hotel_02":5,"hotel_03":5,"hotel_04":4,"hotel_ostrich":5,"house_burnt_01":1,"house_burnt_02":2,"house_burnt_03":1,"house_burnt_04":2,"house_burnt_05":2,"house_burnt_06":4,"house_construction_01":1,"house_construction_02":0,"house_construction_03":1,"house_construction_04":1,"house_country_01":1,"house_modern_01":2,"house_modern_02":3,"house_modern_03":2,"house_modern_04":2,"house_modern_05":3,"house_modern_06":2,"house_modern_07":3,"house_modern_08":2,"house_modern_09":2,"house_modern_10":1,"house_modern_11":2,"house_modern_12":1,"house_modern_13":1,"house_modern_14":2,"house_modern_15":2,"house_modern_16":2,"house_modern_17":2,"house_modern_18":4,"house_modern_19":2,"house_modern_20":1,"house_modern_21":3,"house_modern_22":2,"house_modern_23":1,"house_modern_24":4,"house_modern_25":1,"house_modern_26":1,"house_modern_27":1,"house_modern_28":2,"house_modern_29":2,"house_modern_30":3,"house_modern_31":5,"house_modern_32":1,"house_modern_33":1,"house_modern_34":2,"house_modern_35":2,"house_old_bungalow_01":3,"house_old_bungalow_02":2,"house_old_bungalow_03":2,"house_old_bungalow_04":2,"house_old_bungalow_05":2,"house_old_bungalow_06":2,"house_old_bungalow_07":2,"house_old_bungalow_08":2,"house_old_bungalow_09":1,"house_old_bungalow_10":1,"house_old_bungalow_11":3,"house_old_bungalow_12":1,"house_old_cottage_01":1,"house_old_gambrel_01":2,"house_old_gambrel_02":1,"house_old_gambrel_03":3,"house_old_gambrel_04":2,"house_old_mansard_01":2,"house_old_mansard_02":4,"house_old_mansard_03":3,"house_old_mansard_04":3,"house_old_mansard_05":1,"house_old_mansard_06":4,"house_old_mansard_07":4,"house_old_modular_01":1,"house_old_modular_02":3,"house_old_modular_03":2,"house_old_modular_04":2,"house_old_modular_05":1,"house_old_modular_06":1,"house_old_modular_07":1,"house_old_modular_08":1,"house_old_pyramid_01":3,"house_old_pyramid_02":2,"house_old_pyramid_03":2,"house_old_pyramid_04":3,"house_old_pyramid_05":1,"house_old_ranch_01":1,"house_old_ranch_02":3,"house_old_ranch_03":2,"house_old_ranch_04":2,"house_old_ranch_05":2,"house_old_ranch_06":2,"house_old_ranch_07":2,"house_old_ranch_08":2,"house_old_ranch_09":2,"house_old_ranch_10":1,"house_old_ranch_11":2,"house_old_ranch_13":3,"house_old_tudor_01":2,"house_old_tudor_02":1,"house_old_tudor_03":3,"house_old_tudor_04":2,"house_old_tudor_05":2,"house_old_tudor_06":3,"house_old_victorian_01":3,"house_old_victorian_02":2,"house_old_victorian_03":4,"house_old_victorian_04":3,"house_old_victorian_05":1,"house_old_victorian_06":2,"house_old_victorian_07":2,"house_old_victorian_08":1,"house_old_victorian_09":3,"house_old_victorian_10":2,"house_old_victorian_11":2,"house_old_victorian_12":2,"housing_development_01":4,"industrial_60_01":4,"industrial_60_02":4,"industrial_60_03":4,"industrial_60_04":4,"industrial_business_08":2,"industrial_strip_01":2,"industrial_strip_02":2,"industrial_strip_03":2,"industrial_strip_05":3,"industrial_strip_06":4,"industrial_strip_09":2,"industrial_strip_10":2,"industrial_strip_11":3,"installation_red_mesa":5,"junkyard_01":4,"lodge_01":3,"mine_01":5,"motel_01":2,"motel_02":1,"motel_03":3,"motel_04":3,"motel_05":1,"nursing_home_01":5,"office_01":1,"office_02":2,"office_03":2,"office_04":2,"office_05":3,"office_06":3,"oldwest_business_01":1,"oldwest_business_02":1,"oldwest_business_03":1,"oldwest_business_04":1,"oldwest_business_05":0,"oldwest_business_06":1,"oldwest_business_07":0,"oldwest_business_08":1,"oldwest_business_09":0,"oldwest_business_10":1,"oldwest_business_11":1,"oldwest_business_12":1,"oldwest_business_13":1,"oldwest_business_14":1,"oldwest_coal_factory":1,"oldwest_gallows":0,"oldwest_jail":0,"oldwest_stables":0,"oldwest_strip_01":2,"oldwest_strip_02":2,"oldwest_strip_03":1,"oldwest_strip_04":1,"oldwest_watertower":0,"park_01":0,"park_02":0,"park_03":0,"park_basketball":0,"parking_garage_01":0,"parking_garage_02":4,"parking_garage_03":2,"parking_lot_01":1,"parking_lot_02":2,"parking_lot_03":0,"police_station_03":3,"post_office_01":2,"post_office_02":3,"prison_01":5,"prison_02":5,"quarry_02":5,"radio_station_01":3,"radio_station_02":2,"radio_station_03":1,"ranger_station_01":3,"ranger_station_02":1,"ranger_station_03":1,"ranger_station_04":1,"ranger_station_05":1,"ranger_station_06":2,"ranger_station_07":3,"rural_church_01":3,"rural_church_02":2,"rural_drive_in_01":4,"rural_outdoor_wedding_01":2,"sawmill_01":3,"school_01":4,"school_02":4,"school_03":5,"school_daycare_01":1,"school_daycare_02":3,"school_daycare_03":2,"skyscraper_01":5,"skyscraper_02":5,"skyscraper_03":5,"skyscraper_04":4,"soccer_stadium_01":5,"store_autoparts_01":2,"store_bakery_01":2,"store_book_01":2,"store_book_02":3,"store_book_04":1,"store_clothing_01":3,"store_clothing_02":3,"store_discount_01":3,"store_electronics_01":1,"store_electronics_02":2,"store_grocery_01":2,"store_grocery_02":4,"store_grocery_03":3,"store_grocery_04":1,"store_grocery_05":1,"store_grocery_06":1,"store_gun_01":4,"store_gun_02":4,"store_hardware_01":2,"store_hardware_02":3,"store_hardware_03":4,"store_laundry_01":1,"store_pharmacy_01":1,"store_pharmacy_02":3,"survivor_camp_01":0,"survivor_camp_02":0,"survivor_camp_03":0,"survivor_site_01":1,"survivor_site_02":1,"survivor_site_03":1,"survivor_site_04":1,"survivor_site_05":1,"survivor_site_06":1,"survivor_site_07":1,"survivor_site_08":1,"survivor_site_09":1,"survivor_site_10":1,"survivor_site_11":1,"theater_stage_01":5,"trader_bob":0,"trader_hugh":0,"trader_jen":0,"trader_joel":0,"trader_rekt":0,"trailer_park_01":1,"utility_celltower_01":0,"utility_celltower_02":0,"utility_celltower_03":0,"utility_electric_co_01":2,"utility_electric_co_02":4,"utility_refinery_01":3,"utility_refinery_02":4,"utility_substation_01":3,"utility_substation_02":2,"utility_substation_03":1,"utility_waterworks_01":4,"warehouse_01":4,"warehouse_02":3,"warehouse_03":4,"warehouse_04":2,"warehouse_05":3,"warehouse_06":3,"warehouse_07":3,"warehouse_08":3,"weigh_station_01":3};
 var TIERCOL={"-1":"#6f6a5c","0":"#8a8478","1":"#5cc47a","2":"#9bd14a","3":"#f5b73c","4":"#ef7a35","5":"#d83b32"};
 var TIERLBL={"-1":"?","0":"T0","1":"T1","2":"T2","3":"T3","4":"T4","5":"T5"};
 var SANDORDER=["RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","HeadshotMultiplier","CrouchSpeed","WalkSpeed","RunSpeed","JumpStrength","StaminaUsage","StaminaRegen","PlayerLevelBonusApplied","JarRefund","ShowHealthBars","ShowEnemyDamage","NewbieCoat","HeadshotMode","IncomingDamage","XPMultiplier","ShowXP","EncumbranceModifier","ItemDegradation","LoseItemsOnDeathType","LoseItemsOnDeathCount","DegradeItemsOnDeath","DegradeAmountOnDeath","DeathPenalty","DropOnDeath","DropOnQuit","InfectionRate","EnemySpawnMode","EntityDamage","BlockDamageAI","BlockDamageAIBM","ZombieMove","ZombieMoveNight","ZombieFeralMove","ZombieBMMove","ZombieFeralSense","AISmellMode","AllowZombieDigging","ZombieRageChance","EntityIncomingDamage","MaxEnemyTier","BiomeZombieRespawn","BiomeAnimalRespawn","BiomeEnemyDensity","ZombiesEatAnimals","BloodMoonFrequency","BloodMoonRange","BloodMoonWarning","BloodMoonEnemyCount","AirDropFrequency","AirDropMarker","AirDropRandomTime","BiomeProgression","TemperatureSurvival","StormFreq","StormWarning","HeatMapSensitivity","GlobalGSModifier","BiomeGSModifier","GlobalLSModifier","BiomeLSModifier","POITierLSModifier","GlobalTSModifier","DayNightLength","DayLightLength","AllowMap","AllowCompass","AllowScreenMarkers","ShowLocationInfo","ShowDayTime","WorkstationsInTheWild","MaxTechType","LootRespawnDays","LootTimer","LootMaxTier","GlobalLootCount","FoodLootCount","DrinkLootCount","MedicalLootCount","AmmoLootCount","ResourceLootCount","ArmorLootCount","MeleeLootCount","RangedLootCount","DukesLootCount","CraftingMagazinesLootCount","TreasureMapChance","LootBagChance","CropOutput","SeedDropOutput","CropGrowthSpeed","BackpackCrafting","WorkstationCrafting","CraftingProgression","CraftingTime","CraftingInput","CraftingOutput","CraftingMaxTier","MiningOutput","HarvestingOutput","ScrappingOutput","SmeltingType","DewCollectorTime","DewCollectorOutput","DewCollectorInput","ApiaryTime","ApiaryOutput","ApiaryInput","RepairTypes","MaxDegradationAmount","PointsPerMagazine","SkillGainRate","SkillPointsPerLevel","QuestsEnabled","IntroQuestEnabled","TraderToTraderQuestsEnabled","StarterSkillPoints","QuestsPerTier","QuestProgressionDailyLimit","BuriedQuestsEnabled","POIQuestsEnabled","TraderDialog","TraderHours","TradersEnabled","VendingEnabled","TraderSellPrices","TraderBuyPrices","TraderProtection","TraderResetInterval","TraderItemAbundance","TraderBuyLimit","TraderMaxTier","VendingResetInterval","VendingItemAbundance","ChallengesEnabled","IntroChallengesEnabled","VehicleFuelUsage","VehicleEntityDamage","VehicleBlockDamage","VehicleSelfDamage","ElectricalOutput","SillyCelebrate","SillyBigHeads","SillyTinyZombies","SillySounds","SillyLowGravity","SillyBlackandWhite"];
-var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XPOnly","Injured","PermaDeath"]},"DropOnDeath":{"d":["Nichts","Alles","Gürtel","Rucksack","Alles löschen"]},"DropOnQuit":{"d":["Nichts","Alles","Gürtel","Rucksack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Aus","Tag","Nacht","Alle"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morgen","Abend"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unbegrenzt"]}};
-var TABS=[["world","🌍 Welt"],["map","🗺️ Map"],["d3","🧊 3D"],["dash","🏠 Dashboard"],["build","🔨 Build"],["horde","🩸 Horde"],["loot","📦 Loot"],["mags","📕 Magazine"],["ref","📋 Referenz"]];
+var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XP Only","Injured","Permadeath"]},"DropOnDeath":{"d":["Nothing","Everything","Toolbelt","Backpack","Delete Everything"]},"DropOnQuit":{"d":["Nothing","Everything","Toolbelt","Backpack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Off","Day","Night","All"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morning","Evening"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unlimited"]}};
+var TABS=[["world","World"],["map","Map"],["d3","3D"],["dash","Dashboard"],["build","Build"],["horde","Horde"],["loot","Loot"],["mags","Magazines"],["ref","Reference"]];
 var S=JSON.parse(lg("7dtd-companion")||"null")||{tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,col:{},world:null};
 var W={tree:null,curSave:null,maps:{},mapImg:null,roadImg:null,waterImg:null,view:null,sel:null,mapKey:null,scanned:false};
 var W3={dead:true,gl:null,raf:0};
-var RD=null,EDIT={},EDIT_CTX=null;
+var RD=null,UIA={},EDIT={},EDIT_CTX=null;
 if(!S.mapFilter)S.mapFilter={"-1":1,"0":1,"1":1,"2":1,"3":1,"4":1,"5":1};
 function buildRefIndex(){if(!RD)return;RD.byName={};(RD.sandbox||[]).forEach(function(o){RD.byName[o.name]=o;});(RD.plain||[]).forEach(function(o){if(!RD.byName[o.name])RD.byName[o.name]=o;});RD.perkByKey={};(RD.perks||[]).forEach(function(p){RD.perkByKey[p.key]=p;});}
-function loadRef(cb){if(RD){cb&&cb();return;}fetch("/api/refdata",{cache:"force-cache"}).then(function(r){return r.json();}).then(function(d){RD=d;buildRefIndex();cb&&cb();}).catch(function(){cb&&cb();});}
+function loadRef(cb){
+ if(RD&&Object.keys(UIA).length){cb&&cb();return;}
+ Promise.all([
+  fetch("/api/refdata",{cache:"force-cache"}).then(function(r){return r.json();}),
+  fetch("/api/uiassets",{cache:"force-cache"}).then(function(r){return r.json();})
+ ]).then(function(d){RD=d[0];UIA=d[1]||{};buildRefIndex();renderTabs();cb&&cb();}).catch(function(){cb&&cb();});
+}
+function hero(title,eyebrow,desc,key){
+ var code=(key||"ops").replace("tab_","").toUpperCase();
+ return '<section class="hero"><div class="hero-state">LOCAL SYSTEM</div><div class="hero-copy"><div class="eyebrow">'+eyebrow+'</div><h1>'+title+'</h1><p>'+desc+'</p></div><div class="hero-telemetry"><span>OPS / '+code+'</span><span>LINK 127.0.0.1</span><span>STATE VERIFIED</span></div></section>';
+}
+function humanKey(s){return (s||"").replace(/([a-z0-9])([A-Z])/g,"$1 $2").replace(/([A-Z])([A-Z][a-z])/g,"$1 $2");}
 function save(){var p=JSON.parse(JSON.stringify(S));delete p.map;delete p.playerProgression;ls("7dtd-companion",JSON.stringify(p));}
 function bstate(){if(!S.builds[S.cur])S.builds[S.cur]={chk:{},ext:[]};return S.builds[S.cur];}
 // ---- top ----
@@ -320,13 +504,18 @@ function renderTop(){document.getElementById("dayv").textContent=S.day;}
 document.getElementById("dp").onclick=function(){S.day++;save();renderTop();show();};
 document.getElementById("dm").onclick=function(){if(S.day>1)S.day--;save();renderTop();show();};
 document.getElementById("exp").onclick=function(){
- var blob=JSON.stringify(S);var inp=prompt("EXPORT/IMPORT:\nKopiere diesen Code zum Sichern, ODER füge einen Code ein + OK zum Laden:",blob);
- if(inp&&inp!==blob){try{var n=JSON.parse(inp);S=n;save();location.reload();}catch(e){alert("Ungültiger Code");}}
+ var blob=JSON.stringify(S);var inp=prompt("EXPORT / IMPORT\nCopy this code as a backup, or paste a saved code and press OK to restore it:",blob);
+ if(inp&&inp!==blob){try{var n=JSON.parse(inp);S=n;save();location.reload();}catch(e){alert("Invalid companion data.");}}
 };
 // ---- tabs ----
 var tb=document.getElementById("tabs");
-TABS.forEach(function(t){var b=document.createElement("div");b.className="tab"+(S.tab===t[0]?" on":"");b.textContent=t[1];b.onclick=function(){S.tab=t[0];S.importMsg=null;S.setMsg=null;save();show();};tb.appendChild(b);});
+function renderTabs(){
+ tb.innerHTML="";
+ TABS.forEach(function(t){var b=document.createElement("div");b.className="tab"+(S.tab===t[0]?" on":"");b.innerHTML='<span>'+t[1]+'</span>';b.onclick=function(){S.tab=t[0];S.importMsg=null;S.setMsg=null;save();show();};tb.appendChild(b);});
+}
+renderTabs();
 function show(){
+ document.body.dataset.tab=S.tab;
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
  (({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef})[S.tab]||rWorld)();
@@ -338,50 +527,60 @@ function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var st=BUILDS[S.cur];
 function readyScore(){var got=0,max=0;READY.forEach(function(r,i){max+=r[2];if(S.ready[i])got+=r[2];});var p=max?Math.round(got/max*100):0;var g=p>=90?"A":p>=75?"B":p>=55?"C":p>=35?"D":"F";return {p:p,g:g};}
 function gamestage(){var L=S.lvl||1,d=S.day||1;var adj=Math.min(d,L);return Math.floor((L+adj)*1.2);}
 function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor(L*bm2*(1+(S.ll||0)/100));}
-function lootTier(ls2){return ls2<40?"T0 (primitiv)":ls2<80?"T1 (Eisen)":ls2<118?"T2 (Stahl beginnt)":ls2<262?"T3 (Q5/T4 Waffen)":"T4 (Q6/T5-T6, Endgame)";}
+function lootTier(ls2){return ls2<40?"T0 (Primitive)":ls2<80?"T1 (Iron)":ls2<118?"T2 (Steel begins)":ls2<262?"T3 (Q5 / T4 weapons)":"T4 (Q6 / T5-T6 endgame)";}
 // ---- DASHBOARD ----
 function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
  var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
- var ban=b.today?'<div class="banner danger">🩸 BLUTMOND HEUTE NACHT — '+bmc+' Gegner. Sei im Funnel!</div>':b.until===1?'<div class="banner warn">⚠️ MORGEN Blutmond — heute alles vorbereiten (Tab 🩸 Horde)</div>':'<div class="banner safe">✅ Kein Blutmond. Noch '+b.until+' Tage. Looten/bauen/leveln.</div>';
+ var ban=b.today?'<div class="banner danger">BLOOD MOON TONIGHT — '+bmc+' enemies. Hold the funnel.</div>':b.until===1?'<div class="banner warn">Blood Moon tomorrow — finish every preparation today.</div>':'<div class="banner safe">No Blood Moon tonight. '+b.until+' days remain for looting, building and leveling.</div>';
  var ip=S.importedPlayer, world=S.world, loaded=!!world;
+ var bp=buildPct(),systems=(loaded?25:0)+(ip?25:0)+(RD?25:0)+(bp>0?25:0);
  function pill(ok,txt){return '<span class="statpill '+(ok?"ok":"no")+'">'+(ok?"✓ ":"— ")+esc(txt)+'</span>';}
- var status='<div class="card"><h3>📥 Status</h3>'+
-   '<div class="kv"><span>Welt geladen</span><b>'+(loaded?pill(true,world.world+" / "+world.save):pill(false,"keine Welt"))+'</b></div>'+
+ var status='<div class="card status-board"><h3>Operation Systems</h3>'+
+   '<div class="kv"><span>World loaded</span><b>'+(loaded?pill(true,world.world+" / "+world.save):pill(false,"No world"))+'</b></div>'+
    '<div class="kv"><span>Version</span><b>'+(loaded?esc(world.version||"?"):"–")+'</b></div>'+
-   '<div class="kv"><span>Charakter</span><b>'+(ip?pill(true,ip.name+" · Lvl "+ip.level):pill(false,"nicht importiert"))+'</b></div>'+
+   '<div class="kv"><span>Survivor</span><b>'+(ip?pill(true,ip.name+" · Lvl "+ip.level):pill(false,"Not imported"))+'</b></div>'+
    '<div class="kv"><span>Build</span><b>'+esc((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)+'</b></div>'+
-   '<div class="kv"><span>Referenzdaten</span><b>'+(RD?pill(true,"geladen"):pill(false,"laden…"))+'</b></div>'+
-   (loaded?'':'<div class="qbtn" data-go="world" style="margin-top:10px">→ Welt &amp; Charakter im 🌍 Welt-Tab laden</div>')+
+   '<div class="kv"><span>Reference data</span><b>'+(RD?pill(true,"Loaded"):pill(false,"Loading…"))+'</b></div>'+
+   (loaded?'':'<div class="qbtn" data-go="world" style="margin-top:10px">Load a world and survivor</div>')+
   '</div>';
- var quick='<div class="card"><h3>⚡ Schnellzugriff</h3><div class="quick">'+
-   '<div class="qbtn" data-go="world">🌍 Welt</div><div class="qbtn" data-go="build">🔨 Build</div><div class="qbtn" data-go="map">🗺️ Map</div>'+
-   '<div class="qbtn" data-go="horde">🩸 Horde</div><div class="qbtn" data-go="loot">📦 Loot</div><div class="qbtn" data-go="mags">📕 Magazine</div></div></div>';
- var rings1='<div class="grid g3" style="margin-top:12px">'+
-  card("📅 Tag","",'<div class="big">'+S.day+'</div><div class="sub">nächster Blutmond: Tag '+b.next+'</div>')+
-  '<div class="card"><h3>🩸 Blutmond</h3><div style="display:flex;gap:12px;align-items:center"><div class="ring">'+ringSVG(Math.max(0,100-b.until*10),b.until<=1?"#d83b32":"#ef7a35")+'<div class="rt"><span class="big" style="font-size:26px">'+b.until+'</span><span class="sub">Tage</span></div></div><div class="sub">'+bmc+' Gegner</div></div></div>'+
-  '<div class="card"><h3>🔨 Build</h3><div style="display:flex;gap:12px;align-items:center"><div class="ring">'+ringSVG(buildPct(),"#5cc47a")+'<div class="rt"><span class="big" style="font-size:24px">'+buildPct()+'%</span></div></div></div></div>'+
- '</div>';
- var rings2='<div class="grid g3" style="margin-top:12px">'+
-  card("🎯 Game Stage","",'<div class="big">'+gs+'</div><div class="sub">'+(gs>=147?"Demolisher möglich!":gs>=80?"Wights/Cops":"normale Zombies")+'</div>')+
-  card("📦 Loot-Tier","",'<div class="big" style="font-size:18px">'+lootTier(ls2)+'</div><div class="sub">Loot Stage '+ls2+' · '+S.biome+'</div>')+
-  '<div class="card"><h3>🛡️ Horde-Readiness</h3><div style="display:flex;gap:12px;align-items:center"><div class="ring">'+ringSVG(rs.p,rs.p>=75?"#5cc47a":rs.p>=45?"#f5b73c":"#d83b32")+'<div class="rt"><span class="big" style="font-size:30px;color:'+(rs.p>=75?"#5cc47a":rs.p>=45?"#f5b73c":"#d83b32")+'">'+rs.g+'</span></div></div><div class="sub">'+rs.p+'% bereit</div></div></div>'+
- '</div>';
- document.getElementById("dash").innerHTML=ban+'<div class="grid g2">'+status+quick+'</div>'+rings1+rings2;
+ var quick='<div class="card"><h3>Command Routing</h3><div class="command-grid">'+
+   '<div class="command-tile" data-go="world"><span class="num">01 / DATA</span><b>World Control</b><small>Import saves and verify settings.</small></div>'+
+   '<div class="command-tile" data-go="build"><span class="num">02 / PLAN</span><b>Build Doctrine</b><small>Advance the active perk route.</small></div>'+
+   '<div class="command-tile" data-go="map"><span class="num">03 / RECON</span><b>Tactical Map</b><small>Inspect POIs, roads and terrain.</small></div>'+
+   '<div class="command-tile" data-go="horde"><span class="num">04 / DEFENSE</span><b>Horde Command</b><small>Arm readiness systems.</small></div>'+
+   '<div class="command-tile" data-go="loot"><span class="num">05 / SUPPLY</span><b>Loot Intel</b><small>Project risk and reward.</small></div>'+
+   '<div class="command-tile" data-go="mags"><span class="num">06 / ARCHIVE</span><b>Magazines</b><small>Track crafting progression.</small></div></div></div>';
+ var overview='<div class="ops-strip dashboard-overview">'+
+   opsLead("SYSTEM INTEGRITY",systems,systems+"%","Operation Link",systems===100?"All primary data systems are online.":"Load the missing world, survivor or progression data to complete the command link.",systems===100?"#70b47c":"#ef9739")+
+   opsStat("CLOCK / DAY",S.day,"Next Blood Moon: day "+b.next)+
+   opsStat("CONTACT / D-"+b.until,b.until,bmc+" enemies configured")+
+   opsStat("THREAT / GS",gs,gs>=147?"Demolisher possible":gs>=80?"Wights and Cops active":"Standard threat pool")+
+   opsStat("SUPPLY / LS",ls2,lootTier(ls2),true)+
+   opsStat("BUILD / ROUTE",bp+"%",esc(BUILDS[S.cur].name),false)+
+   opsStat("DEFENSE / GRADE",rs.g,rs.p+"% Horde readiness")+'</div>';
+ document.getElementById("dash").innerHTML=hero("Survivor Dashboard","Live operation overview","Track the next Blood Moon, imported character status, build progress and current loot pressure.","tab_dash")+ban+overview+'<div class="dashboard-core">'+status+quick+'</div>';
  document.querySelectorAll("#dash [data-go]").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};});
 }
 function card(h,sub,body){return '<div class="card"><h3>'+h+'</h3>'+body+'</div>';}
+function opsStat(code,value,label,small){return '<div class="ops-stat"><div class="ops-code">'+code+'</div><div class="ops-value'+(small?" small":"")+'">'+value+'</div><div class="ops-label">'+label+'</div><div class="ops-signal"></div></div>';}
+function opsLead(code,pct,value,title,desc,col){return '<div class="ops-stat ops-lead"><div class="ring">'+ringSVG(pct,col||"var(--tab-hot)",94)+'<div class="rt"><span class="big">'+value+'</span></div></div><div class="ops-lead-copy"><div class="ops-code">'+code+'</div><b>'+title+'</b><p>'+desc+'</p></div></div>';}
 // ---- BUILD ----
 function rBuild(){var st=bstate();
  var sel='<select id="bsel">';Object.keys(BUILDS).forEach(function(k){sel+='<option value="'+k+'"'+(k===S.cur?" selected":"")+'>'+BUILDS[k].name+'</option>';});sel+='</select>';
  var pct=buildPct();
+ var picked=Object.keys(st.picks||{}).length,phaseCount=BUILDS[S.cur].phases.length,level=S.importedPlayer?S.importedPlayer.level:(S.lvl||1);
  var imported="";
  if(S.importedPlayer&&S.playerProgression){
   var perks=Object.keys(S.playerProgression).filter(function(k){return /^perk/.test(k)&&PERK_NAMES[k]&&S.playerProgression[k]>0;});
-  imported='<div class="card imported" style="margin-bottom:12px"><h3>🎮 Importiert: '+esc(S.importedPlayer.name)+' · Level '+S.importedPlayer.level+'</h3><div class="skillchips">'+
+  imported='<div class="card imported" style="margin-bottom:12px"><h3>Imported Survivor: '+esc(S.importedPlayer.name)+' · Level '+S.importedPlayer.level+'</h3><div class="skillchips">'+
    perks.map(function(k){return '<span class="skillchip">'+esc(PERK_NAMES[k])+' <b>R'+S.playerProgression[k]+'</b></span>';}).join("")+
-   '</div><div class="sub">Build automatisch erkannt: <b>'+esc(BUILDS[S.cur].name)+'</b>. Abgehakte Schritte stammen aus dem echten Player-Save.</div></div>';
+   '</div><div class="sub">Detected build: <b>'+esc(BUILDS[S.cur].name)+'</b>. Checked steps come from the imported player save.</div></div>';
  }
- var html=imported+'<div class="ctrls">'+sel+'<span style="font-size:13px;color:var(--muted)">'+pct+'% fertig</span></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>';
+ var html=hero("Build Planner","Skill point doctrine","Follow the validated solo route or assemble a custom perk loadout from the complete catalog.","tab_build")+
+  '<div class="build-console"><div class="card build-progress"><div class="ring">'+ringSVG(pct,pct>=75?"#70b47c":"var(--tab-hot)",100)+'<div class="rt"><span class="big">'+pct+'%</span></div></div><div><div class="ops-code">ROUTE COMPLETION</div><h3 style="margin:9px 0 5px">'+esc(BUILDS[S.cur].name)+'</h3><div class="sub">Every checked step advances the active doctrine.</div></div></div>'+
+  '<div class="card build-controls"><div class="ops-code">ACTIVE DOCTRINE / SELECT ROUTE</div>'+sel+'<div class="bar" style="margin-top:14px"><div class="fillb" style="width:'+pct+'%"></div></div></div></div>'+
+  '<div class="ops-strip">'+opsStat("SURVIVOR / LVL",level,"Current progression level")+opsStat("PHASES / PLAN",phaseCount,"Structured advancement stages")+opsStat("PERKS / CUSTOM",picked,"Selected catalog perks")+opsStat("NEXT / STEP",pct>=100?"DONE":"ACTIVE",pct>=100?"Route completed":"Highlighted inside the current phase",true)+'</div>'+imported+
+  '<div class="module-title">Doctrine Phases <span>CLICK A PHASE TO COLLAPSE</span></div>';
  var gi=0,def=BUILDS[S.cur].done||0;
  BUILDS[S.cur].phases.forEach(function(ph,pi){var body="",d=0,t=ph[4].length;
   ph[4].forEach(function(it){gi++;var id="c"+gi;var on=(id in st.chk)?st.chk[id]:(gi<=def);if(on)d++;
@@ -401,27 +600,26 @@ function rBuild(){var st=bstate();
  markNext("build");
 }
 function rBuildCatalog(st){
- if(!RD||!RD.perks){return '<div class="card" style="margin-top:14px"><div class="wstep">📚 Perk-Katalog wird geladen …</div></div>';}
+ if(!RD||!RD.perks){return '<div class="card" style="margin-top:14px"><div class="wstep">Loading perk catalog…</div></div>';}
  var picks=st.picks=st.picks||{};
  var rec={};(RD.perks||[]).forEach(function(p){if((p.recommended||[]).indexOf(S.cur)>=0)rec[p.key]=1;});
  var attrs=["Strength","Perception","Fortitude","Agility","Intellect","General"];
- var icon={Strength:"💪",Perception:"👁️",Fortitude:"🫀",Agility:"🏃",Intellect:"🧠",General:"⬜"};
  var groups={};(RD.perks||[]).forEach(function(p){(groups[p.attribute]=groups[p.attribute]||[]).push(p);});
  var af=S.perkAttr||"all", nPick=Object.keys(picks).length;
- var chips='<div class="filterchips"><span class="fchip'+(af==="all"?" on":"")+'" data-pa="all">Alle</span><span class="fchip'+(af==="rec"?" on":"")+'" data-pa="rec">★ Empfohlen</span><span class="fchip'+(af==="picked"?" on":"")+'" data-pa="picked">✓ Gewählt ('+nPick+')</span>'+attrs.map(function(a){return '<span class="fchip'+(af===a?" on":"")+'" data-pa="'+a+'">'+icon[a]+' '+a+'</span>';}).join("")+'</div>';
+ var chips='<div class="filterchips"><span class="fchip'+(af==="all"?" on":"")+'" data-pa="all">All</span><span class="fchip'+(af==="rec"?" on":"")+'" data-pa="rec">★ Recommended</span><span class="fchip'+(af==="picked"?" on":"")+'" data-pa="picked">✓ Selected ('+nPick+')</span>'+attrs.map(function(a){return '<span class="fchip'+(af===a?" on":"")+'" data-pa="'+a+'">'+a+'</span>';}).join("")+'</div>';
  var bodyHtml='';
  attrs.forEach(function(a){var ps=groups[a];if(!ps)return;
   var rows=ps.map(function(p){var on=!!picks[p.key],isRec=!!rec[p.key];
    return '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'">'+
      '<div class="cbx">'+(on?"✓":"")+'</div>'+
-     '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ empfohlen</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
-     '<div class="ef">'+esc(p.desc||"")+'</div></div></div>';
+     '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
+     '<div class="ef">'+esc(a)+' perk · attribute gates '+esc(p.gates||"not listed")+'</div></div></div>';
   }).join("");
-  bodyHtml+='<div class="perkgrp" data-grp="'+a+'"><div class="perkgrph">'+icon[a]+' '+a+'</div>'+rows+'</div>';
+  bodyHtml+='<div class="perkgrp" data-grp="'+a+'"><div class="perkgrph">'+a+'</div>'+rows+'</div>';
  });
- return '<div class="card" style="margin-top:14px"><h3>📚 Alle Perks — frei wählbar</h3>'+
-  '<div class="sub" style="margin-bottom:8px">★ = empfohlen für <b>'+esc(BUILDS[S.cur].name)+'</b>. Du kannst trotzdem JEDEN Perk wählen und frei kombinieren (z.B. Sniper-Perks in einem Sledge-Build) — nichts wird ausgeblendet.</div>'+
-  '<input class="searchbar" id="perkq" placeholder="Perk suchen (Name oder Effekt) …" value="'+esc(S.perkq||"")+'">'+chips+
+ return '<div class="card" style="margin-top:14px"><h3>Complete Perk Catalog</h3>'+
+  '<div class="sub" style="margin-bottom:8px">★ marks recommendations for <b>'+esc(BUILDS[S.cur].name)+'</b>. Every perk remains selectable for custom hybrid builds.</div>'+
+  '<input class="searchbar" id="perkq" placeholder="Search perks by name…" value="'+esc(S.perkq||"")+'">'+chips+
   '<div id="perkcat">'+bodyHtml+'</div></div>';
 }
 function applyPerkFilter(){
@@ -436,100 +634,184 @@ function applyPerkFilter(){
   g.style.display=any?"":"none";
  });
 }
-function updatePickCount(){var st=bstate();var n=Object.keys(st.picks||{}).length;var c=document.querySelector('#build [data-pa="picked"]');if(c)c.textContent="✓ Gewählt ("+n+")";}
+function updatePickCount(){var st=bstate();var n=Object.keys(st.picks||{}).length;var c=document.querySelector('#build [data-pa="picked"]');if(c)c.textContent="✓ Selected ("+n+")";}
 function rowHTML(id,nm,ef,star,on){return '<div class="row'+(on?" done":"")+'" data-id="'+id+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+nm+(star?' <span class="star">★</span>':'')+'</div>'+(ef?'<div class="ef">'+ef+'</div>':'')+'</div></div>';}
-function markNext(sec){var rows=document.querySelectorAll("#"+sec+" .row");for(var i=0;i<rows.length;i++){if(!rows[i].classList.contains("done")){rows[i].classList.add("next");var s=document.createElement("span");s.className="nx";s.innerHTML='<span class="dot"></span>nächster';rows[i].appendChild(s);break;}}}
+function markNext(sec){var rows=document.querySelectorAll("#"+sec+" .row");for(var i=0;i<rows.length;i++){if(!rows[i].classList.contains("done")){rows[i].classList.add("next");var s=document.createElement("span");s.className="nx";s.innerHTML='<span class="dot"></span>next';rows[i].appendChild(s);break;}}}
 // ---- HORDE ----
 function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
- var ban=b.today?'<div class="banner danger">🩸 HEUTE NACHT Blutmond! '+bmc+' Gegner</div>':'<div class="banner '+(b.until<=1?"warn":"safe")+'">noch '+b.until+' Tage bis Blutmond (Tag '+b.next+') · '+bmc+' Gegner</div>';
- var html=ban+'<div class="card"><h3>🛡️ Readiness '+rs.g+' · '+rs.p+'%</h3><div class="bar"><div class="fillb" style="width:'+rs.p+'%;background:'+(rs.p>=75?"var(--done)":rs.p>=45?"var(--acc2)":"var(--blood)")+'"></div></div><div class="sub" style="margin-top:6px">Hake unten alles ab, was bereit ist. Note ergibt sich aus Gewichtung (kritische Punkte zählen doppelt).</div></div>';
- READY.forEach(function(r,i){var on=!!S.ready[i];html+='<div class="row'+(on?" done":"")+'" data-r="'+i+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+r[0]+(r[2]>=2?' <span class="rb rb2">kritisch</span>':'')+'</div></div></div>';});
- // Special-enemy threat by current gamestage
- var threats=[["Normale Zombies",0,"Standard-Horde"],["Feral (glühende Augen)",37,"schneller, mehr HP — Kopf treffen"],["Cop / Spucker",80,"explodiert / säuert — Abstand bei Tod"],["Wight",120,"sehr schnell + zäh — Priorität"],["Radiated / Regenerator",147,"heilt sich — Dauerschaden nötig"],["Demolisher",147,"Brust-Charge zündet bei Treffer → NUR Body/Bein/Kopf, NIE Brust/Schrot"]];
- var tr=threats.map(function(t){var active=gs>=t[1];return '<div class="kv"><span style="color:'+(active?"var(--text)":"var(--dim)")+'">'+(active?"⚔️ ":"🔒 ")+t[0]+(t[1]?" (ab GS "+t[1]+")":"")+'</span><b style="font-family:inherit;font-weight:500;max-width:55%;text-align:right;color:'+(active?"var(--muted)":"var(--dim)")+'">'+t[2]+'</b></div>';}).join("");
- html+='<div class="card" style="margin-top:14px"><h3>👹 Bedrohung bei deiner Game Stage ('+gs+')</h3>'+tr+'</div>';
- html+='<div class="card" style="margin-top:12px"><h3>🌙 Blutmond-Nacht — Ablauf</h3>'+
-   '<div class="refrow"><b>22:00</b> — Horde startet, erste Welle. Im Funnel positionieren.</div>'+
-   '<div class="refrow"><b>Wellen</b> — Gegner kommen in Schüben; zwischen Wellen reparieren.</div>'+
-   '<div class="refrow"><b>04:00</b> — Horde endet, Reste aufräumen. Erst dann Funnel verlassen.</div>'+
-   '<div class="refrow"><b>Hitze:</b> Forge/Feuer AUS — sonst zusätzliche Screamer-Spawns mitten im Blutmond.</div></div>';
- html+='<div class="card" style="margin-top:12px"><h3>📋 Schnell-Erinnerung</h3><div class="refrow"><b>Sledge:</b> Body/Bein am Demolisher, nie Brust</div><div class="refrow"><b>Funnel:</b> EINE Engstelle, nie offen gegen '+bmc+'</div><div class="refrow"><b>Opener:</b> Grandpa\'s Moonshine · <b>Panik:</b> Mega Crush</div><div class="refrow"><b>Forge AUS</b> · Dach gegen Vultures · Bail-Luke frei</div></div>';
+ var ban=b.today?'<div class="banner danger">BLOOD MOON TONIGHT &middot; '+bmc+' enemies inbound &middot; final checks only</div>':'<div class="banner '+(b.until<=1?"warn":"safe")+'">'+b.until+' days until Blood Moon on day '+b.next+' &middot; '+bmc+' enemies configured</div>';
+ var status=rs.p>=90?"COMBAT READY":rs.p>=75?"FINAL CHECKS":rs.p>=55?"PREPARATION ACTIVE":rs.p>=35?"EXPOSED":"NOT READY";
+ var ringCol=rs.p>=75?"#75b47e":rs.p>=45?"#ef9b45":"#d84a3f";
+ var prepNotes=[
+  "Repair the steel lane and every load-bearing block.",
+  "Full durability, plus a second weapon within reach.",
+  "Carry enough kits to restore the lane between waves.",
+  "Fast healing stays on the belt, not in storage.",
+  "Infection prevention and treatment are both covered.",
+  "Enter the fight fed, hydrated and with reserves.",
+  "Moonshine opens; Mega Crush is the extraction switch.",
+  "Reduce heat before contact to limit Screamer pressure.",
+  "Seal the roof and preserve a clear firing angle.",
+  "A tested exit matters more than a heroic last stand."
+ ];
+ var prepGroups=[
+  {name:"Fortification",code:"BASE / 01",items:[0,7,8,9]},
+  {name:"Combat Loadout",code:"GEAR / 02",items:[1,2,6]},
+  {name:"Medical & Sustainment",code:"SUPPLY / 03",items:[3,4,5]}
+ ];
+ function groupHTML(g,gi){
+  var done=0;
+  g.items.forEach(function(i){if(S.ready[i])done++;});
+  var all=done===g.items.length;
+  var items=g.items.map(function(i){
+   var r=READY[i],on=!!S.ready[i],critical=r[2]>=2;
+   return '<div class="prep-item'+(on?" done":"")+(critical?" critical":"")+'" data-r="'+i+'">'+
+    '<div class="prep-check">'+(on?"&#10003;":"")+'</div>'+
+    '<div><div class="prep-name">'+r[0]+'</div><div class="prep-note">'+prepNotes[i]+'</div></div>'+
+    '<div class="prep-state">'+(on?"READY":critical?"CRITICAL":"PENDING")+'</div></div>';
+  }).join("");
+  return '<section class="prep-group'+(all?" ready":"")+'"><div class="prep-head">'+
+   '<div class="prep-index">0'+(gi+1)+'</div><div class="prep-title"><b>'+g.name+'</b><small>'+g.code+' &middot; '+done+'/'+g.items.length+' online</small></div>'+
+   '<button class="prep-arm" data-rg="'+gi+'">'+(all?"RESET":"ARM ALL")+'</button></div><div class="prep-list">'+items+'</div></section>';
+ }
+ var html=hero("Horde Command","Blood Moon battle station","Turn preparation into a live combat board: arm each system, clear critical failures and track threats before the first wave.","tab_horde")+ban+
+  '<div class="horde-overview">'+
+   '<div class="card readiness-core"><div class="readiness-dial">'+ringSVG(rs.p,ringCol,118)+'<div class="readiness-grade">'+rs.g+'<small>'+rs.p+'% READY</small></div></div>'+
+    '<div class="readiness-copy"><div class="statusline">'+status+'</div><p>Critical systems carry double weight. Reach 90% before contact; anything lower leaves a known failure point in the defense.</p><div class="bar"><div class="fillb" style="width:'+rs.p+'%"></div></div></div></div>'+
+   '<div class="card horde-stat"><span class="code">COUNTDOWN / D-'+b.until+'</span><div><div class="value">'+b.until+'</div><div class="unit">days to contact</div></div><div class="signal"></div></div>'+
+   '<div class="card horde-stat"><span class="code">THREAT / GS</span><div><div class="value">'+gs+'</div><div class="unit">current Game Stage</div></div><div class="signal"></div></div>'+
+   '<div class="card horde-stat"><span class="code">WAVE / CAP</span><div><div class="value">'+bmc+'</div><div class="unit">configured enemies</div></div><div class="signal"></div></div>'+
+  '</div><div class="horde-groups">'+prepGroups.map(groupHTML).join("")+'</div>';
+ var threats=[
+  ["Feral",37,"Fast, durable; prioritize headshots"],
+  ["Wight",120,"Extremely fast and tough; priority target"],
+  ["Cop",80,"Acid and death explosion; keep distance"],
+  ["Demolisher",147,"Never hit the chest charge"],
+  ["Vulture",0,"Roof threat; protect the fighting position"],
+  ["Spider",0,"Leaping flank threat"],
+  ["Zombie Dog",0,"Fast low target; breaks open movement"],
+  ["Screamer",0,"Heat response; shut down forge and fire"]
+ ];
+ var tr=threats.map(function(t){var active=gs>=t[1];return '<div class="enemy-card '+(active?"active":"locked")+'"><div class="cap">'+t[0]+(t[1]?' &middot; GS '+t[1]:'')+'<div class="meta">'+t[2]+'</div><span class="threat-status">'+(active?"IN THREAT POOL":"BELOW THRESHOLD")+'</span></div></div>';}).join("");
+ html+='<div class="card" style="margin-top:14px"><h3>Threat Identification &middot; Game Stage '+gs+'</h3><div class="horde-threats">'+tr+'</div></div>';
+ html+='<div class="grid g2" style="margin-top:12px"><div class="card"><h3>Blood Moon Sequence</h3><div class="protocol-list">'+
+   '<div class="protocol-step"><div class="protocol-time">21:30</div><div class="protocol-copy"><b>Lockdown</b>Close the route, shut down heat sources and verify the escape hatch.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">22:00</div><div class="protocol-copy"><b>First Contact</b>Take the funnel, establish rhythm and protect stamina.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">WAVES</div><div class="protocol-copy"><b>Repair Cycle</b>Restore the lane between pushes without leaving hard cover.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">04:00</div><div class="protocol-copy"><b>Clearance</b>Confirm the final targets before leaving the combat lane.</div></div></div></div>'+
+   '<div class="card"><h3>Combat Doctrine</h3><div class="protocol-list">'+
+   '<div class="protocol-step"><div class="protocol-time">TARGET</div><div class="protocol-copy"><b>Demolisher</b>Body or legs only. Never strike the chest charge.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">LANE</div><div class="protocol-copy"><b>Single Funnel</b>Never meet '+bmc+' configured enemies in open ground.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">OPEN</div><div class="protocol-copy"><b>Moonshine</b>Use the opener before pressure destroys the attack rhythm.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">BAIL</div><div class="protocol-copy"><b>Mega Crush</b>Extract through the prepared route before the lane collapses.</div></div></div></div></div>';
  document.getElementById("horde").innerHTML=html;
  document.querySelectorAll("#horde [data-r]").forEach(function(r){r.onclick=function(){var i=r.dataset.r;S.ready[i]=!S.ready[i];save();rHorde();};});
+ document.querySelectorAll("#horde [data-rg]").forEach(function(btn){btn.onclick=function(){var g=prepGroups[+btn.dataset.rg],all=g.items.every(function(i){return !!S.ready[i];});g.items.forEach(function(i){S.ready[i]=!all;});save();rHorde();};});
 }
 // ---- LOOT ----
 function rLoot(){var gs=gamestage(),ls2=lootstage();
  var biomeOpts=Object.keys(BIOMES).map(function(k){return '<option'+(k===S.biome?" selected":"")+'>'+k+'</option>';}).join("");
- var html='<div class="card"><h3>📊 Loot-Rechner</h3>'+
- '<label class="fld">Dein Level</label><input type="number" id="il" value="'+(S.lvl||1)+'" min="1" max="300">'+
- '<label class="fld">Biom</label><select id="ib">'+biomeOpts+'</select>'+
+ var lootCats=[
+  ["Weapons","Firearms, melee weapons and ranged weapons across all quality tiers."],
+  ["Ammunition","Cartridges, shells, arrows, bolts and explosive ammunition."],
+  ["Medical","Healing, infection treatment and combat recovery supplies."],
+  ["Food & Drink","Food, water, ingredients and stamina consumables."],
+  ["Tools","Mining, construction, repair and salvage tools."],
+  ["Armor","Armor sets, clothing and outfit-specific equipment."],
+  ["Resources","Crafting materials, mechanical parts and chemicals."],
+  ["Mods & Magazines","Item mods, crafting magazines, perk books and schematics."],
+  ["Vehicles","Vehicle parts, engines, batteries, wheels and fuel."],
+  ["Treasure","Safes, hidden stashes, hardened chests and buried rewards."]
+ ];
+ var biomeAssets={Forest:"biome_forest","Burnt Forest":"biome_burnt",Desert:"biome_desert",Snow:"biome_snow",Wasteland:"biome_wasteland",Plains:"biome_forest"};
+ var nextLs=ls2<40?40:ls2<80?80:ls2<118?118:ls2<262?262:290;
+ var risk=S.biome==="Wasteland"?"EXTREME":S.biome==="Snow"||S.biome==="Desert"?"HIGH":S.biome==="Burnt Forest"?"ELEVATED":"STANDARD";
+ var html=hero("Loot Intelligence","Risk versus reward","Estimate Loot Stage, compare biome multipliers and target the container types that matter for your next upgrade.","tab_loot")+
+ '<div class="ops-strip">'+
+  opsLead("LOOT STAGE / LIVE",Math.min(100,Math.round(ls2/290*100)),ls2,"Current Loot Band",lootTier(ls2)+" in "+S.biome+".","#d0a84e")+
+  opsStat("THREAT / GS",gs,gs>=147?"Demolisher tier":gs>=80?"Special infected active":"Standard threats")+
+  opsStat("BIOME / MULT",BIOMES[S.biome].toFixed(1)+"×",S.biome+" reward multiplier")+
+  opsStat("RISK / ZONE",risk,"Current biome exposure",true)+
+  opsStat("NEXT / BAND",nextLs,"Loot Stage target")+'</div>'+
+ '<div class="loot-console"><div class="card loot-form"><h3>Loot Projection Console</h3>'+
+ '<label class="fld">Survivor Level</label><input type="number" id="il" value="'+(S.lvl||1)+'" min="1" max="300">'+
+ '<label class="fld">Biome</label><select id="ib">'+biomeOpts+'</select>'+
  '<label class="fld">Lucky Looter Bonus (%)</label><input type="number" id="ill" value="'+(S.ll||0)+'" min="0" max="50">'+
  '</div>'+
- '<div class="grid g2" style="margin-top:12px">'+
-  card("🎯 Game Stage","",'<div class="big">'+gs+'</div><div class="sub">'+(gs>=147?"Demolisher!":gs>=120?"Wights":gs>=80?"Ferals/Cops":"normal")+'</div>')+
-  card("📦 Loot Stage","",'<div class="big">'+ls2+'</div><div class="sub">'+lootTier(ls2)+'</div>')+
- '</div>'+
- '<div class="card" style="margin-top:12px"><h3>ℹ️ Schwellen (Quick)</h3><div class="kv"><span>Stahl-Loot ab</span><b>LS 80</b></div><div class="kv"><span>T5/T6 Waffen ab</span><b>LS 262</b></div><div class="kv"><span>Demolisher ab</span><b>GS 147</b></div><div class="kv"><span>Loot-Stage-Cap</span><b>290</b></div></div>';
- var L=RD&&RD.loot;
- if(L){
-  html+='<input class="searchbar" id="lootq" placeholder="Loot / Kategorie / Fundort suchen …" value="'+esc(S.lootq||"")+'" style="margin-top:14px">';
-  if(L.lootstageTable&&L.lootstageTable.length){
-   html+='<div class="card"><h3>📈 Loot-Stage → Qualität</h3><table class="tbl"><thead><tr><th>Loot-Stage</th><th>Tier</th><th>Notiz</th></tr></thead><tbody>'+
-    L.lootstageTable.map(function(r){return '<tr class="lq"><td><b>'+esc(r.stage)+'</b></td><td>'+esc(r.tier)+'</td><td style="color:var(--muted)">'+esc(r.note)+'</td></tr>';}).join("")+'</tbody></table></div>';
-  }
-  if(L.categories&&L.categories.length){
-   html+='<div class="card"><h3>📦 Loot-Kategorien</h3>'+L.categories.map(function(c){return '<div class="lcard lq"><h4>'+esc(c.name)+'</h4><div class="ld">'+esc(c.desc)+'</div>'+(c.examples?'<div class="lex">z.B. '+esc(c.examples)+'</div>':'')+'</div>';}).join("")+'</div>';
-  }
-  if(L.whereFound&&L.whereFound.length){
-   html+='<div class="card"><h3>📍 Wo finde ich was?</h3><table class="tbl"><thead><tr><th>Loot</th><th>Fundort</th></tr></thead><tbody>'+
-    L.whereFound.map(function(w){return '<tr class="lq"><td><b>'+esc(w.what)+'</b></td><td style="color:var(--muted)">'+esc(w.where)+'</td></tr>';}).join("")+'</tbody></table></div>';
-  }
-  if(L.tips&&L.tips.length){
-   html+='<div class="card"><h3>💡 Loot-Tipps</h3>'+L.tips.map(function(t){return '<div class="refrow lq">• '+esc(t)+'</div>';}).join("")+'</div>';
-  }
- } else html+='<div class="wstep" style="margin-top:12px">📦 Loot-Referenz wird geladen …</div>';
+ '<div class="card"><h3>Progression Thresholds</h3><div class="loot-projection">'+
+  opsStat("TIER / STEEL","80","Steel loot begins")+
+  opsStat("TIER / QUALITY","118","Stable Q5 progression")+
+  opsStat("TIER / ENDGAME","262","T5/T6 weapon band")+
+  opsStat("SYSTEM / CAP","290","Maximum Loot Stage")+
+ '</div></div></div>';
+ html+='<div class="module-title">Biome Selection <span>CLICK A BIOME TO RECALCULATE</span></div><div class="card"><div class="biome-grid">'+Object.keys(BIOMES).filter(function(k){return k!=="Plains";}).map(function(k){return '<div class="biome-card'+(k===S.biome?' active':'')+'" data-biome="'+esc(k)+'">'+(UIA[biomeAssets[k]]?'<img src="'+UIA[biomeAssets[k]]+'" alt="'+k+'">':"")+'<div class="cap">'+k+' · ×'+BIOMES[k].toFixed(1)+'</div></div>';}).join("")+'</div></div>';
+ html+='<input class="searchbar" id="lootq" placeholder="Search loot categories…" value="'+esc(S.lootq||"")+'" style="margin-top:14px">';
+ html+='<div class="card"><h3>Target Categories</h3><div class="loot-grid">'+lootCats.map(function(c,i){return '<div class="loot-card lq" data-txt="'+esc((c[0]+" "+c[1]).toLowerCase())+'"><div class="ops-code">SUPPLY / '+String(i+1).padStart(2,"0")+'</div><div class="cap" style="margin-top:14px">'+c[0]+'<div class="meta">'+c[1]+'</div></div></div>';}).join("")+'</div></div>';
+ html+='<div class="grid g2" style="margin-top:12px"><div class="card"><h3>High-Value Sources</h3><div class="refrow lq"><b>Weapons & ammo</b> — military POIs, Shotgun Messiah, police stations and gun safes.</div><div class="refrow lq"><b>Magazines</b> — Crack-a-Book, bookshelves, mailboxes and quest rewards.</div><div class="refrow lq"><b>Medical</b> — Pop-N-Pills, hospitals, clinics and medicine cabinets.</div><div class="refrow lq"><b>Endgame gear</b> — hardened T4/T5 chests, air drops and Infested quest rooms.</div></div>'+
+ '<div class="card"><h3>Field Notes</h3><div class="refrow lq">Harder biomes increase Loot Stage; Wasteland offers the highest reward and highest risk.</div><div class="refrow lq">Loot Stage and Game Stage are separate values.</div><div class="refrow lq">Complete POIs to reach the final loot room instead of abandoning the route early.</div><div class="refrow lq">Crafting progression still depends on magazines, not high-tier weapon drops.</div></div></div>';
  document.getElementById("loot").innerHTML=html;
  document.getElementById("il").oninput=function(){S.lvl=+this.value;save();rLoot();};
  document.getElementById("ib").onchange=function(){S.biome=this.value;save();rLoot();};
  document.getElementById("ill").oninput=function(){S.ll=+this.value;save();rLoot();};
- var lq=document.getElementById("lootq");if(lq)lq.oninput=function(){S.lootq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#loot .lq").forEach(function(r){r.style.display=(!q||r.textContent.toLowerCase().indexOf(q)>=0)?"":"none";});};
+ document.querySelectorAll("#loot [data-biome]").forEach(function(c){c.onclick=function(){S.biome=c.dataset.biome;save();rLoot();};});
+ var lq=document.getElementById("lootq");if(lq)lq.oninput=function(){S.lootq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#loot .lq").forEach(function(r){r.style.display=(!q||(r.dataset.txt||r.textContent.toLowerCase()).indexOf(q)>=0)?"":"none";});};
 }
 // ---- MAGS ----
 function rMags(){if(!S.books)S.books={};
- var html='<div class="card"><h3>📕 Magazine & Bücher</h3><div class="sub">Crafting-Magazine schalten Rezepte/Qualität frei. Perk-Bücher (Reihen) geben permanente Boni. ★ = wichtig für deinen Sledge-Build.</div>'+
-  '<input class="searchbar" id="magq" placeholder="Magazin / Buch suchen …" value="'+esc(S.magq||"")+'" style="margin-top:10px"></div>';
- if(S.importedPlayer)html+='<div class="banner safe" style="margin-top:10px">🎮 Crafting-Fortschritt aus <b>'+esc(S.importedPlayer.name)+'</b> importiert. Werte = Crafting-Level; bei geändertem „Points per Magazine“ nicht zwingend physische Heftanzahl.</div>';
+ var magNow=0,magMax=0,magDone=0,priorityNow=0,priorityMax=0,bookNow=0,bookDone=0;
+ MAGS.forEach(function(m,i){var v=S.mag[i]||0;magNow+=v;magMax+=m[1];if(v>=m[1])magDone++;if(m[3]){priorityNow+=v;priorityMax+=m[1];}});
+ BOOKS.forEach(function(b,i){var v=S.books[i]||0;bookNow+=v;if(v>=7)bookDone++;});
+ var magPct=magMax?Math.round(magNow/magMax*100):0,priorityPct=priorityMax?Math.round(priorityNow/priorityMax*100):0;
+ var html=hero("Magazine Archive","Progression ledger","Track crafting magazine levels and all nineteen seven-volume perk book collections.","tab_mags")+
+  '<div class="mag-overview">'+
+   opsStat("CRAFTING / TOTAL",magPct+"%",magNow+" of "+magMax+" progression points")+
+   opsStat("SKILLS / MAXED",magDone,MAGS.length+" tracked magazine lines")+
+   opsStat("BOOKS / COMPLETE",bookDone,bookNow+" of "+(BOOKS.length*7)+" volumes logged")+
+   opsStat("PRIORITY / SLEDGE",priorityPct+"%",priorityNow+" of "+priorityMax+" priority progress")+'</div>'+
+  '<div class="card"><h3>Archive Search</h3><div class="sub">Crafting magazines unlock recipes and quality. Completed perk book series grant permanent bonuses. ★ marks priorities for the active Sledge doctrine.</div>'+
+  '<input class="searchbar" id="magq" placeholder="Search magazines or perk books…" value="'+esc(S.magq||"")+'" style="margin-top:10px;margin-bottom:0"></div>';
+ if(S.importedPlayer)html+='<div class="banner safe" style="margin-top:10px">Crafting progress imported from <b>'+esc(S.importedPlayer.name)+'</b>. Values are crafting levels and may not equal physical magazine count when Points per Magazine is modified.</div>';
  // Crafting magazines grouped by category
- var groups={};MAGS.forEach(function(m,i){var cat=MAGCAT[m[2]]||MAGCAT[m[0]]||"📦 Sonstige";(groups[cat]=groups[cat]||[]).push(i);});
- ["🗡️ Waffen","🔧 Werkzeug & Technik","🛡️ Überleben","🚗 Fahrzeuge","📦 Sonstige"].forEach(function(cat){
+ var groups={};MAGS.forEach(function(m,i){var cat=MAGCAT[m[2]]||MAGCAT[m[0]]||"Other";(groups[cat]=groups[cat]||[]).push(i);});
+ ["Weapons","Tools & Technology","Survival","Vehicles","Other"].forEach(function(cat,ci){
   var idxs=groups[cat];if(!idxs)return;
-  html+='<div class="magcat magrow">'+cat+'</div>';
+  var entries="";
   idxs.forEach(function(i){var m=MAGS[i],v=S.mag[i]||0,pct=Math.round(v/m[1]*100);
-   html+='<div class="card magrow" data-txt="'+esc((m[0]+" "+m[2]).toLowerCase())+'" style="padding:12px 14px;margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:15px;font-weight:600">'+(m[3]?'★ ':'')+esc(m[0])+'</div><div class="mm" style="font-size:11.5px;color:var(--muted)">'+esc(m[2])+'</div></div><div class="stepper"><button data-md="'+i+'">−</button><span class="mc">'+v+'/'+m[1]+'</span><button data-mp="'+i+'">+</button></div></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div></div>';
+   entries+='<div class="mag-entry magrow'+(m[3]?" priority":"")+(v>=m[1]?" complete":"")+'" data-txt="'+esc((m[0]+" "+m[2]).toLowerCase())+'"><div class="mag-name">'+(m[3]?'★ ':'')+esc(m[0])+'</div><div class="mag-meta">'+esc(m[2])+'</div><div class="stepper"><button data-md="'+i+'">−</button><span class="mc">'+v+'/'+m[1]+'</span><button data-mp="'+i+'">+</button></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div></div>';
   });
+  html+='<section class="mag-section"><div class="mag-section-head"><span class="mag-section-code">C-0'+(ci+1)+'</span><b>'+cat+'</b><small>'+idxs.length+' LINES</small></div><div class="mag-grid">'+entries+'</div></section>';
  });
  // Perk-book series
- html+='<div class="magcat magrow" style="margin-top:18px">📘 Perk-Bücher (19 Reihen × 7 Bände)</div>';
+ var bookEntries="";
  BOOKS.forEach(function(bk,i){var v=S.books[i]||0,pct=Math.round(v/7*100),done=v>=7;
-  html+='<div class="card magrow" data-txt="'+esc((bk[0]+" "+bk[1]+" "+bk[2]).toLowerCase())+'" style="padding:12px 14px;margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:15px;font-weight:600">'+esc(bk[0])+(done?' <span class="rb rb2" style="background:rgba(92,196,122,.2);color:#5cc47a;border-color:rgba(92,196,122,.5)">komplett</span>':'')+'</div><div class="mm" style="font-size:11.5px;color:var(--muted)">'+esc(bk[1])+' · Perk: '+esc(bk[2])+'</div></div><div class="stepper"><button data-bd="'+i+'">−</button><span class="mc">'+v+'/7</span><button data-bp="'+i+'">+</button></div></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div></div>';
+  bookEntries+='<div class="mag-entry magrow'+(done?" complete":"")+'" data-txt="'+esc((bk[0]+" "+bk[1]+" "+bk[2]).toLowerCase())+'"><div class="mag-name">'+esc(bk[0])+(done?' <span class="rb rb2" style="background:rgba(92,196,122,.2);color:#5cc47a;border-color:rgba(92,196,122,.5)">complete</span>':'')+'</div><div class="mag-meta">'+esc(bk[1])+' · Perk: '+esc(bk[2])+'</div><div class="stepper"><button data-bd="'+i+'">−</button><span class="mc">'+v+'/7</span><button data-bp="'+i+'">+</button></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div></div>';
  });
+ html+='<section class="mag-section"><div class="mag-section-head"><span class="mag-section-code">B-01</span><b>Perk Book Collections</b><small>19 SERIES × 7 VOLUMES</small></div><div class="mag-grid">'+bookEntries+'</div></section>';
  document.getElementById("mags").innerHTML=html;
  document.querySelectorAll("#mags [data-mp]").forEach(function(b){b.onclick=function(){var i=b.dataset.mp;S.mag[i]=Math.min(MAGS[i][1],(S.mag[i]||0)+1);save();rMags();};});
  document.querySelectorAll("#mags [data-md]").forEach(function(b){b.onclick=function(){var i=b.dataset.md;S.mag[i]=Math.max(0,(S.mag[i]||0)-1);save();rMags();};});
  document.querySelectorAll("#mags [data-bp]").forEach(function(b){b.onclick=function(){var i=b.dataset.bp;S.books[i]=Math.min(7,(S.books[i]||0)+1);save();rMags();};});
  document.querySelectorAll("#mags [data-bd]").forEach(function(b){b.onclick=function(){var i=b.dataset.bd;S.books[i]=Math.max(0,(S.books[i]||0)-1);save();rMags();};});
- var mq=document.getElementById("magq");if(mq)mq.oninput=function(){S.magq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#mags .magrow").forEach(function(r){if(r.classList.contains("magcat")){r.style.display=q?"none":"";return;}r.style.display=(!q||(r.dataset.txt||"").indexOf(q)>=0)?"":"none";});};
+ var mq=document.getElementById("magq");if(mq)mq.oninput=function(){S.magq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#mags .mag-section").forEach(function(sec){var any=false;sec.querySelectorAll(".magrow").forEach(function(r){var on=!q||(r.dataset.txt||"").indexOf(q)>=0;r.style.display=on?"":"none";if(on)any=true;});sec.style.display=any?"":"none";});};
 }
 // ---- REF ----
 function rRef(){
- var html='<input class="searchbar" id="refq" placeholder="Referenz durchsuchen …" value="'+esc(S.refq||"")+'">';
- REF.forEach(function(r){var rows=r[1].map(function(kv){return '<div class="kv"><span style="color:var(--muted)">'+esc(kv[0])+'</span><b style="font-family:inherit;font-weight:600;text-align:right;max-width:62%">'+esc(kv[1])+'</b></div>';}).join("");
-  html+='<div class="card refcard" data-txt="'+esc((r[0]+" "+r[1].map(function(k){return k[0]+" "+k[1];}).join(" ")).toLowerCase())+'" style="margin-bottom:12px"><h3>'+r[0]+'</h3>'+rows+'</div>';});
- html+='<div class="card"><h3>📝 Notizen</h3><textarea id="nt" placeholder="Deine Notizen (Base-Koordinaten, Ziele, …)">'+esc(S.notes||"")+'</textarea></div>';
+ if(!S.refcol)S.refcol={};
+ var html=hero("Field Reference","Survival doctrine","Compact rules for the current world, sledge combat, crafting, infection, bases and progression thresholds.","tab_ref")+
+  '<div class="ops-strip">'+
+   opsLead("DOCTRINE / INDEX",100,REF.length,"Field Manual Online","Verified survival rules, thresholds and world-specific doctrine are available offline.","#76ad7e")+
+   opsStat("WORLD / MODE",S.world?"LINKED":"LOCAL",S.world?esc(S.world.world):"No active world",true)+
+   opsStat("BUILD / ACTIVE","SLEDGE",esc(BUILDS[S.cur].name),true)+
+   opsStat("NOTES / CHARS",(S.notes||"").length,"Locally stored field notes")+'</div>'+
+  '<div class="ref-console"><input class="searchbar" id="refq" placeholder="Search the field reference…" value="'+esc(S.refq||"")+'"><div class="ref-count" id="refcount">'+REF.length+' MODULES VISIBLE</div></div><div class="ref-grid">';
+ REF.forEach(function(r,i){var rows=r[1].map(function(kv){return '<div class="kv"><span style="color:var(--muted)">'+esc(kv[0])+'</span><b style="font-family:inherit;font-weight:600;text-align:right;max-width:62%">'+esc(kv[1])+'</b></div>';}).join("");
+  html+='<div class="card refcard'+(S.refcol[i]?" compact":"")+'" data-ri="'+i+'" data-txt="'+esc((r[0]+" "+r[1].map(function(k){return k[0]+" "+k[1];}).join(" ")).toLowerCase())+'"><h3 data-code="R-'+String(i+1).padStart(2,"0")+'">'+r[0]+'</h3>'+rows+'</div>';});
+ html+='</div><div class="module-title">Personal Field Log <span>AUTO-SAVED LOCALLY</span></div><div class="card"><h3>Field Notes</h3><textarea id="nt" placeholder="Base coordinates, objectives, supply reminders…">'+esc(S.notes||"")+'</textarea></div>';
  document.getElementById("ref").innerHTML=html;
  document.getElementById("nt").oninput=function(){S.notes=this.value;save();};
- var rq=document.getElementById("refq");if(rq)rq.oninput=function(){S.refq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#ref .refcard").forEach(function(c){c.style.display=(!q||(c.dataset.txt||"").indexOf(q)>=0)?"":"none";});};
+ document.querySelectorAll("#ref [data-ri]").forEach(function(c){c.onclick=function(){var i=c.dataset.ri;S.refcol[i]=!S.refcol[i];c.classList.toggle("compact");save();};});
+ var rq=document.getElementById("refq");if(rq)rq.oninput=function(){S.refq=this.value;var q=this.value.toLowerCase(),n=0;document.querySelectorAll("#ref .refcard").forEach(function(c){var on=!q||(c.dataset.txt||"").indexOf(q)>=0;c.style.display=on?"":"none";if(on)n++;});document.getElementById("refcount").textContent=n+" MODULES VISIBLE";};
 }
 
 var PERK_NAMES={
@@ -561,15 +843,58 @@ function normalizeScan(data){
   });
   return data;
 }
+function gateHeader(step,title,desc){
+ return '<div class="gate-head"><div class="gate-mark">7D</div><div><div class="gate-step">Setup '+step+' of 2</div><h2>'+title+'</h2><p>'+desc+'</p></div><div class="gate-progress"><span class="on"></span><span class="'+(step===2?"on":"")+'"></span></div></div>';
+}
+function renderWorldGate(){
+ var launch=document.getElementById("launcher"),box=launch.querySelector(".launchbox"),byW={},survivors=0;
+ launch.classList.add("wizard");launch.classList.remove("hide");
+ (W.tree||[]).forEach(function(s){(byW[s.world]=byW[s.world]||[]).push(s);survivors+=(s.pl||s.players||[]).length;});
+ var choices="";
+ Object.keys(byW).forEach(function(w){
+  choices+='<div class="gate-world-group">'+esc(w)+'</div>';
+  byW[w].forEach(function(s){var i=W.tree.indexOf(s),pls=s.pl||s.players||[],v3=s.settings&&("SandboxCode" in s.settings);
+   choices+='<div class="gate-choice" data-gsave="'+i+'"><div class="gate-choice-mark">'+(v3?"3.0":"2.x")+'</div><div><b>'+esc(s.save)+'</b><small>'+pls.length+' survivor'+(pls.length===1?"":"s")+' · '+(v3?"Dead Hot Summer":"Legacy world")+'</small></div><span class="gate-choice-go">Select ›</span></div>';
+  });
+ });
+ if(!choices)choices='<div class="banner warn" style="grid-column:1/-1;margin:0">No local worlds were discovered. You can continue without a world and link one later from World Control.</div>';
+ box.innerHTML=gateHeader(1,"Select a World","Choose the save that should power maps, settings, progression and live operation data. The app stays locked until you select a world or explicitly continue without one.")+
+  '<div class="gate-summary">'+opsStat("SCAN / SAVES",(W.tree||[]).length,"Local save folders found")+opsStat("SCAN / WORLDS",Object.keys(byW).length,"Unique worlds available")+opsStat("SCAN / SURVIVORS",survivors,"Character profiles detected")+'</div>'+
+  '<div class="gate-worlds">'+choices+'</div><div class="gate-actions"><span class="ops-code">Nothing is imported until you select a save.</span><button class="gate-skip" id="gateNoWorld">Continue without World</button></div>';
+ box.querySelectorAll("[data-gsave]").forEach(function(c){c.onclick=function(){var s=W.tree[+c.dataset.gsave];W.curSave=s;renderCharacterGate(s);};});
+ document.getElementById("gateNoWorld").onclick=function(){enterWithoutWorld();};
+}
+function renderCharacterGate(s){
+ var launch=document.getElementById("launcher"),box=launch.querySelector(".launchbox"),pls=s.pl||s.players||[],v3=s.settings&&("SandboxCode" in s.settings),choices="";
+ launch.classList.add("wizard");launch.classList.remove("hide");
+ pls.forEach(function(p,i){choices+='<div class="gate-choice" data-gplayer="'+i+'"><div class="gate-choice-mark">'+esc((p.name||"?").slice(0,1).toUpperCase())+'</div><div><b>'+esc(p.name||"Survivor")+'</b><small>Level '+(p.level||"?")+' · last login '+esc(p.login||"unknown")+'</small></div><span class="gate-choice-go">Import ›</span></div>';});
+ if(!choices)choices='<div class="banner warn" style="grid-column:1/-1;margin:0">This save has no survivor profiles. Continue without a character to import world settings and map data only.</div>';
+ box.innerHTML=gateHeader(2,"Select a Survivor","Choose the character whose level, perks and crafting progression should be imported. You can also continue with world data only.")+
+  '<div class="gate-selected"><div class="ops-code">Selected World</div><b>'+esc(s.world)+' / '+esc(s.save)+'</b><span>'+(v3?"V3.0 Dead Hot Summer":"Legacy world")+' · '+pls.length+' survivor profile'+(pls.length===1?"":"s")+'</span></div>'+
+  '<div class="gate-worlds">'+choices+'</div><div class="gate-actions"><button class="gate-back" id="gateBackWorlds">‹ Back to Worlds</button><button class="gate-skip" id="gateNoCharacter">Continue without Character</button></div>';
+ box.querySelectorAll("[data-gplayer]").forEach(function(c){c.onclick=function(){completeGate(s,pls[+c.dataset.gplayer]);};});
+ document.getElementById("gateBackWorlds").onclick=renderWorldGate;
+ document.getElementById("gateNoCharacter").onclick=function(){completeGate(s,null);};
+}
+function unlockApp(){
+ var launch=document.getElementById("launcher");launch.classList.add("hide");launch.classList.remove("wizard");
+ S.tab="dash";save();renderTop();show();
+}
+function completeGate(s,pl){importWorld(s,pl);unlockApp();}
+function enterWithoutWorld(){
+ S.world=null;S.map=null;S.importedPlayer=null;delete S.playerProgression;S.importMsg=null;
+ W.curSave=null;W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W3.dead=true;
+ unlockApp();
+}
 async function scanNow(){
   var btn=document.getElementById("scanbtn"),status=document.getElementById("launchstatus");
-  btn.disabled=true;status.textContent="Scanne Saves, Progression, Karten und POIs …";
+  btn.disabled=true;status.textContent="Scanning saves, progression, maps and POIs…";
   try{
     var res=await fetch("/api/scan",{cache:"no-store"}),data=await res.json();
     if(!res.ok)throw new Error(data.error||("HTTP "+res.status));
     data=normalizeScan(data);W.tree=data.saves||[];W.maps=data.maps||{};W.scanned=true;W.curSave=null;
-    document.getElementById("launcher").classList.add("hide");S.tab="world";save();renderTop();show();
-  }catch(e){status.textContent="Scan fehlgeschlagen: "+e.message;btn.disabled=false;}
+    renderWorldGate();
+  }catch(e){status.textContent="Scan failed: "+e.message;btn.disabled=false;}
 }
 document.getElementById("scanbtn").onclick=scanNow;
 
@@ -639,22 +964,22 @@ function parsePlayers(xml){
    return {name:p.getAttribute("playername")||"?",steam:p.getAttribute("nativeuserid")||"",login:p.getAttribute("lastlogin")||"",pos:p.getAttribute("position")||"",coop:p.getElementsByTagName("acl").length>0};
   });}catch(e){return [];}
 }
-var EN={diff:["Scavenger","Adventurer","Nomad","Warrior","Survivalist","Insane"],speed:["Walk","Jog","Run","Sprint","Nightmare"],feral:["Aus","Tag","Nacht","Alle"],drop:["Nichts","Alles","Gürtel","Rucksack","Alles löschen"],vis:["Versteckt","Nur Freunde","Öffentlich"]};
-var KILL={0:"Aus",1:"Verbündete töten",2:"Strafe-PvP",3:"Alle töten (PvP)"};
+var EN={diff:["Scavenger","Adventurer","Nomad","Warrior","Survivalist","Insane"],speed:["Walk","Jog","Run","Sprint","Nightmare"],feral:["Off","Day","Night","All"],drop:["Nothing","Everything","Toolbelt","Backpack","Delete Everything"],vis:["Hidden","Friends Only","Public"]};
+var KILL={0:"Off",1:"Kill Allies",2:"Strangers Only",3:"Kill Everyone (PvP)"};
 function fmtV(ty,v){if(v===undefined||v===null)return null;switch(ty){
- case"diff":return EN.diff[v]!=null?EN.diff[v]:"Stufe "+v;
+ case"diff":return EN.diff[v]!=null?EN.diff[v]:"Level "+v;
  case"speed":return EN.speed[v]!=null?EN.speed[v]:"#"+v;
  case"feral":return EN.feral[v]!=null?EN.feral[v]:"#"+v;
  case"drop":return EN.drop[v]!=null?EN.drop[v]:"#"+v;
  case"vis":return EN.vis[v]!=null?EN.vis[v]:"#"+v;
  case"kill":return KILL[v]||"#"+v;
- case"pct":return v+"%";case"days":return v+" Tage";case"hours":return v+" h";case"min":return v+" min";case"bool":return v?"An":"Aus";default:return ""+v;}}
+ case"pct":return v+"%";case"days":return v+" days";case"hours":return v+" h";case"min":return v+" min";case"bool":return v?"On":"Off";default:return ""+v;}}
 var SETCFG=[
- ["🎯 Kern",[["GameDifficulty","Schwierigkeit","diff",1],["DayLightLength","Tageslicht","hours",0],["DayNightLength","Tag-Zyklus","min",0],["XPMultiplier","XP","pct",0]]],
- ["🧟 Zombies",[["ZombieMove","Speed Tag","speed",1],["ZombieMoveNight","Speed Nacht","speed",1],["ZombieFeralMove","Speed Feral","speed",0],["ZombieBMMove","Speed Blutmond","speed",1],["ZombieFeralSense","Feral Sense","feral",0],["EnemySpawnMode","Gegner-Spawn","bool",0]]],
- ["🩸 Blutmond",[["BloodMoonFrequency","Frequenz","days",1],["BloodMoonRange","Range","days",0],["BloodMoonWarning","Warnung","hours",0],["BloodMoonEnemyCount","Gegner-Anzahl","int",1]]],
- ["💀 Tod & Loot",[["DropOnDeath","Drop bei Tod","drop",1],["DropOnQuit","Drop bei Quit","drop",0],["LootAbundance","Loot-Menge","pct",0],["LootRespawnDays","Loot-Respawn","days",0],["BlockDamageAI","Block-Schaden KI","pct",0],["BlockDamageAIBM","Block-Schaden Blutmond","pct",0],["StormFreq","Sturm","pct",0]]],
- ["👥 Welt & MP",[["PlayerKillingMode","PvP-Modus","kill",0],["ServerMaxPlayerCount","Max Spieler","int",0],["ServerVisibility","Sichtbarkeit","vis",0],["Region","Region","str",0],["BiomeProgression","Biom-Progression","bool",0],["LandClaimSize","Claim-Größe","int",0]]]
+ ["🎯 Core",[["GameDifficulty","Difficulty","diff",1],["DayLightLength","Daylight","hours",0],["DayNightLength","Day Cycle","min",0],["XPMultiplier","XP","pct",0]]],
+ ["🧟 Zombies",[["ZombieMove","Day Speed","speed",1],["ZombieMoveNight","Night Speed","speed",1],["ZombieFeralMove","Feral Speed","speed",0],["ZombieBMMove","Blood Moon Speed","speed",1],["ZombieFeralSense","Feral Sense","feral",0],["EnemySpawnMode","Enemy Spawning","bool",0]]],
+ ["🩸 Blood Moon",[["BloodMoonFrequency","Frequency","days",1],["BloodMoonRange","Range","days",0],["BloodMoonWarning","Warning","hours",0],["BloodMoonEnemyCount","Enemy Count","int",1]]],
+ ["💀 Death & Loot",[["DropOnDeath","Drop on Death","drop",1],["DropOnQuit","Drop on Quit","drop",0],["LootAbundance","Loot Abundance","pct",0],["LootRespawnDays","Loot Respawn","days",0],["BlockDamageAI","AI Block Damage","pct",0],["BlockDamageAIBM","Blood Moon Block Damage","pct",0],["StormFreq","Storm Frequency","pct",0]]],
+ ["👥 World & Multiplayer",[["PlayerKillingMode","PvP Mode","kill",0],["ServerMaxPlayerCount","Max Players","int",0],["ServerVisibility","Visibility","vis",0],["Region","Region","str",0],["BiomeProgression","Biome Progression","bool",0],["LandClaimSize","Claim Size","int",0]]]
 ];
 function sandVal(nm,vi){var s=SANDVAL[nm];if(s){if(s.d&&(!s.v||s.d.length===s.v.length)&&vi>=0&&vi<s.d.length)return s.d[vi];if(s.v&&vi>=0&&vi<s.v.length)return s.v[vi];}return "Index "+vi;}
 function decodeSandbox(code){var out={};if(!code||code.length<4)return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),vi=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=sandVal(nm,vi);}return out;}
@@ -670,6 +995,7 @@ function optState(o,st,v3,sbIdx){
  else if(isSandbox){var lo=sbIdx[o.name];if(lo!=null&&o.options&&o.options[lo]){cur=o.options[lo].v;curIdx=lo;}}
  return {target:target,cur:cur,curIdx:curIdx,presetDefault:(!presentPlain&&curIdx==null)};
 }
+var CAT_EN={zombies:"Zombies",verhalten:"Zombie Behavior",blutmond:"Blood Moon",spawn:"Spawning & Enemies",loot:"Loot",ressourcen:"Resources & Mining",crafting:"Crafting & Workstations",nahrung:"Food & Farming",welt:"World & Environment",zeit:"Time",wetter:"Weather",fahrzeuge:"Vehicles",schwierigkeit:"Difficulty & Damage",trader:"Traders",quests:"Quests",multiplayer:"Multiplayer & Server",ui:"Display & Map",silly:"Fun Options",advanced:"Advanced"};
 // build unified option list per category from RD
 function settingsCatalog(){
  var list=[];
@@ -681,20 +1007,20 @@ function ctlHTML(o,sstate){
  var name=esc(o.name);
  if(o.control==="select"&&o.options&&o.options.length){
   var sel='<select class="setinput" data-opt="'+name+'">';
-  if(sstate.presetDefault)sel+='<option value="" selected>— Preset-Standard —</option>';
-  o.options.forEach(function(op){var on=String(sstate.cur)===String(op.v);sel+='<option value="'+esc(op.v)+'"'+(on?" selected":"")+'>'+esc(op.label)+'</option>';});
+  if(sstate.presetDefault)sel+='<option value="" selected>— Preset Default —</option>';
+  o.options.forEach(function(op){var on=String(sstate.cur)===String(op.v);sel+='<option value="'+esc(op.v)+'"'+(on?" selected":"")+'>'+esc(op.v)+'</option>';});
   return sel+'</select>';
  }
- if(o.control==="bool"){var on=sstate.cur===true||sstate.cur===1||sstate.cur==="1"||sstate.cur==="True";return '<select class="setinput" data-opt="'+name+'"><option value="true"'+(on?" selected":"")+'>An</option><option value="false"'+(!on?" selected":"")+'>Aus</option></select>';}
+ if(o.control==="bool"){var on=sstate.cur===true||sstate.cur===1||sstate.cur==="1"||sstate.cur==="True";return '<select class="setinput" data-opt="'+name+'"><option value="true"'+(on?" selected":"")+'>On</option><option value="false"'+(!on?" selected":"")+'>Off</option></select>';}
  if(o.control==="number"){return '<input class="setinput" type="number" data-opt="'+name+'" value="'+esc(sstate.cur==null?"":sstate.cur)+'"'+(o.min!=null?' min="'+o.min+'"':'')+(o.max!=null?' max="'+o.max+'"':'')+'>';}
  // display only
- var dv=sstate.cur==null?"Preset-Standard":esc(sstate.cur);
+ var dv=sstate.cur==null?"Preset Default":esc(sstate.cur);
  return '<span class="setval-ro">'+dv+'</span>';
 }
-function riskBadge(r){return r>=2?'<span class="rb rb2" title="riskant – kann Balance brechen">⚠ Risiko</span>':r===1?'<span class="rb rb1" title="spürbarer Effekt"></span>':'';}
+function riskBadge(r){return r>=2?'<span class="rb rb2" title="High-impact balance setting">⚠ Risk</span>':r===1?'<span class="rb rb1" title="Noticeable gameplay effect"></span>':'';}
 // MAIN editor — world/save context so we can write back
 function settingsEditor(world,save,st){
- if(!RD){return '<div class="banner warn">⏳ Referenzdaten werden geladen …</div>';}
+ if(!RD){return '<div class="banner warn">Loading reference data…</div>';}
  var v3=("SandboxCode" in st), sbIdx=v3?decodeSandboxIdx(st.SandboxCode):{};
  if(!EDIT_CTX||EDIT_CTX.world!==world||EDIT_CTX.save!==save)EDIT={};
  EDIT_CTX={world:world,save:save,st:st,v3:v3};
@@ -714,28 +1040,43 @@ function settingsEditor(world,save,st){
    var o=pair[0],sstate=pair[1];
    var editable=o.control!=="display"&&(o.options&&o.options.length||o.control==="number"||o.control==="bool");
    if(editable)editableCount++; totalShown++;
-   rows+='<div class="setrow'+(editable?"":" ro")+'" data-name="'+esc(o.name)+'">'+
-     '<div class="setmeta"><div class="setlbl">'+esc(o.label||o.name)+riskBadge(o.risk||0)+(sstate.target==="sandbox"?'<span class="srcb" title="3.0 SandboxCode">⟳</span>':'')+'</div>'+
-     (o.desc?'<div class="setdesc">'+esc(o.desc)+'</div>':'')+
-     (o.example?'<div class="setex">'+esc(o.example)+'</div>':'')+'</div>'+
+   rows+='<div class="setrow'+(editable?"":" ro")+'" data-name="'+esc(o.name)+'" data-label="'+esc(humanKey(o.name))+'" data-help="'+esc(o.desc||"Detailed reference text can be added in refdata.json.")+'" data-source="'+(sstate.target==="sandbox"?"SandboxCode":"Plain setting")+'" data-risk="'+(o.risk||0)+'" data-editable="'+(editable?1:0)+'">'+
+     '<div class="setmeta"><div class="setlbl">'+esc(humanKey(o.name))+riskBadge(o.risk||0)+(sstate.target==="sandbox"?'<span class="srcb" title="V3 SandboxCode value">⟳</span>':'')+'<button type="button" class="sethelpq" aria-label="Explain '+esc(humanKey(o.name))+'">?</button></div>'+
+     '<div class="setdesc">Configuration key: <span class="srcb">'+esc(o.name)+'</span></div></div>'+
      '<div class="setctl">'+ctlHTML(o,sstate)+'</div></div>';
   });
   var open=!S.setcol||!S.setcol[c[0]];
-  body+='<div class="acc'+(open?"":" col")+'" data-acc="'+c[0]+'"><div class="acch"><span class="ttl">'+c[1]+'</span><span class="pc">'+items.length+'</span><span class="chev">▼</span></div><div class="accb">'+rows+'</div></div>';
+  body+='<div class="acc'+(open?"":" col")+'" data-acc="'+c[0]+'"><div class="acch"><span class="ttl">'+(CAT_EN[c[0]]||humanKey(c[0]))+'</span><span class="pc">'+items.length+'</span><span class="chev">▼</span></div><div class="accb">'+rows+'</div></div>';
  });
- if(!body)body='<div class="wstep">Keine Treffer.</div>';
- var verLine=v3?'<span class="vbadge v3">3.0+</span> SandboxCode editierbar ('+Object.keys(sbIdx).length+' Overrides aktiv)':'<span class="vbadge v2">≤2.6</span> Klartext-Keys editierbar';
- var head='<div class="card" style="margin-bottom:10px"><h3>⚙️ Welt-Einstellungen — '+esc(world)+' / '+esc(save)+'</h3>'+
-   '<div class="sub" style="margin-bottom:8px">'+verLine+' · '+editableCount+' von '+totalShown+' angezeigten Optionen direkt änderbar.</div>'+
-   '<div class="banner warn" style="margin:0 0 4px">⚠️ Vor dem Speichern <b>das Spiel beenden</b> (sonst überschreibt 7DtD die Datei beim Verlassen). Ein <b>Backup</b> wird automatisch angelegt.</div></div>';
+ if(!body)body='<div class="wstep">No matching settings.</div>';
+ var verLine=v3?'<span class="vbadge v3">3.0+</span> Editable SandboxCode · '+Object.keys(sbIdx).length+' active overrides':'<span class="vbadge v2">≤2.6</span> Editable plain-text keys';
+ var head='<div class="card" style="margin-bottom:10px"><h3>World Settings · '+esc(world)+' / '+esc(save)+'</h3>'+
+   '<div class="sub" style="margin-bottom:8px">'+verLine+' · '+editableCount+' of '+totalShown+' displayed options are directly editable.</div>'+
+   '<div class="banner warn" style="margin:0 0 4px"><b>Close the game before saving.</b> 7DtD can overwrite this file on exit. A timestamped backup is created automatically.</div></div>';
  var ctrls='<div class="card" style="margin-bottom:10px"><div class="ctrls">'+
-   '<input id="setq" placeholder="Einstellung suchen …" value="'+esc(S.setq||"")+'" style="flex:2;min-width:180px">'+
-   '<button class="btn" id="setexpand">Alle auf</button><button class="btn" id="setcollapse">Alle zu</button>'+
-   '<label class="chk"><input type="checkbox" id="setonlych"'+(onlyCh?" checked":"")+'> nur geänderte</label>'+
+   '<input id="setq" placeholder="Search settings…" value="'+esc(S.setq||"")+'" style="flex:2;min-width:180px">'+
+   '<button class="btn" id="setexpand">Expand All</button><button class="btn" id="setcollapse">Collapse All</button>'+
+   '<label class="chk"><input type="checkbox" id="setonlych"'+(onlyCh?" checked":"")+'> changed only</label>'+
    '</div></div>';
- var savebar='<div class="savebar" id="savebar"><div class="sbinfo" id="sbinfo">Keine Änderungen</div><button class="btn sbbtn" id="setrevert">Verwerfen</button><button class="btn sbsave" id="setsave" disabled>💾 In Welt schreiben</button></div>';
+ var savebar='<div class="savebar" id="savebar"><div class="sbinfo" id="sbinfo">No pending changes</div><button class="btn sbbtn" id="setrevert">Discard</button><button class="btn sbsave" id="setsave" disabled>Write to World</button></div>';
+ var help='<aside class="sethelp" id="sethelp"><div class="sethelp-kicker">Setting Intelligence</div><div class="sethelp-symbol">?</div><h3 id="sethelpTitle">Hover over a question mark</h3><p id="sethelpText">Every setting now has a dedicated explanation. Hover over or focus a question-mark icon to inspect its purpose, current value, source and impact.</p><div class="sethelp-grid"><div class="sethelp-fact"><span>Configuration Key</span><b id="sethelpKey">—</b></div><div class="sethelp-fact"><span>Current Value</span><b id="sethelpValue">—</b></div><div class="sethelp-fact"><span>Data Source</span><b id="sethelpSource">—</b></div><div class="sethelp-fact"><span>Impact</span><b id="sethelpRisk">—</b></div></div><div class="sethelp-tip" id="sethelpTip">The explanation text is loaded from <b>src/refdata.json</b>, so it can be improved centrally without changing this interface.</div></aside>';
  var msg=S.setMsg?('<div class="banner '+(S.setMsg.ok?"safe":"danger")+'">'+esc(S.setMsg.text)+'</div>'):'';
- return msg+head+ctrls+body+savebar;
+ return msg+head+ctrls+'<div class="settings-workspace"><div class="settings-list">'+body+'</div>'+help+'</div>'+savebar;
+}
+function showSettingHelp(row){
+ if(!row)return;
+ document.querySelectorAll("#world .setrow.help-active").forEach(function(r){r.classList.remove("help-active");});row.classList.add("help-active");
+ var ctl=row.querySelector(".setinput"),ro=row.querySelector(".setval-ro"),val="Preset Default";
+ if(ctl){val=ctl.tagName==="SELECT"&&ctl.selectedIndex>=0?ctl.options[ctl.selectedIndex].textContent:ctl.value;}
+ else if(ro)val=ro.textContent;
+ var risk=+row.dataset.risk,editable=row.dataset.editable==="1";
+ document.getElementById("sethelpTitle").textContent=row.dataset.label||humanKey(row.dataset.name);
+ document.getElementById("sethelpText").textContent=row.dataset.help||"No detailed description is available yet.";
+ document.getElementById("sethelpKey").textContent=row.dataset.name||"—";
+ document.getElementById("sethelpValue").textContent=val||"Preset Default";
+ document.getElementById("sethelpSource").textContent=row.dataset.source||"—";
+ document.getElementById("sethelpRisk").textContent=risk>=2?"High impact":risk===1?"Noticeable impact":"Standard";
+ document.getElementById("sethelpTip").innerHTML=editable?"This option is <b>editable</b>. Changes remain pending until you use <b>Write to World</b>.":"This option is currently <b>read-only</b> because its verified value list is not available.";
 }
 function wireSettingsEditor(){
  var root=document.getElementById("world"); if(!root||!RD)return;
@@ -746,6 +1087,11 @@ function wireSettingsEditor(){
  var oc=document.getElementById("setonlych");if(oc)oc.onchange=function(){S.setchanged=this.checked;save();applyOnlyChangedFilter();};
  applySettingSearch();
  root.querySelectorAll(".setinput").forEach(function(inp){inp.onchange=function(){onSettingChange(inp);};inp.oninput=function(){onSettingChange(inp);};});
+ root.querySelectorAll(".setrow").forEach(function(row){
+  var q=row.querySelector(".sethelpq");
+  row.onmouseenter=function(){showSettingHelp(row);};
+  if(q){q.onfocus=function(){showSettingHelp(row);};q.onclick=function(e){e.stopPropagation();showSettingHelp(row);};}
+ });
  var sv=document.getElementById("setsave");if(sv)sv.onclick=doWriteSettings;
  var rv=document.getElementById("setrevert");if(rv)rv.onclick=function(){EDIT={};S.setMsg=null;save();rWorld();};
  refreshSaveBar();
@@ -765,11 +1111,12 @@ function onSettingChange(inp){
  if(raw===""||!changed){delete EDIT[name];if(rowEl)rowEl.classList.remove("changed");}
  else {EDIT[name]={target:sstate.target,value:payloadVal,control:o.control};if(rowEl)rowEl.classList.add("changed");}
  refreshSaveBar();
+ if(rowEl&&rowEl.classList.contains("help-active"))showSettingHelp(rowEl);
 }
 function refreshSaveBar(){
  var n=Object.keys(EDIT).length,info=document.getElementById("sbinfo"),sv=document.getElementById("setsave"),bar=document.getElementById("savebar");
  if(!info)return;
- info.textContent=n?(n+" Änderung"+(n>1?"en":"")+" – noch nicht gespeichert"):"Keine Änderungen";
+ info.textContent=n?(n+" unsaved change"+(n>1?"s":"")):"No pending changes";
  if(sv)sv.disabled=!n; if(bar)bar.classList.toggle("active",!!n);
 }
 function applyOnlyChangedFilter(){applySettingSearch();}
@@ -790,16 +1137,16 @@ function doWriteSettings(){
  var plain={},sandbox={};
  Object.keys(EDIT).forEach(function(name){var e=EDIT[name];if(e.target==="sandbox")sandbox[name]=e.value;else plain[name]=e.value;});
  var body={world:EDIT_CTX.world,save:EDIT_CTX.save,plain:plain,sandbox:sandbox};
- var sv=document.getElementById("setsave");if(sv){sv.disabled=true;sv.textContent="⏳ schreibe …";}
+ var sv=document.getElementById("setsave");if(sv){sv.disabled=true;sv.textContent="Writing…";}
  fetch("/api/write-settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
   .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
   .then(function(res){
-   if(!res.ok||!res.d.ok){S.setMsg={ok:false,text:"❌ Speichern fehlgeschlagen: "+(res.d.error||"unbekannt")+" — es wurde nichts verändert."};save();rWorld();return;}
-   S.setMsg={ok:true,text:"✅ "+res.d.changed+" Einstellung(en) in die Welt geschrieben. Backup: "+res.d.backup+". Lade die Welt neu im Spiel, damit sie greift."};
+   if(!res.ok||!res.d.ok){S.setMsg={ok:false,text:"Save failed: "+(res.d.error||"unknown error")+". No settings were changed."};save();rWorld();return;}
+   S.setMsg={ok:true,text:res.d.changed+" setting(s) written to the world. Backup: "+res.d.backup+". Reload the world in-game to apply them."};
    EDIT={};save();
    reloadSavesThen(function(){rWorld();});
   })
-  .catch(function(e){S.setMsg={ok:false,text:"❌ Netzwerkfehler: "+e.message};save();rWorld();});
+  .catch(function(e){S.setMsg={ok:false,text:"Network error: "+e.message};save();rWorld();});
 }
 function reloadSavesThen(cb){
  fetch("/api/scan",{cache:"no-store"}).then(function(r){return r.json();}).then(function(data){
@@ -820,7 +1167,7 @@ function onPick(input){
    var gwn=parts[gi+1];if(gwn){if(!W.maps[gwn])W.maps[gwn]={};W.maps[gwn][fn==="biomes.png"?"biomes":fn==="prefabs.xml"?"prefabs":fn==="dtm.raw"?"dtm":"mapinfo"]=f;}return;
   }
   if(fn!=="gameOptions.sdf"&&fn!=="players.xml")return;
-  var save=parts[parts.length-2]||"(Save)",world=parts[parts.length-3]||"(Welt)",k=world+" / "+save;
+  var save=parts[parts.length-2]||"(Save)",world=parts[parts.length-3]||"(World)",k=world+" / "+save;
   if(!saves[k])saves[k]={world:world,save:save,sdf:null,players:null};
   if(fn==="gameOptions.sdf")saves[k].sdf=f;else saves[k].players=f;
  });
@@ -834,16 +1181,16 @@ function openSave(s){
  Promise.all(jobs).then(function(){W.curSave=s;rWorld();}).catch(function(){W.curSave=s;rWorld();});
 }
 function finishImport(pl){
- // Punkt 2: NACH dem Import KEIN automatischer Tab-Wechsel mehr. Nur Erfolgsmeldung,
- // Nutzer bleibt im Welt/Import-Tab; ein optionaler Button führt zum Dashboard.
+ // Stay on the World tab after import; the dashboard remains an explicit action.
  S.importMsg = pl
-   ? ("✅ <b>"+esc(pl.name||"Spieler")+"</b> · Level "+(pl.level||"?")+" importiert. Build erkannt: <b>"+esc((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)+"</b>.")
-   : "✅ Welt-Einstellungen geladen (ohne Spieler).";
+   ? ("<b>"+esc(pl.name||"Survivor")+"</b> · Level "+(pl.level||"?")+" imported. Detected build: <b>"+esc((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)+"</b>.")
+   : "World settings loaded without a survivor.";
  save();
  if(S.tab==="world")rWorld(); else show();
 }
 function importWorld(s,pl){
  var st=s.settings||{},v3=("SandboxCode" in st);
+ if(!pl){S.importedPlayer=null;delete S.playerProgression;}
  S.world={world:s.world,save:s.save,version:v3?"3.0+ (Dead Hot Summer)":"≤2.6 (Legacy)",preset:st.SandboxPreset||"",player:pl?pl.name:"",steam:pl?pl.steam:"",login:pl?pl.login:"",settings:st};
  if(v3){var dc=decodeSandbox(st.SandboxCode);var bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;S.world.bmCount=parseInt(dc.BloodMoonEnemyCount,10)||null;}
  else{if("BloodMoonFrequency" in st)S.freq=st.BloodMoonFrequency;S.world.bmCount=st.BloodMoonEnemyCount||null;}
@@ -856,13 +1203,13 @@ function importWorld(s,pl){
  }
  var mf=W.maps&&W.maps[s.world];
  if(mf&&mf.biomes&&mf.prefabs){
-  document.getElementById("world").innerHTML='<div class="banner safe">⏳ Lese Karte von <b>'+esc(s.world)+'</b> … (Biome, POIs'+(mf.dtm?", 3D-Höhenkarte":"")+')</div>';
+  document.getElementById("world").innerHTML='<div class="banner safe">Reading map data from <b>'+esc(s.world)+'</b>… Biomes, POIs'+(mf.dtm?", 3D heightmap":"")+'.</div>';
   Promise.all([fileToDataURL(mf.biomes),mf.prefabs.text(),mf.mapinfo?mf.mapinfo.text():Promise.resolve("")]).then(function(a){
    var info=parseMapInfo(a[2]||"");
    var base={world:s.world,img:a[0],size:info.size,seed:info.seed,ver:info.ver,rwg:info.rwg,gen:info.gen,pois:parsePrefabs(a[1]),player:(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null};
    var hmJob=mf.dtm?readHeightmap(mf.dtm,256,info.size):Promise.resolve(null);
    return hmJob.then(function(hm){if(hm)base.hm={n:hm.n,mn:hm.mn,mx:hm.mx,d:u8ToB64(hm.data)};S.map=base;if(pl)applyImportedCharacter(pl);W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W3.dead=true;finishImport(pl);});
-  }).catch(function(e){document.getElementById("world").innerHTML='<div class="banner danger">Import fehlgeschlagen: '+esc(e.message)+'</div>';});
+  }).catch(function(e){document.getElementById("world").innerHTML='<div class="banner danger">Import failed: '+esc(e.message)+'</div>';});
  } else {S.map=null;if(pl)applyImportedCharacter(pl);finishImport(pl);}
 }
 function u8ToB64(u8){var s="";for(var i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s);}
@@ -885,34 +1232,45 @@ function parsePrefabs(xml){
 }
 // ---- WELT render ----
 function rWorld(){
- var h="";
+ var h=hero("World Control","Save import & settings editor","Scan local saves, import a survivor and safely write verified settings back to gameOptions.sdf.","tab_world");
  if(!W.tree){
-  h+='<div class="card"><h3>📁 Welt manuell verlinken</h3>'+
-   '<div class="wstep">Daten via "Jetzt starten" Button beim App-Start gescannt. Hier kannst du manuell laden.</div>'+
-   '<div class="wstep" style="color:var(--dim)">Pfad: %AppData%\\Roaming\\7DaysToDie</div>'+
-   '<span class="btn filebtn" style="margin-top:4px;background:var(--acc);color:#0c0b09;font-weight:700;padding:11px 16px;border-radius:11px">📂 Ordner wählen<input type="file" id="wpick" webkitdirectory directory multiple></span></div>';
+  h+='<div class="ops-strip">'+opsStat("SOURCE / MODE","MANUAL","Use when automatic discovery is unavailable",true)+opsStat("DATA / ROOT","7DTD","Save and GeneratedWorlds folder",true)+opsStat("WRITE / SAFETY","BACKUP","Timestamped before every settings write",true)+'</div><div class="card"><h3>Link a World Manually</h3>'+
+   '<div class="wstep">The launch scan normally discovers this data. Use manual linking when the save root is in a custom location.</div>'+
+   '<div class="wstep" style="color:var(--dim)">Path: %AppData%\\Roaming\\7DaysToDie</div>'+
+   '<span class="btn filebtn" style="margin-top:4px;background:var(--acc);color:#0c0b09;font-weight:700;padding:11px 16px;border-radius:2px">Choose Folder<input type="file" id="wpick" webkitdirectory directory multiple></span></div>';
   if(S.world){
-   h+='<div class="banner safe" style="margin-top:14px">✅ Zuletzt verlinkt: <b>'+esc(S.world.world)+' · '+esc(S.world.save)+'</b>'+(S.world.player?' · '+esc(S.world.player):'')+'</div>';
+   h+='<div class="banner safe" style="margin-top:14px">Last linked: <b>'+esc(S.world.world)+' · '+esc(S.world.save)+'</b>'+(S.world.player?' · '+esc(S.world.player):'')+'</div>';
    h+=worldSummaryCard(S.world)+settingsEditor(S.world.world,S.world.save,S.world.settings||{});
   }
  } else if(!W.curSave){
   var byW={};W.tree.forEach(function(s){(byW[s.world]=byW[s.world]||[]).push(s);});
-  if(W.scanned){h+='<div class="banner safe">🛰️ <b>'+W.tree.length+' Save(s)</b> automatisch aus Steam gescannt'+(S.world?' · aktiv: <b>'+esc(S.world.world)+' / '+esc(S.world.save)+'</b>':'')+'</div>'+(S.world?'<div class="back" data-go="dash" style="color:var(--acc2)">→ weiter zum Dashboard</div>':'<div class="wstep">Welt &amp; Save anklicken:</div>');}
-  else{h+='<div class="back" data-back="pick">‹ anderen Ordner wählen</div><div class="wstep">'+W.tree.length+' Save(s) gefunden — Welt &amp; Save wählen:</div>';}
+  var survivorCount=0;W.tree.forEach(function(s){survivorCount+=(s.pl||s.players||[]).length;});
+  if(W.scanned){h+='<div class="banner safe"><b>'+W.tree.length+' save(s)</b> discovered automatically'+(S.world?' · active: <b>'+esc(S.world.world)+' / '+esc(S.world.save)+'</b>':'')+'</div>'+(S.world?'<div class="back" data-go="dash" style="color:var(--acc2)">Continue to Dashboard</div>':'<div class="wstep">Select a world and save:</div>');}
+  else{h+='<div class="back" data-back="pick">Choose another folder</div><div class="wstep">'+W.tree.length+' save(s) found. Select a world and save:</div>';}
+  h+='<div class="world-overview">'+
+   opsStat("SCAN / SAVES",W.tree.length,"Discovered local saves")+
+   opsStat("SCAN / WORLDS",Object.keys(byW).length,"Unique world directories")+
+   opsStat("SCAN / SURVIVORS",survivorCount,"Available import profiles")+
+   opsStat("ACTIVE / LINK",S.world?"ONLINE":"OFFLINE",S.world?esc(S.world.save):"Select a save to link",true)+'</div><div class="world-catalog">';
   Object.keys(byW).forEach(function(w){
-   h+='<div style="font-weight:700;margin:14px 2px 2px;font-size:14px">🌍 '+esc(w)+'</div>';
-   byW[w].forEach(function(s){var idx=W.tree.indexOf(s);h+='<div class="wi" data-save="'+idx+'"><div class="wn">'+esc(s.save)+'</div><div class="wmeta">'+((s.pl||s.players||[]).length?"👥 "+(s.pl||s.players).length+" Spieler":"")+'</div><div style="color:var(--acc2);font-weight:700;font-size:18px">›</div></div>';});
+   h+='<div class="world-group">'+esc(w)+'</div>';
+   byW[w].forEach(function(s){var idx=W.tree.indexOf(s);h+='<div class="wi" data-save="'+idx+'"><div class="wn">'+esc(s.save)+'</div><div class="wmeta">'+((s.pl||s.players||[]).length?(s.pl||s.players).length+" survivor(s)":"")+'</div><div style="color:var(--acc2);font-weight:700;font-size:18px">›</div></div>';});
   });
+  h+='</div>';
  } else {
   var s=W.curSave,st=s.settings||{},v3=("SandboxCode" in st);
-  h+='<div class="back" data-back="list">‹ zurück zu Welten</div>';
-  if(S.importMsg)h+='<div class="banner safe">'+S.importMsg+' <span data-go="dash" style="margin-left:8px;text-decoration:underline;cursor:pointer;color:var(--acc2)">→ Zum Dashboard</span></div>';
-  h+='<div class="card"><h3>🌍 '+esc(s.world)+' · '+esc(s.save)+'</h3><div class="sub"><span class="vbadge '+(v3?"v3":"v2")+'">'+(v3?"3.0+":"≤2.6")+'</span> '+(st.SandboxPreset?" Preset: <b>"+esc(st.SandboxPreset)+"</b>":"")+'</div></div>';
+  h+='<div class="back" data-back="list">Back to worlds</div>';
+  if(S.importMsg)h+='<div class="banner safe">'+S.importMsg+' <span data-go="dash" style="margin-left:8px;text-decoration:underline;cursor:pointer;color:var(--acc2)">Open Dashboard</span></div>';
   var pls=s.pl||[];
-  h+='<div class="card" style="margin-top:10px"><h3>👥 Welchen Spieler importieren?</h3>';
-  if(!pls.length)h+='<div class="sub">Keine players.xml in diesem Save.</div>';
-  pls.forEach(function(p,i){h+='<div class="pcard" data-pl="'+i+'"><div class="pav">'+esc((p.name||"?").slice(0,1).toUpperCase())+'</div><div class="pn"><div class="pnm">'+esc(p.name)+'</div><div class="pmeta">Steam '+esc(p.steam||"–")+' · zuletzt '+esc(p.login||"?")+(p.coop?" · 👥 Co-op":"")+'</div></div><div style="color:var(--acc2);font-weight:700">Import ›</div></div>';});
-  h+='<div class="pcard" data-pl="-1" style="border-style:dashed"><div class="pav" style="background:var(--card2);color:var(--muted)">∅</div><div class="pn"><div class="pnm">Nur Welt-Settings</div><div class="pmeta">ohne Spieler</div></div></div></div>';
+  h+='<div class="ops-strip">'+
+   opsLead("SAVE / SELECTED",100,v3?"3.0":"2.6",esc(s.world),esc(s.save)+(st.SandboxPreset?" · "+esc(st.SandboxPreset):""),v3?"#ed762e":"#62a5c7")+
+   opsStat("SURVIVORS / FOUND",pls.length,"Profiles available for import")+
+   opsStat("SETTINGS / MODE",v3?"SANDBOX":"LEGACY",v3?"SandboxCode editor":"Plain-key editor",true)+
+   opsStat("MAP / DATA",W.maps&&W.maps[s.world]?"READY":"NONE",W.maps&&W.maps[s.world]?"GeneratedWorlds linked":"No map package detected",true)+'</div>';
+  h+='<div class="card" style="margin-top:10px"><h3>Select a Survivor to Import</h3>';
+  if(!pls.length)h+='<div class="sub">No players.xml entries in this save.</div>';
+  pls.forEach(function(p,i){h+='<div class="pcard" data-pl="'+i+'"><div class="pav">'+esc((p.name||"?").slice(0,1).toUpperCase())+'</div><div class="pn"><div class="pnm">'+esc(p.name)+'</div><div class="pmeta">Steam '+esc(p.steam||"–")+' · last login '+esc(p.login||"?")+(p.coop?" · Co-op":"")+'</div></div><div style="color:var(--acc2);font-weight:700">Import ›</div></div>';});
+  h+='<div class="pcard" data-pl="-1" style="border-style:dashed"><div class="pav" style="background:var(--card2);color:var(--muted)">∅</div><div class="pn"><div class="pnm">World Settings Only</div><div class="pmeta">No survivor import</div></div></div></div>';
   h+=settingsEditor(s.world,s.save,st);
  }
  var el=document.getElementById("world");el.innerHTML=h;
@@ -924,41 +1282,53 @@ function rWorld(){
  if(document.getElementById("savebar"))wireSettingsEditor();
 }
 function worldSummaryCard(w){
- return '<div class="card" style="margin:12px 0 10px"><h3>🌍 Aktuelle Welt</h3>'+
-  '<div class="kv"><span>Welt</span><b>'+esc(w.world)+'</b></div><div class="kv"><span>Save</span><b>'+esc(w.save)+'</b></div>'+
+ return '<div class="card" style="margin:12px 0 10px"><h3>Current World</h3>'+
+  '<div class="kv"><span>World</span><b>'+esc(w.world)+'</b></div><div class="kv"><span>Save</span><b>'+esc(w.save)+'</b></div>'+
   '<div class="kv"><span>Version</span><b>'+esc(w.version)+'</b></div>'+(w.preset?'<div class="kv"><span>Preset</span><b>'+esc(w.preset)+'</b></div>':"")+
-  (w.player?'<div class="kv"><span>Spieler</span><b>'+esc(w.player)+'</b></div>':"")+(w.login?'<div class="kv"><span>Last login</span><b>'+esc(w.login)+'</b></div>':"")+
-  '<div class="back" data-go="dash" style="color:var(--acc2);margin:10px 0 0">→ weiter zum Dashboard</div></div>';
+  (w.player?'<div class="kv"><span>Survivor</span><b>'+esc(w.player)+'</b></div>':"")+(w.login?'<div class="kv"><span>Last login</span><b>'+esc(w.login)+'</b></div>':"")+
+  '<div class="back" data-go="dash" style="color:var(--acc2);margin:10px 0 0">Continue to Dashboard</div></div>';
 }
 // ---- MAP ----
 function mapFilterOn(t){return S.mapFilter[(""+t)]!==0;}
 function rMap(){
  var el=document.getElementById("map");
  if(!S.map||!S.map.img){
-  el.innerHTML='<div class="banner warn">🗺️ Noch keine Map. Verlinke eine Welt im Tab <b>🌍 Welt</b> und wähle dabei den <b>7DaysToDie</b>-Ordner (nicht nur Saves) — dann werden Biome + POIs gelesen.</div>'+
-   '<div class="card"><h3>Warum?</h3><div class="refrow">Die Map (biomes.png) + POI-Liste (prefabs.xml) liegen in <b>GeneratedWorlds</b>, nicht in Saves. Beide stecken im <b>7DaysToDie</b>-Ordner.</div><div class="refrow">3D-Live-Map nicht möglich: die Höhenkarte ist 209 MB → würde den Browser/PC einfrieren. Diese 2D-Karte zeigt dafür <b>echte Schwierigkeits-Tiers</b> (mehr als die In-Game-Map).</div></div>';
-  return;
+   el.innerHTML=hero("Tactical Map","2D world intelligence","Inspect biomes, roads, water, POI tiers and the imported survivor spawn without changing verified coordinate transforms.","tab_map")+
+    '<div class="banner warn">No map loaded. Link a world from the <b>World</b> tab and select the complete <b>7DaysToDie</b> folder so GeneratedWorlds data is available.</div>'+
+    '<div class="ops-strip">'+opsStat("LAYER / BIOMES","MISSING","GeneratedWorlds biome image",true)+opsStat("LAYER / POI","MISSING","prefabs.xml intelligence",true)+opsStat("LAYER / ROUTES","MISSING","Road and water overlays",true)+'</div>'+
+    '<div class="command-grid"><div class="command-tile" data-go="world"><span class="num">01 / LINK</span><b>Open World Control</b><small>Select a discovered save and import its map package.</small></div><div class="command-tile"><span class="num">02 / SOURCE</span><b>GeneratedWorlds</b><small>Biome image, POIs, roads and water originate here.</small></div><div class="command-tile"><span class="num">03 / SAFE</span><b>Transforms Locked</b><small>Verified coordinate transforms remain unchanged.</small></div></div>';
+   el.querySelector("[data-go]").onclick=function(){S.tab="world";save();show();};
+   return;
  }
  var m=S.map,pois=m.pois||[];
  var cnt={};pois.forEach(function(p){cnt[p[3]]=(cnt[p[3]]||0)+1;});
  var legend="";["1","2","3","4","5","0","-1"].forEach(function(t){var on=mapFilterOn(t);legend+='<span class="tierchip'+(on?"":" off")+'" data-tf="'+t+'"><span class="tdot" style="background:'+TIERCOL[t]+'"></span>'+TIERLBL[t]+' ('+(cnt[t]||0)+')</span>';});
  var g=m.gen||{};
- var info='<div class="card" style="margin-bottom:10px"><h3>🌍 '+esc(m.world)+'</h3>'+
-  '<div class="kv"><span>Größe</span><b>'+m.size+' × '+m.size+'</b></div>'+
-  '<div class="kv"><span>Typ</span><b>'+(m.rwg==="true"?"RWG (custom generiert)":"Navezgane/Fest")+'</b></div>'+
+ var info='<div class="card"><h3>World Telemetry · '+esc(m.world)+'</h3>'+
+   '<div class="kv"><span>Size</span><b>'+m.size+' × '+m.size+'</b></div>'+
+  '<div class="kv"><span>Type</span><b>'+(m.rwg==="true"?"Random Generated World":"Navezgane / Fixed")+'</b></div>'+
   '<div class="kv"><span>Seed</span><b>'+esc(m.seed||"?")+'</b></div>'+
   '<div class="kv"><span>Version</span><b>'+esc(m.ver||"?")+'</b></div>'+
-  '<div class="kv"><span>POIs (echte)</span><b>'+pois.length+'</b></div>'+
-  (g.Rivers?'<div class="kv"><span>Flüsse / Towns</span><b>'+esc(g.Rivers)+" / "+esc(g.Towns)+'</b></div>':"")+'</div>';
- var ctrl='<div class="card" style="margin-bottom:10px"><h3>🗺️ Karte</h3>'+
-  '<input id="mapq" placeholder="POI suchen (z.B. bunker, trader, factory)…" value="'+esc(S.mapSearch||"")+'">'+
-  '<div class="legend">'+legend+'</div>'+
-  '<div class="wstep" style="margin:0">Scrollen = Zoom · Ziehen = Verschieben · Tippen = POI-Info · 🔵 = dein Spawn · <span style="color:#3a7ad0">🟦 Flüsse/Seen</span> + Straßen aus den echten Welt-Dateien</div></div>';
+  '<div class="kv"><span>POIs</span><b>'+pois.length+'</b></div>'+
+  (g.Rivers?'<div class="kv"><span>Rivers / Towns</span><b>'+esc(g.Rivers)+" / "+esc(g.Towns)+'</b></div>':"")+'</div>';
+ var ctrl='<div class="card"><h3>Tactical Filters</h3>'+
+   '<input id="mapq" placeholder="Search POIs: bunker, trader, factory…" value="'+esc(S.mapSearch||"")+'">'+
+   '<div class="legend">'+legend+'</div>'+
+   '<div class="wstep" style="margin:0">Scroll to zoom · drag to pan · click for POI details · blue marker = survivor spawn</div>'+
+   '<div class="map-actions"><button class="btn" id="mapreset">Reset View</button><button class="btn" data-mapspawn="'+(m.player?1:0)+'">'+(m.player?"Spawn Linked":"No Spawn Data")+'</button></div></div>';
  var canv='<div class="mapwrap"><canvas id="mapcv" width="800" height="800"></canvas><div class="maptip" id="maptip"></div></div>';
  var det='<div id="mapdet"></div>';
- el.innerHTML=info+ctrl+canv+det;
+ el.innerHTML=hero("Tactical Map","2D world intelligence","Inspect biomes, roads, water, POI tiers and the imported survivor spawn.","tab_map")+
+  '<div class="ops-strip">'+
+   opsLead("RECON / COVERAGE",100,pois.length,"POIs Indexed",esc(m.world)+" tactical package is online.","#4fa7b5")+
+   opsStat("WORLD / SIZE",m.size,"blocks per axis")+
+   opsStat("THREAT / T5",cnt[5]||0,"Tier-5 combat locations")+
+   opsStat("NAV / SPAWN",m.player?"LINKED":"NONE",m.player?esc(m.player.name):"Import a survivor",true)+
+   opsStat("LAYER / WATER",m.watermask?"ONLINE":"OFFLINE","Decoded river and water mask",true)+'</div>'+
+  '<div class="map-console">'+info+ctrl+'</div>'+canv+det;
  setupMap();
  document.getElementById("mapq").oninput=function(){S.mapSearch=this.value.toLowerCase();save();drawMap();};
+ document.getElementById("mapreset").onclick=function(){W.view=null;setupMap();};
  el.querySelectorAll("[data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();rMap();};});
 }
 function w2cFactors(){var img=W.mapImg,v=W.view,dw=img.naturalWidth*v.k,dh=img.naturalHeight*v.k,sz=S.map.size;return {dw:dw,dh:dh,sz:sz,v:v};}
@@ -1027,7 +1397,7 @@ function setupMap(){
  cv.onpointermove=function(e){var p=rel(e);
   if(drag){var dx=p[0]-drag[0],dy=p[1]-drag[1];if(Math.abs(dx)+Math.abs(dy)>3)moved=true;W.view.tx+=dx;W.view.ty+=dy;drag=p;requestDraw();return;}
   var tip=document.getElementById("maptip"),i=nearestPoi(p[0],p[1]),r=cv.getBoundingClientRect();
-  if(i>=0){var po=S.map.pois[i];tip.innerHTML='<b>'+esc(po[0])+'</b> · '+TIERLBL[po[3]]+(po[3]>0?" — Tier "+po[3]:po[3]===0?" — kein Kampf":" — Tier ?")+'<br>'+po[1]+", "+po[2];tip.style.display="block";var s=poiScreen(po[1],po[2]);tip.style.left=Math.min(cv.clientWidth-140,(s[0]*r.width/cv.width)+10)+"px";tip.style.top=Math.max(0,(s[1]*r.height/cv.height)-10)+"px";}
+  if(i>=0){var po=S.map.pois[i];tip.innerHTML='<b>'+esc(po[0])+'</b> · '+TIERLBL[po[3]]+(po[3]>0?" — Tier "+po[3]:po[3]===0?" — no combat":" — unknown tier")+'<br>'+po[1]+", "+po[2];tip.style.display="block";var s=poiScreen(po[1],po[2]);tip.style.left=Math.min(cv.clientWidth-140,(s[0]*r.width/cv.width)+10)+"px";tip.style.top=Math.max(0,(s[1]*r.height/cv.height)-10)+"px";}
   else tip.style.display="none";};
  cv.onpointerup=function(e){var p=rel(e);if(!moved){var i=nearestPoi(p[0],p[1]);W.sel=i>=0?i:null;showPoiDet();requestDraw();}drag=null;};
  cv.onpointerleave=function(){var t=document.getElementById("maptip");if(t)t.style.display="none";};
@@ -1036,11 +1406,10 @@ function setupMap(){
 function showPoiDet(){var d=document.getElementById("mapdet");if(!d)return;if(W.sel==null){d.innerHTML="";return;}
  var p=S.map.pois[W.sel],pl=S.map.player,dist=pl?Math.round(Math.sqrt((p[1]-pl.x)*(p[1]-pl.x)+(p[2]-pl.z)*(p[2]-pl.z))):null;
  d.innerHTML='<div class="card" style="margin-top:10px;border-color:'+TIERCOL[p[3]]+'"><h3><span class="tdot" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+TIERCOL[p[3]]+'"></span> '+esc(p[0])+'</h3>'+
-  '<div class="kv"><span>Tier</span><b>'+(p[3]>0?"Tier "+p[3]+" / 5":p[3]===0?"T0 (kein Kampf)":"unbekannt (Custom-POI)")+'</b></div>'+
-  '<div class="kv"><span>Koordinaten</span><b>'+p[1]+", "+p[2]+'</b></div>'+
-  '<div class="kv"><span>Grundfläche</span><b>'+(p[5]||"?")+' × '+(p[6]||"?")+' Blöcke</b></div>'+
-  (dist!=null?'<div class="kv"><span>Entfernung Spawn</span><b>'+dist+' m</b></div>':"")+
-  (p[8]?'<img class="poi-preview" src="'+p[8]+'" alt="'+esc(p[0])+'">':"")+'</div>';
+  '<div class="kv"><span>Tier</span><b>'+(p[3]>0?"Tier "+p[3]+" / 5":p[3]===0?"T0 (no combat)":"Unknown custom POI")+'</b></div>'+
+  '<div class="kv"><span>Coordinates</span><b>'+p[1]+", "+p[2]+'</b></div>'+
+  '<div class="kv"><span>Footprint</span><b>'+(p[5]||"?")+' × '+(p[6]||"?")+' blocks</b></div>'+
+  (dist!=null?'<div class="kv"><span>Distance from Spawn</span><b>'+dist+' m</b></div>':"")+'</div>';
 }
 // ---- 3D FLY MAP (WebGL, self-contained) ----
 function v3sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
@@ -1055,22 +1424,32 @@ function glProg(gl,vs,fs){var p=gl.createProgram();gl.attachShader(p,glShader(gl
 function r3D(){
  var el=document.getElementById("d3");
  if(!S.map||!S.map.hm){
-  el.innerHTML='<div class="banner warn">🧊 Keine 3D-Höhenkarte. Verlinke eine Welt im Tab <b>🌍 Welt</b> mit dem <b>7DaysToDie</b>-Ordner — dann wird die Höhenkarte (dtm.raw) als 256×256-Terrain gelesen (~5 MB statt 209 MB).</div>'+
-   '<div class="card"><h3>Echtes Fly-Terrain</h3><div class="refrow">Subsampling der 10240²-Höhenkarte → fliegbares 3D wie die In-Game-Weltvorschau, mit Biom-Textur + POI-Markern. <b>Maus ziehen</b> = umschauen · <b>WASD</b> = fliegen · <b>R/F</b> = hoch/runter · <b>Shift</b> = schneller · <b>Scroll</b> = vor.</div></div>';
-  W3.dead=true;return;
+  el.innerHTML=hero("3D Recon","WebGL terrain flight","Fly the optimized terrain mesh with biome texture, road and water layers, and projected POI labels.","tab_3d")+
+   '<div class="banner warn">No 3D heightmap loaded. Link the complete <b>7DaysToDie</b> folder from the World tab to import dtm.raw as an optimized 256×256 terrain.</div>'+
+   '<div class="ops-strip">'+opsStat("TERRAIN / DTM","MISSING","dtm.raw height data",true)+opsStat("MESH / GRID","256²","Optimized terrain target")+opsStat("ENGINE / API","WEBGL","Local browser renderer",true)+'</div>'+
+   '<div class="command-grid"><div class="command-tile" data-go="world"><span class="num">01 / LINK</span><b>Import Terrain</b><small>Open World Control and link the complete data root.</small></div><div class="command-tile"><span class="num">02 / FLIGHT</span><b>Free Camera</b><small>WASD, altitude controls and boost movement.</small></div><div class="command-tile"><span class="num">03 / LABELS</span><b>POI Projection</b><small>Building names appear through distance-based LOD.</small></div></div>';
+   el.querySelector("[data-go]").onclick=function(){S.tab="world";save();show();};
+   W3.dead=true;return;
+  }
+  if(!S.d3v||S.d3v>4)S.d3v=1;
+  el.innerHTML=hero("3D Recon","WebGL terrain flight","Fly the optimized terrain mesh with biome texture, road and water layers, and projected POI labels.","tab_3d")+
+   '<div class="ops-strip">'+
+    opsLead("TERRAIN / MESH",100,S.map.hm.n+"²","3D World Online",esc(S.map.world)+" terrain and POI volume data are ready.","#68b8c2")+
+    opsStat("WORLD / SIZE",S.map.size,"blocks per axis")+
+    opsStat("BUILDINGS / POI",(S.map.pois||[]).length,"Projected structures")+
+    opsStat("HEIGHT / SCALE",S.d3v.toFixed(1)+"×","Current vertical exaggeration")+
+    opsStat("RENDER / API","WEBGL","Hardware-accelerated local view",true)+'</div>'+
+   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FLIGHT SYSTEM / '+esc(S.map.world)+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.5" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
+   '<div class="card"><h3>Control Deck</h3><div class="key-grid"><span></span><span class="keycap">W</span><span></span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="keycap">R / F</span><span class="keycap wide">SHIFT · BOOST</span></div></div></div>'+
+   '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
+  try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D error: '+esc(e.message)+'</div>';W3.dead=true;return;}
+  document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
+  document.getElementById("d3reset").onclick=function(){r3D();};
  }
- if(!S.d3v||S.d3v>4)S.d3v=1;
- el.innerHTML='<div class="card" style="margin-bottom:10px"><h3>🧊 3D-Flug · '+esc(S.map.world)+'</h3>'+
-  '<div class="wstep" style="margin:0">🖱️ ziehen = umschauen · <b>W A S D</b> = fliegen · <b>R</b>/<b>F</b> = hoch/runter · <b>Shift</b> = Boost · Scrollrad = vor/zurück · Klick ins Bild zuerst.</div>'+
-  '<label class="fld">Höhen-Überhöhung: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.5" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"></div>'+
-  '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">WebGL lädt…</div></div>';
- try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D-Fehler: '+esc(e.message)+'</div>';W3.dead=true;return;}
- document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
-}
 function init3D(){
  if(W3.raf)cancelAnimationFrame(W3.raf);W3.dead=false;W3.lblPool=null;
  var cv=document.getElementById("cv3");var gl=cv.getContext("webgl")||cv.getContext("experimental-webgl");
- if(!gl)throw new Error("WebGL nicht verfügbar");
+ if(!gl)throw new Error("WebGL is not available");
  W3.gl=gl;
  var terP=glProg(gl,
   "attribute vec3 aPos;attribute vec3 aNorm;attribute vec2 aUV;uniform mat4 uMVP;varying vec2 vUV;varying float vL;void main(){gl_Position=uMVP*vec4(aPos,1.0);vUV=aUV;vL=clamp(dot(normalize(aNorm),normalize(vec3(0.4,0.85,0.35))),0.0,1.0)*0.75+0.3;}",
@@ -1152,7 +1531,7 @@ function init3D(){
    gl.useProgram(boxP);gl.uniformMatrix4fv(gl.getUniformLocation(boxP,"uMVP"),false,mvp);
    bindA(gl,boxP,"aPos",boxPosB,3);bindA(gl,boxP,"aCol",boxColB,3);
    gl.drawArrays(gl.TRIANGLES,0,boxCount);
-   var hud=document.getElementById("hud3");if(hud)hud.textContent="x "+Math.round(cam.x)+" z "+Math.round(cam.z)+" h "+Math.round(cam.y)+" · Blick "+Math.round(cam.yaw*57.3)+"°/"+Math.round(cam.pitch*57.3)+"° · "+buildingCount+" Gebäude";
+   var hud=document.getElementById("hud3");if(hud)hud.textContent="x "+Math.round(cam.x)+" z "+Math.round(cam.z)+" h "+Math.round(cam.y)+" · view "+Math.round(cam.yaw*57.3)+"°/"+Math.round(cam.pitch*57.3)+"° · "+buildingCount+" buildings";
    updateLabels3D(mvp,cv);
  }
  W3.renderScene=renderScene;
