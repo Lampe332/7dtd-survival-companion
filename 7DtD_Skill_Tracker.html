@@ -907,7 +907,7 @@ var LABEL_TO_PERK={};Object.keys(PERK_NAMES).forEach(function(k){LABEL_TO_PERK[P
 function normalizeScan(data){
   Object.keys(data.maps||{}).forEach(function(w){
     var m=data.maps[w];m.pois=(m.pois||[]).map(function(p){
-      return [p.name,p.x,p.z,p.tier,p.rotation,p.width,p.depth,p.height,p.thumbnail,p.y,p.zombies,p.quests,p.theme];
+      return [p.name,p.x,p.z,p.tier,p.rotation,p.width,p.depth,p.height,p.thumbnail,p.y,p.zombies,p.quests,p.theme,p.ingame||""];
     });
   });
   return data;
@@ -1598,16 +1598,22 @@ function r3D(){
    '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…" style="width:100%;margin-bottom:6px"><div id="poiResults" class="poi-results"></div><div class="wstep" style="margin:4px 0 3px">Show buildings by tier — click to toggle:</div><div class="legend" id="d3legend">'+d3legend+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.2" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
    '<div class="card"><h3>Control Deck</h3><div class="key-grid"><span></span><span class="keycap">W</span><span></span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="keycap">R / F</span><span class="keycap wide">SHIFT · BOOST</span></div></div></div>'+
    '<div class="mapwrap"><button id="d3fs" class="mapfsbtn" title="Fullscreen (Esc to exit)">⛶</button><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div id="poiInfo" class="poiInfo" style="display:none"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
+  W3.q="";  // reset map search on (re)entering the tab so the first terrain build shows all POIs
   try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D error: '+esc(e.message)+'</div>';W3.dead=true;return;}
   document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
   document.getElementById("d3reset").onclick=function(){r3D();};
   var psi=document.getElementById("poiSearch"),pres=document.getElementById("poiResults");
+  // p[13]=in-game/brand name (Crack-A-Book, Trader Bob…) from Localization.csv; p[0]=prefab.
+  function poiText(p){return ((p[0]||"")+" "+(p[13]||"")).toLowerCase();}
+  function poiLabel(p){return (p[13]||prettyPoi(p[0]||"POI"));}
+  function applyMapSearch(q){W3.q=q||"";if(W3.buildTerrain)W3.buildTerrain();}
   if(psi)psi.oninput=function(){
    var q=this.value.toLowerCase().trim();
+   applyMapSearch(q);            // filter the buildings ON the map, not just the dropdown
    if(!q){pres.innerHTML="";return;}
-   var hits=(S.map.pois||[]).map(function(p,i){return [p,i];}).filter(function(o){return (o[0][0]||"").toLowerCase().indexOf(q)>=0;}).slice(0,12);
-   pres.innerHTML=hits.length?hits.map(function(o){return '<div class="poi-hit" data-pi="'+o[1]+'"><span class="tdot" style="background:'+TIERCOL[o[0][3]]+'"></span><span class="poi-hit-name">'+esc(o[0][0]||"POI")+'</span><small>'+TIERLBL[o[0][3]]+'</small></div>';}).join(""):'<div class="poi-hit muted">No match — type a building or trader name</div>';
-   pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(!mapFilterOn(p[3])){S.mapFilter[p[3]]=1;save();var ch=document.querySelector('#d3legend [data-tf="'+p[3]+'"]');if(ch)ch.classList.remove("off");if(W3.buildTerrain)W3.buildTerrain();}if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=p[0];W3.flyTo(t);}openPoiInfo(+r.dataset.pi);var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";psi.value=p[0]||"";};});
+   var hits=(S.map.pois||[]).map(function(p,i){return [p,i];}).filter(function(o){return poiText(o[0]).indexOf(q)>=0;}).slice(0,12);
+   pres.innerHTML=hits.length?hits.map(function(o){var sub=o[0][13]?esc(o[0][0]):TIERLBL[o[0][3]];return '<div class="poi-hit" data-pi="'+o[1]+'"><span class="tdot" style="background:'+TIERCOL[o[0][3]]+'"></span><span class="poi-hit-name">'+esc(poiLabel(o[0]))+'</span><small>'+sub+'</small></div>';}).join(""):'<div class="poi-hit muted">No match — try a brand: Crack-A-Book, Shamway, Trader…</div>';
+   pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(!mapFilterOn(p[3])){S.mapFilter[p[3]]=1;save();var ch=document.querySelector('#d3legend [data-tf="'+p[3]+'"]');if(ch)ch.classList.remove("off");}psi.value=poiLabel(p);applyMapSearch(psi.value.toLowerCase());if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=poiLabel(p);W3.flyTo(t);}openPoiInfo(+r.dataset.pi);var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";};});
   };
   el.querySelectorAll("#d3legend [data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();c.classList.toggle("off",!mapFilterOn(t));if(W3.buildTerrain)W3.buildTerrain();};});
   // --- Fullscreen toggle (CSS overlay; keeps POI search + tier filter live by moving the control card into the map) ---
@@ -1672,10 +1678,14 @@ function init3D(){
     var v=[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1],[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],f=[[0,1,2,0,2,3],[4,6,5,4,7,6],[0,4,5,0,5,1],[1,5,6,1,6,2],[2,6,7,2,7,3],[3,7,4,3,4,0]];
     f.forEach(function(q){tri(v[q[0]],v[q[1]],v[q[2]],col);tri(v[q[3]],v[q[4]],v[q[5]],col);});}
    W3.labelPts=[];
-   (S.map.pois||[]).forEach(function(p,pi){if(!mapFilterOn(p[3]))return;var gj=(p[1]/size+0.5)*(N-1),gi=(0.5-p[2]/size)*(N-1);if(gj<0||gj>N-1||gi<0||gi>N-1)return;
+   (S.map.pois||[]).forEach(function(p,pi){
+    // Active search -> show only matching buildings (override tier filter). No search -> tier filter.
+    if(W3.q){if((((p[0]||"")+" "+(p[13]||"")).toLowerCase()).indexOf(W3.q)<0)return;}
+    else if(!mapFilterOn(p[3]))return;
+    var gj=(p[1]/size+0.5)*(N-1),gi=(0.5-p[2]/size)*(N-1);if(gj<0||gj>N-1||gi<0||gi>N-1)return;
     var base=terrainY(hAt(Math.round(gi),Math.round(gj))),col=hex2rgb(TIERCOL[p[3]]),bw=Math.max(1.0,(p[5]||25)/step),bd=Math.max(1.0,(p[6]||25)/step),bh=Math.max(1.4,(p[7]||10)/step);
     box(gj-(N-1)/2,base,gi-(N-1)/2,bw,bh,bd,col);buildingCount++;
-    W3.labelPts.push({x:gj-(N-1)/2,y:base+bh+0.6,z:gi-(N-1)/2,name:p[0],tier:p[3],pi:pi}); // label every POI; distance-LOD limits what shows
+    W3.labelPts.push({x:gj-(N-1)/2,y:base+bh+0.6,z:gi-(N-1)/2,name:(p[13]||p[0]),tier:p[3],pi:pi}); // label every POI; distance-LOD limits what shows
    });
    if(S.map.player){var gj=(S.map.player.x/size+0.5)*(N-1),gi=(0.5-S.map.player.z/size)*(N-1);if(gj>=0&&gj<=N-1&&gi>=0&&gi<=N-1){pp.push(gj-(N-1)/2,terrainY(hAt(Math.round(gi),Math.round(gj)))+2,gi-(N-1)/2);pc.push(0.35,0.65,1);}}
    poiCount=pp.length/3;
@@ -1783,7 +1793,7 @@ function openPoiInfo(pi){
  if(theme)rows+=kv("Theme",esc(prettyPoi(theme)));
  if(dist!=null)rows+=kv("Distance to base",dist.toLocaleString()+" m");
  el.innerHTML='<button type="button" class="pi-close" aria-label="Close">×</button>'+img+
-  '<h4>'+esc(prettyPoi(p[0]))+'</h4><div class="pi-sub">'+esc(p[0])+'</div>'+
+  '<h4>'+esc(p[13]||prettyPoi(p[0]))+'</h4><div class="pi-sub">'+esc(p[0])+'</div>'+
   '<div style="margin-top:10px">'+rows+'</div>';
  el.querySelector(".pi-close").onclick=closePoiInfo;
  el.style.display="block";

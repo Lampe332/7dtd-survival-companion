@@ -68,6 +68,7 @@ struct Poi {
     zombies: i32,
     quests: String,
     theme: String,
+    ingame: String,
 }
 
 #[derive(Clone, Serialize)]
@@ -276,6 +277,7 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
         }
     }
     let prefab_meta = load_prefab_meta(paths.install.as_deref(), &needed);
+    let poi_names = load_poi_names(paths.install.as_deref());
 
     let mut saves = Vec::new();
     for world in read_dirs(&saves_root)? {
@@ -319,7 +321,7 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
         let map_info = parse_map_info(&dir.join("map_info.xml"));
         let prefab_text = fs::read_to_string(&prefabs).unwrap_or_default();
         let key = encode_segment(&world);
-        let pois = parse_prefabs(&prefab_text, &prefab_meta);
+        let pois = parse_prefabs(&prefab_text, &prefab_meta, &poi_names);
         let dtm = dir.join("dtm.raw");
         let hm = if dtm.is_file() {
             sample_heightmap(&dtm, map_info.size as usize).ok()
@@ -756,7 +758,66 @@ fn load_prefab_meta(
     result
 }
 
-fn parse_prefabs(xml: &str, meta: &HashMap<String, PrefabMeta>) -> Vec<Poi> {
+// Minimal CSV record splitter: handles double-quoted fields with ""-escapes.
+// Localization.csv is comma-separated and some english strings are quoted.
+fn parse_csv_line(line: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut cur = String::new();
+    let mut in_q = false;
+    let mut chars = line.chars().peekable();
+    while let Some(c) = chars.next() {
+        if in_q {
+            if c == '"' {
+                if chars.peek() == Some(&'"') {
+                    cur.push('"');
+                    chars.next();
+                } else {
+                    in_q = false;
+                }
+            } else {
+                cur.push(c);
+            }
+        } else {
+            match c {
+                '"' => in_q = true,
+                ',' => out.push(std::mem::take(&mut cur)),
+                _ => cur.push(c),
+            }
+        }
+    }
+    out.push(cur);
+    out
+}
+
+// Real prefab -> in-game / brand name map (e.g. store_book_01 -> "Crack-A-Book",
+// trader_bob -> "Trader Bob"). Source: game install Data/Config/Localization.csv,
+// rows where File="POI" and Type="POIName"; the name is the `english` column (index 6).
+fn load_poi_names(install: Option<&Path>) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    let Some(root) = install else {
+        return map;
+    };
+    let Ok(text) = fs::read_to_string(root.join("Data/Config/Localization.csv")) else {
+        return map;
+    };
+    for line in text.lines() {
+        let fields = parse_csv_line(line);
+        if fields.len() > 6 && fields[1] == "POI" && fields[2] == "POIName" {
+            let key = fields[0].trim().to_string();
+            let name = fields[6].trim().to_string();
+            if !key.is_empty() && !name.is_empty() {
+                map.insert(key, name);
+            }
+        }
+    }
+    map
+}
+
+fn parse_prefabs(
+    xml: &str,
+    meta: &HashMap<String, PrefabMeta>,
+    names: &HashMap<String, String>,
+) -> Vec<Poi> {
     let re = Regex::new(
         r#"<decoration[^>]*\bname="([^"]+)"[^>]*\bposition="(-?\d+),(-?\d+),(-?\d+)"[^>]*\brotation="(\d+)""#,
     )
@@ -796,6 +857,7 @@ fn parse_prefabs(xml: &str, meta: &HashMap<String, PrefabMeta>) -> Vec<Poi> {
             zombies: info.zombies,
             quests: info.quests,
             theme: info.theme,
+            ingame: names.get(&name).cloned().unwrap_or_default(),
         });
     }
     pois
