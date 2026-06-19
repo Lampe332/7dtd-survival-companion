@@ -20,6 +20,7 @@ const ADDRESS: &str = "127.0.0.1:17873";
 const HEIGHTMAP_N: usize = 256;
 const APP_HTML: &str = include_str!("../7DtD_Skill_Tracker.html");
 const REFDATA: &str = include_str!("refdata.json");
+const UIASSETS: &str = include_str!("uiassets.json");
 
 /// Encoding order of the 150 sandbox options (verified against real saves).
 /// The SandboxCode triplet `[hi][mid][lo]` encodes option = hi*26+mid as the
@@ -178,6 +179,11 @@ fn handle(
         (&Method::Get, "/api/refdata") => serve_bytes(
             request,
             REFDATA.as_bytes().to_vec(),
+            "application/json; charset=utf-8",
+        ),
+        (&Method::Get, "/api/uiassets") => serve_bytes(
+            request,
+            UIASSETS.as_bytes().to_vec(),
             "application/json; charset=utf-8",
         ),
         (&Method::Get, "/api/scan") | (&Method::Post, "/api/scan") => match scan(paths) {
