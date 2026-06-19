@@ -153,6 +153,10 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 .setex{font-size:11.5px;color:var(--acc2);margin-top:3px;font-style:italic}
 .setctl{flex:none;width:190px;max-width:46%}
 .setinput{width:100%;padding:8px 10px;font-size:13.5px}
+.presetbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}@media(max-width:680px){.presetbar{grid-template-columns:repeat(2,1fr)}}
+.presetbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--card2);cursor:pointer;text-align:left;width:auto;transition:.14s}
+.presetbtn:hover{border-color:var(--acc);background:rgba(240,120,47,.08);transform:translateY(-1px)}
+.presetbtn .pi{font-size:18px}.presetbtn .pn{font-weight:700;font-size:13px;color:var(--text)}.presetbtn small{color:var(--muted);font-size:10.5px;line-height:1.2}
 .setval-ro{display:inline-block;font-family:var(--mono);font-size:12.5px;color:var(--dim);background:var(--bg2);padding:6px 10px;border-radius:8px;text-align:right;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .setrow.ro .setlbl{color:var(--muted)}
 .rb{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px}
@@ -1003,6 +1007,26 @@ function settingsCatalog(){
  (RD.plain||[]).forEach(function(o){if(!RD.byName[o.name]||RD.byName[o.name]===o)list.push(o);});
  return list;
 }
+var PRESETS={
+ baby:{name:"Baby",icon:"🍼",sub:"Relaxed — build & survive",map:{GameDifficulty:"Scavenger",ZombieMove:"Walk",ZombieMoveNight:"Walk",ZombieFeralMove:"Walk",ZombieBMMove:"Walk",ZombieFeralSense:"Off",BlockDamageAI:"25%",BlockDamageAIBM:"25%",DeathPenalty:"None",DropOnDeath:"Nothing",XPMultiplier:"300%",BloodMoonEnemyCount:"4",BloodMoonFrequency:"30 Days",BloodMoonWarning:"Morning",AllowZombieDigging:"Off",LootRespawnDays:"5 Days",AirDropFrequency:"Every 1 Day"}},
+ standard:{name:"Standard",icon:"🙂",sub:"Balanced default run",map:{GameDifficulty:"Nomad",ZombieMove:"Walk",ZombieMoveNight:"Jog",ZombieFeralMove:"Run",ZombieBMMove:"Run",ZombieFeralSense:"Off",BlockDamageAI:"100%",BlockDamageAIBM:"100%",DeathPenalty:"XP Only",DropOnDeath:"Backpack Only",XPMultiplier:"100%",BloodMoonEnemyCount:"8",BloodMoonFrequency:"7 Days",AllowZombieDigging:"Off",LootRespawnDays:"30 Days",AirDropFrequency:"Every 3 Days"}},
+ hard:{name:"Hard",icon:"💀",sub:"Sprinters & real stakes",map:{GameDifficulty:"Survivalist",ZombieMove:"Jog",ZombieMoveNight:"Run",ZombieFeralMove:"Sprint",ZombieBMMove:"Sprint",ZombieFeralSense:"Night",BlockDamageAI:"100%",BlockDamageAIBM:"150%",DeathPenalty:"Injured",DropOnDeath:"Everything",XPMultiplier:"100%",BloodMoonEnemyCount:"32",BloodMoonFrequency:"7 Days",AllowZombieDigging:"On",LootRespawnDays:"40 Days",AirDropFrequency:"Every 7 Days"}},
+ nightmare:{name:"Nightmare",icon:"☠️",sub:"Insane + everything cranked",map:{GameDifficulty:"Insane",ZombieMove:"Nightmare",ZombieMoveNight:"Nightmare",ZombieFeralMove:"Nightmare",ZombieBMMove:"Nightmare",ZombieFeralSense:"All",BlockDamageAI:"100%",BlockDamageAIBM:"200%",DeathPenalty:"Injured",DropOnDeath:"Delete All",XPMultiplier:"100%",BloodMoonEnemyCount:"64",BloodMoonFrequency:"5 Days",BloodMoonWarning:"Disabled",AllowZombieDigging:"On",LootRespawnDays:"50 Days",AirDropFrequency:"Disabled"}}
+};
+function presetBarHTML(){return '<div class="card" style="margin-bottom:10px"><h3>⚙ Difficulty Presets</h3><div class="sub" style="margin-bottom:8px">One click sets a full difficulty profile across many settings (difficulty, zombie speed, block damage, death penalty, Blood Moon, loot…). Review the pending changes, then <b>Write to World</b> — nothing is saved until you confirm.</div><div class="presetbar">'+Object.keys(PRESETS).map(function(k){var p=PRESETS[k];return '<button type="button" class="btn presetbtn" data-preset="'+k+'"><span class="pi">'+p.icon+'</span><span class="pn">'+esc(p.name)+'</span><small>'+esc(p.sub)+'</small></button>';}).join('')+'</div></div>';}
+function applyPreset(key){
+ var p=PRESETS[key];if(!p)return;
+ Object.keys(p.map).forEach(function(nm){
+  var inp=document.querySelector('#world .setinput[data-opt="'+nm+'"]');if(!inp)return;
+  var o=refOpt(nm),tgt=p.map[nm],v=tgt;
+  if(o&&o.options&&o.options.length){var op=o.options.find(function(x){return String(x.label)===String(tgt)||String(x.v)===String(tgt);});if(op)v=op.v;}
+  inp.value=v;onSettingChange(inp);
+ });
+ var qq=document.getElementById("setq");if(qq)qq.value="";S.setq="";
+ var oc=document.getElementById("setonlych");if(oc)oc.checked=true;S.setchanged=true;
+ applySettingSearch();refreshSaveBar();save();
+ var info=document.getElementById("sbinfo");if(info&&!Object.keys(EDIT).length)info.textContent="'"+p.name+"' preset matches current values — nothing to change";
+}
 function ctlHTML(o,sstate){
  var name=esc(o.name);
  if(o.control==="select"&&o.options&&o.options.length){
@@ -1053,6 +1077,7 @@ function settingsEditor(world,save,st){
  var head='<div class="card" style="margin-bottom:10px"><h3>World Settings · '+esc(world)+' / '+esc(save)+'</h3>'+
    '<div class="sub" style="margin-bottom:8px">'+verLine+' · '+editableCount+' of '+totalShown+' displayed options are directly editable.</div>'+
    '<div class="banner warn" style="margin:0 0 4px"><b>Close the game before saving.</b> 7DtD can overwrite this file on exit. A timestamped backup is created automatically.</div></div>';
+ var presets=presetBarHTML();
  var ctrls='<div class="card" style="margin-bottom:10px"><div class="ctrls">'+
    '<input id="setq" placeholder="Search settings…" value="'+esc(S.setq||"")+'" style="flex:2;min-width:180px">'+
    '<button class="btn" id="setexpand">Expand All</button><button class="btn" id="setcollapse">Collapse All</button>'+
@@ -1061,7 +1086,7 @@ function settingsEditor(world,save,st){
  var savebar='<div class="savebar" id="savebar"><div class="sbinfo" id="sbinfo">No pending changes</div><button class="btn sbbtn" id="setrevert">Discard</button><button class="btn sbsave" id="setsave" disabled>Write to World</button></div>';
  var help='<aside class="sethelp" id="sethelp"><div class="sethelp-kicker">Setting Intelligence</div><div class="sethelp-symbol">?</div><h3 id="sethelpTitle">Hover over a question mark</h3><p id="sethelpText">Every setting now has a dedicated explanation. Hover over or focus a question-mark icon to inspect its purpose, current value, source and impact.</p><div class="sethelp-grid"><div class="sethelp-fact"><span>Configuration Key</span><b id="sethelpKey">—</b></div><div class="sethelp-fact"><span>Current Value</span><b id="sethelpValue">—</b></div><div class="sethelp-fact"><span>Data Source</span><b id="sethelpSource">—</b></div><div class="sethelp-fact"><span>Impact</span><b id="sethelpRisk">—</b></div></div><div class="sethelp-tip" id="sethelpTip">The explanation text is loaded from <b>src/refdata.json</b>, so it can be improved centrally without changing this interface.</div></aside>';
  var msg=S.setMsg?('<div class="banner '+(S.setMsg.ok?"safe":"danger")+'">'+esc(S.setMsg.text)+'</div>'):'';
- return msg+head+ctrls+'<div class="settings-workspace"><div class="settings-list">'+body+'</div>'+help+'</div>'+savebar;
+ return msg+head+presets+ctrls+'<div class="settings-workspace"><div class="settings-list">'+body+'</div>'+help+'</div>'+savebar;
 }
 function showSettingHelp(row){
  if(!row)return;
@@ -1093,6 +1118,7 @@ function wireSettingsEditor(){
   if(q){q.onfocus=function(){showSettingHelp(row);};q.onclick=function(e){e.stopPropagation();showSettingHelp(row);};}
  });
  var sv=document.getElementById("setsave");if(sv)sv.onclick=doWriteSettings;
+ root.querySelectorAll(".presetbtn").forEach(function(b){b.onclick=function(){applyPreset(b.dataset.preset);};});
  var rv=document.getElementById("setrevert");if(rv)rv.onclick=function(){EDIT={};S.setMsg=null;save();rWorld();};
  refreshSaveBar();
 }
