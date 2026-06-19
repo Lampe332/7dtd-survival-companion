@@ -667,11 +667,14 @@ fn parse_prefabs(xml: &str, meta: &HashMap<String, PrefabMeta>) -> Vec<Poi> {
         } else {
             (info.width, info.depth)
         };
+        // prefabs.xml position is the SW corner (min x/z) of the footprint; the box
+        // is centred on (x,z), so shift by half the rotation-adjusted size to land it
+        // on the real footprint instead of half-a-building to the south-west.
         pois.push(Poi {
             name: name.clone(),
-            x: capture[2].parse().unwrap_or(0),
+            x: capture[2].parse().unwrap_or(0) + width / 2,
             y: capture[3].parse().unwrap_or(0),
-            z: capture[4].parse().unwrap_or(0),
+            z: capture[4].parse().unwrap_or(0) + depth / 2,
             tier: info.tier,
             rotation,
             width,
