@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🔨 7DtD Survival Companion
+<img src="logo.png" width="140" alt="7DtD Survival Companion logo">
+
+# 7DtD Survival Companion
 
 **Local, offline companion app for _7 Days to Die_** — interactive world map, perk planner, and a real settings editor that writes straight back to your save.
 
