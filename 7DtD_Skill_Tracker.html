@@ -28,7 +28,7 @@ body{color:var(--text);font-family:system-ui,"Segoe UI",Roboto,sans-serif;line-h
 .icon{padding:7px 9px;background:var(--card);border:1px solid var(--line);border-radius:11px;cursor:pointer;font-size:13px;color:var(--muted)}
 .icon:hover{color:var(--text);border-color:var(--line2)}
 .tabs{display:flex;gap:6px;overflow-x:auto;position:sticky;top:8px;z-index:30;background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:14px;padding:6px;margin-bottom:16px}
-.tab{flex:1;min-width:78px;white-space:nowrap;text-align:center;padding:9px 8px;border-radius:10px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border:1px solid transparent;transition:.12s}
+.tab{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;padding:9px 8px;border-radius:10px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border:1px solid transparent;transition:.12s}
 .tab:hover{color:var(--text)}
 .tab.on{background:linear-gradient(135deg,rgba(239,122,53,.22),rgba(245,183,60,.12));color:var(--acc2);border-color:rgba(239,122,53,.4)}
 .sec{display:none}.sec.on{display:block;animation:fade .2s}
@@ -42,7 +42,7 @@ body{color:var(--text);font-family:system-ui,"Segoe UI",Roboto,sans-serif;line-h
 .ring{position:relative;width:90px;height:90px}.ring svg{transform:rotate(-90deg)}
 .ring .rt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;font-family:var(--mono)}
-.banner{border-radius:16px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;font-weight:600}
+.banner{border-radius:16px;padding:14px 18px;margin-bottom:14px;display:block;line-height:1.55;font-weight:600}
 .banner.safe{background:rgba(92,196,122,.12);border:1px solid rgba(92,196,122,.4)}
 .banner.warn{background:rgba(245,183,60,.13);border:1px solid rgba(245,183,60,.45);color:var(--acc2)}
 .banner.danger{background:rgba(216,59,50,.16);border:1px solid rgba(216,59,50,.6);color:#ff8a82;animation:pulse 1.2s infinite}
@@ -81,10 +81,23 @@ input[type=number]{font-family:var(--mono);font-weight:700}
 .refrow{font-size:13.5px;padding:5px 0;color:var(--muted)}.refrow b{color:var(--text);font-weight:600}
 .foot{color:var(--dim);font-size:12px;margin-top:26px;text-align:center;line-height:1.8}
 .foot b{color:var(--muted)}
-.launch{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
-.launch.hide{display:none}.launchbox{width:min(460px,100%);text-align:center;padding:34px}.launchbox h1{font-size:25px;margin-bottom:4px}
-.launchbox .btn{width:100%;margin-top:18px;padding:15px;font-size:17px;background:var(--acc);color:#0c0b09;border:none;font-weight:800}
-.launchstatus{min-height:22px;margin-top:12px;font-size:13px;color:var(--muted)}
+.launch{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden;
+ background:radial-gradient(1100px 620px at 50% -10%,rgba(239,122,53,.20),transparent 60%),radial-gradient(900px 600px at 50% 115%,rgba(216,59,50,.16),transparent 60%),var(--bg)}
+.launch.hide{display:none}
+.launchbox{position:relative;width:min(480px,100%);text-align:center;padding:40px 34px 30px;border-radius:24px;
+ background:linear-gradient(165deg,rgba(34,31,24,.95),rgba(20,19,15,.95));border:1px solid var(--line2);
+ box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06)}
+.launchbox::before{content:"";position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(160deg,rgba(239,122,53,.6),transparent 40%,transparent 60%,rgba(216,59,50,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.launchlogo{font-size:58px;line-height:1;filter:drop-shadow(0 6px 18px rgba(239,122,53,.5));animation:floaty 3.2s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-9px) rotate(4deg)}}
+.launchbox h1{font-size:30px;font-weight:800;letter-spacing:.3px;margin:12px 0 4px;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.launchtag{font-size:13.5px;color:var(--muted)}.launchtag b{color:#ff8a82}
+.launchfeat{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:18px 0 4px}
+.launchfeat span{font-size:12px;padding:5px 11px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--text)}
+.launchbtn{width:100%;margin-top:20px;padding:16px;font-size:17px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#0c0b09;border:none;font-weight:800;border-radius:13px;transition:.15s;box-shadow:0 8px 24px rgba(239,122,53,.3)}
+.launchbtn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(239,122,53,.45)}
+.launchbtn:disabled{opacity:.6;transform:none;cursor:default}
+.launchstatus{min-height:20px;margin-top:14px;font-size:12.5px;color:var(--dim)}
 .imported{border-color:rgba(90,166,255,.45);background:rgba(90,166,255,.08)}
 .skillchips{display:flex;flex-wrap:wrap;gap:6px}.skillchip{font-size:12px;padding:5px 9px;border-radius:999px;background:var(--card2);border:1px solid var(--line2)}
 .skillchip b{color:var(--next)}.poi-preview{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-top:10px}
@@ -113,15 +126,77 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 .tierchip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line2);user-select:none;background:var(--card2)}
 .tierchip.off{opacity:.35}.tdot{width:10px;height:10px;border-radius:50%;flex:none}
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+/* ---- settings editor ---- */
+.acc{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);margin-bottom:10px}
+.acch{display:flex;align-items:center;gap:10px;padding:12px 15px;cursor:pointer;user-select:none;border-left:4px solid var(--acc)}
+.acch:hover{background:var(--card2)}.acch .ttl{flex:1;font-weight:700;font-size:14.5px}
+.acch .pc{font-family:var(--mono);font-size:11.5px;color:var(--muted);background:var(--bg2);padding:3px 9px;border-radius:999px}
+.acch .chev{color:var(--muted);transition:transform .2s}.acc.col .chev{transform:rotate(-90deg)}.acc.col .accb{display:none}
+.accb{padding:4px 0}
+.setrow{display:flex;gap:12px;align-items:center;padding:10px 15px;border-top:1px solid var(--line)}
+.setrow:first-child{border-top:none}.setrow.changed{background:rgba(90,166,255,.10);box-shadow:inset 3px 0 0 var(--next)}
+.setmeta{flex:1;min-width:0}.setlbl{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.setdesc{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.45}
+.setex{font-size:11.5px;color:var(--acc2);margin-top:3px;font-style:italic}
+.setctl{flex:none;width:190px;max-width:46%}
+.setinput{width:100%;padding:8px 10px;font-size:13.5px}
+.setval-ro{display:inline-block;font-family:var(--mono);font-size:12.5px;color:var(--dim);background:var(--bg2);padding:6px 10px;border-radius:8px;text-align:right;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.setrow.ro .setlbl{color:var(--muted)}
+.rb{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px}
+.rb1{width:8px;height:8px;padding:0;border-radius:50%;background:var(--acc2);display:inline-block}
+.rb2{background:rgba(216,59,50,.2);color:#ff8a82;border:1px solid rgba(216,59,50,.5)}
+.srcb{font-size:11px;color:var(--next);opacity:.8}
+.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);white-space:nowrap;cursor:pointer}
+.chk input{width:auto}
+.savebar{position:sticky;bottom:10px;z-index:20;display:flex;align-items:center;gap:10px;margin-top:14px;padding:11px 14px;border-radius:14px;background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line2)}
+.savebar.active{border-color:var(--next);box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.sbinfo{flex:1;font-size:13px;color:var(--muted);font-weight:600}.savebar.active .sbinfo{color:var(--next)}
+.sbbtn{background:var(--card2)}.sbsave{background:var(--acc);color:#0c0b09;font-weight:800;border:none}
+.sbsave:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:560px){.setctl{width:130px}}
+/* ---- generic search + chips reuse ---- */
+.searchbar{width:100%;margin-bottom:10px}
+.filterchips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.fchip{font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid var(--line2);background:var(--card2);cursor:pointer;user-select:none}
+.fchip.on{border-color:var(--acc2);background:rgba(245,183,60,.14);color:var(--acc2)}
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.qbtn{flex:1;min-width:90px;text-align:center;padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:var(--card2);cursor:pointer;font-weight:600;font-size:13px}
+.qbtn:hover{border-color:var(--acc);color:var(--acc2)}
+.statpill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:999px;background:var(--bg2);color:var(--muted)}
+.statpill.ok{color:var(--done)}.statpill.no{color:var(--dim)}
+/* ---- perk catalog ---- */
+.perkgrp{margin-top:8px}
+.perkgrph{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:7px 2px 4px;border-bottom:1px solid var(--line);margin-bottom:2px}
+.perkrow{display:flex;gap:11px;align-items:flex-start;padding:9px 10px;border-radius:11px;cursor:pointer;border:1px solid transparent}
+.perkrow:hover{background:var(--card2)}
+.perkrow.picked{border-color:var(--acc2);background:rgba(245,183,60,.10)}
+.perkrow.picked .cbx{background:var(--acc2);border-color:var(--acc2);color:#0c0b09}
+.perkrow .gate{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:4px}
+.recb{font-size:10px;font-weight:700;color:#0c0b09;background:var(--star);padding:2px 7px;border-radius:999px;margin-left:4px}
+/* ---- loot / magazine ---- */
+.lcard{border:1px solid var(--line);border-radius:13px;padding:12px 14px;margin-bottom:8px;background:var(--card)}
+.lcard h4{font-size:14px;margin-bottom:3px;display:flex;gap:7px;align-items:center}
+.lcard .ld{font-size:12.5px;color:var(--muted);line-height:1.5}
+.lcard .lex{font-size:11.5px;color:var(--dim);margin-top:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 8px;border-bottom:1px solid var(--line2)}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--line)}
+.tbl tr:last-child td{border:none}
+.magcat{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 2px 4px}
+/* ---- 3D building labels ---- */
+.map3lbl{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl3d{position:absolute;transform:translate(-50%,-130%);background:rgba(10,9,7,.82);border:1px solid var(--line2);border-left-width:3px;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 2px #000;pointer-events:none}
 </style>
 </head>
 <body>
 <div class="launch" id="launcher">
-  <div class="card launchbox">
-    <h1>🔨 Survival Companion</h1>
-    <div class="sub">Rust-Scanner · echte Saves · lokale App</div>
-    <button class="btn" id="scanbtn">Welten und Charaktere scannen</button>
-    <div class="launchstatus" id="launchstatus">Keine BAT und kein Python nötig.</div>
+  <div class="launchbox">
+    <div class="launchlogo">🔨</div>
+    <h1>Survival&nbsp;Companion</h1>
+    <div class="launchtag">Dein 7 Days to Die Begleiter · <b>V3.0 Dead Hot Summer</b></div>
+    <div class="launchfeat"><span>🌍 echte Saves</span><span>⚙️ Welt-Editor</span><span>🗺️ 2D/3D-Karte</span><span>🔨 Build-Planer</span><span>📕 Magazine</span></div>
+    <button class="btn launchbtn" id="scanbtn">⚔️ Welten &amp; Charaktere scannen</button>
+    <div class="launchstatus" id="launchstatus">100&nbsp;% lokal · offline · keine Cloud · keine BAT, kein Python</div>
   </div>
 </div>
 <div class="wrap">
@@ -186,13 +261,43 @@ var MAGS=[
 ["Forge Ahead",75,"Workstations",1,"craftingworkstations"],
 ["Vehicle Adventures",100,"Vehicles",0,"craftingvehicles"]
 ];
+// Magazin-Kategorien (label -> Gruppe), Indizes von MAGS bleiben unangetastet
+var MAGCAT={"Knuckles":"🗡️ Waffen","Blades":"🗡️ Waffen","Clubs":"🗡️ Waffen","Sledgehammers":"🗡️ Waffen","Bows":"🗡️ Waffen","Spears":"🗡️ Waffen","Handguns":"🗡️ Waffen","Shotguns":"🗡️ Waffen","Rifles":"🗡️ Waffen","Machine Guns":"🗡️ Waffen","Explosives":"🗡️ Waffen","Harvesting Tools":"🔧 Werkzeug & Technik","Repair Tools":"🔧 Werkzeug & Technik","Salvage Tools":"🔧 Werkzeug & Technik","Workstations":"🔧 Werkzeug & Technik","Electrician":"🔧 Werkzeug & Technik","Traps":"🔧 Werkzeug & Technik","Robotics":"🔧 Werkzeug & Technik","Armor":"🛡️ Überleben","Medical":"🛡️ Überleben","Food":"🛡️ Überleben","Seeds":"🛡️ Überleben","Vehicles":"🚗 Fahrzeuge","Briefkästen · Completion = Stamina-Fix":"🗡️ Waffen"};
+// Perk-Buch-Reihen (19 Serien × 7 Bände) — separat von Crafting-Magazinen
+var BOOKS=[
+ ["The Art of Mining","Bergbau / Abbau","Miner 69'er"],
+ ["The Automatic Weapon Handbook","Automatikwaffen","Machine Gunner"],
+ ["Batter Up!","Keulen & Schläger","Pummel Pete"],
+ ["Bar Brawler","Schlagringe / Fäuste","The Brawler"],
+ ["The Fireman's Almanac","Feuer / Molotov / Hitze","—"],
+ ["The Great Heist","Schlösser / Tresore","Lock Picking"],
+ ["The Hunter's Journal","Jagd / Tiere","Animal Tracker"],
+ ["Lucky Looter","Looten","Lucky Looter"],
+ ["Magnum Enforcer",".44 Magnum","Gunslinger"],
+ ["The Night Stalker","Stealth","From The Shadows"],
+ ["Pistol Pete","Pistolen","Gunslinger"],
+ ["Ranger's Guide to Archery","Bögen","Archery"],
+ ["Shotgun Messiah","Schrotflinten","Boomstick"],
+ ["Sledge Saga","Vorschlaghämmer","Skull Crusher"],
+ ["Sniper","Scharfschützengewehre","Dead Eye"],
+ ["Spear Hunter","Speere","Spear Master"],
+ ["Urban Combat","Keulen/Klingen urban","Hidden Strike"],
+ ["Tech Junkie","Robotik / Elektrik","Electrocutioner"],
+ ["Wasteland Treasures","Schätze / Schrott","Salvage Operations"]
+];
 var READY=[["Base voll repariert (Stahl-Lane)","",2],["Sledge auf voller Durability + 1 Ersatz-Sledge","",2],["3+ Repair Kits dabei","",1],["10+ First Aid Bandages / Kits","",2],["Honey + Vitamins (Infektion)","",1],["Essen + Wasser >70% + Vorrat","",1],["Grandpa's Moonshine (Opener) + Mega Crush (Panik)","",1],["Forge AUS (Screamer)","",1],["Dach gegen Vultures","",1],["Escape-Route / Bail-Luke frei","",2]];
 var REF=[
 ["⚙️ Deine Settings",[["Schwierigkeit","Insane — du 50% / Gegner 250%"],["Headshot-Mult","125% (Sledge-Köpfe!)"],["XP","125%"],["Zombie-Speed","Nightmare (Tag+Nacht)"],["Feral Sense","Night"],["Block-Damage","Gegner 85% / Blutmond 65%"],["Blood Moon","alle 10 Tage · 64 Gegner"],["Skillpunkte","2 pro Level (Skill Gain Amount=2)"]]],
 ["🔨 Sledge-Regeln",[["Power-Attack","2,24× Schaden, 2× Stamina"],["Normale Zombies","KOPF treffen (×125% Headshot)"],["Demolisher","Body/BEIN — nie Brust (zündet!), nie Shotgun"],["Stamina","Cardio + Skull Crusher + Sledge-Saga-Completion"],["Mutanten","schwer Kopf zu treffen = härtester Gegner"]]],
 ["🦠 Infektion (Insane = tödlich)",[["Verhindern","Vitamins (12 Min immun)"],["Heilen","Antibiotika −25% · Herbal −10% · Honey −5%"],["Hard-Counter","Preacher Light-Armor (Infekt-Resist bis 100% @Q6)"],["Bridge","Honey + Vitamins horten ab Tag 1"]]],
 ["🏰 Base (Melee-Funnel)",[["Prinzip","EINE 1-breite Engstelle, einzeln kämpfen"],["Material","Stahl, ≥13 hoch (anti-dig)"],["Forge",">32 Blöcke unter Boden (Screamer)"],["Insel","Wasser stoppt Zombies NICHT (laufen am Grund) → Funnel-Turm + Ufer-Spikes"],["Demolisher","im Funnel einzeln, Body/Bein"]]],
-["🌍 Biome (Loot × Gefahr)",[["Forest","×0.9 · sicher"],["Burnt","×1.1 · Hitze/Rauch"],["Desert","×1.3 · extreme Hitze"],["Snow","×1.2 · Kälte"],["Wasteland","×1.5 · Radiation, tödlich, bestes Loot"]]]
+["🌍 Biome (Loot × Gefahr)",[["Forest","×0.9 · sicher"],["Burnt","×1.1 · Hitze/Rauch"],["Desert","×1.3 · extreme Hitze"],["Snow","×1.2 · Kälte"],["Wasteland","×1.5 · Radiation, tödlich, bestes Loot"]]],
+["🧬 Die 5 Attribute",[["Perception","Präzisionswaffen (Gewehre/Speere/Sprengstoff) + Scavenging"],["Strength","Wucht (Keule/Sledge/Schrot) + Abbau/Bau"],["Fortitude","Zähigkeit (Fäuste/MG) + Leben/Heilung"],["Agility","Finesse (Bogen/Pistole/Klingen) + Athletik/Stealth"],["Intellect","Tech (Baton/Robotik) + Crafting/Trader/Einfluss"]]],
+["📈 Attribut-Kosten (Punkte)",[["Stufe 2-5","je 1 Punkt"],["Stufe 6-8","je 2 Punkte"],["Stufe 9-10","je 3 Punkte"],["1→10 gesamt","16 Punkte"],["Punkte/Level","2 (V3.0-Standard)"]]],
+["🛠️ Crafting-System",[["Rezepte freischalten","über Magazine LESEN (nicht Perks!)"],["Perks","erhöhen nur die Drop-Chance des passenden Magazins"],["Qualitäts-Tiers","Primitiv → Eisen → Stahl (Magazin-Level)"],["Star-Loot (3.0)","gelootete Waffen rollen Bonus-Werte"],["Combine Bench (3.0)","2 Items zu Super-Waffe mergen"]]],
+["💊 Wichtige Buffs",[["Vitamins","12 Min Infektions-Immunität"],["Grandpa's Moonshine","Stamina-Buff (Blutmond-Opener)"],["Mega Crush","Stamina + Speed (Panik-Knopf)"],["Nerd Goggles","+XP-Buff (Leveln)"],["Coffee","Stamina-Regen"]]],
+["💰 Händler & Quests",[["Quest-Belohnung","Tier wählbar — höchste lohnt fast immer"],["Trader-Schutz","Spawn-/Schadensfreie Zone"],["Daily-Limit","begrenzt Quests/Tag (Welt-Setting)"],["Infested-Quest (3.0)","Loot-Tier-Bonus, beste Gear-Quelle bei hoher LS"]]],
+["🎯 Game-Stage-Schwellen",[["Ferals","ab GS ~37"],["Cops/Spucker","ab GS ~80"],["Wights","ab GS ~120"],["Demolisher/Radiated","ab GS ~147"],["Formel","GS=(Level+min(Tag,Level))×1.2"]]]
 ];
 var BIOMES={"Forest":0.9,"Plains":1.0,"Burnt Forest":1.1,"Snow":1.2,"Desert":1.3,"Wasteland":1.5};
 var POITIER={"abandoned_house_01":0,"abandoned_house_02":0,"abandoned_house_03":0,"abandoned_house_04":0,"abandoned_house_05":0,"abandoned_house_06":0,"abandoned_house_07":0,"abandoned_house_08":0,"abandoned_house_09":0,"abandoned_house_10":0,"apartments_01":4,"apartments_02":5,"apartments_03":3,"apartments_04":2,"apartments_05":2,"apartments_06":5,"army_camp_01":4,"army_camp_02":4,"army_camp_03":4,"army_camp_04":3,"army_camp_05":4,"army_camp_06":4,"army_camp_07":4,"army_camp_08":3,"army_camp_09":4,"army_camp_10":4,"auto_mechanic_01":2,"bank_01":2,"bank_02":3,"bar_01":1,"barn_01":0,"barn_02":2,"barn_03":2,"base_military_01":5,"base_survivor_02":3,"body_shop_01":2,"bombshelter_01":2,"bombshelter_02":3,"bombshelter_03":1,"bombshelter_04":1,"bombshelter_05":0,"bombshelter_06":0,"bombshelter_07":1,"bombshelter_08":1,"bombshelter_09":1,"bombshelter_10":1,"bombshelter_11":0,"bowling_alley_01":4,"bowling_alley_02":3,"bunker_00":5,"business_burnt_01":2,"business_burnt_02":2,"cabin_01":1,"cabin_02":1,"cabin_03":2,"cabin_04":1,"cabin_05":1,"cabin_06":1,"cabin_07":1,"cabin_08":1,"cabin_09":1,"cabin_10":1,"cabin_11":1,"cabin_12":1,"cabin_13":2,"cabin_14":1,"cabin_15":1,"cabin_16":1,"cabin_17":2,"cabin_18":2,"cabin_20":3,"carlot_01":2,"carlot_02":3,"cave_01":1,"cave_02":1,"cave_03":1,"cave_06":1,"cave_07":0,"cave_09":4,"cave_10":0,"cave_11":1,"cave_12":2,"cave_14":0,"cave_17":1,"cave_18":1,"cave_19":2,"cave_20":1,"cemetery_01":1,"cemetery_02":2,"church_01":4,"church_02":1,"city_center_01":4,"commercial_strip_01":2,"commercial_strip_02":2,"commercial_strip_03":3,"commercial_strip_04":2,"commercial_strip_05":3,"commercial_strip_07":2,"country_junkyard_01":0,"country_junkyard_02":3,"countrytown_business_01":2,"countrytown_business_02":2,"countrytown_business_03":3,"countrytown_business_04":2,"countrytown_business_05":4,"countrytown_business_06":2,"countrytown_business_07":2,"countrytown_business_08":3,"countrytown_business_09":3,"countrytown_business_10":1,"countrytown_business_11":3,"countrytown_business_12":3,"countrytown_business_13":1,"countrytown_business_14":2,"countrytown_business_15":3,"countrytown_business_16":1,"countrytown_business_17":2,"courthouse_med_01":4,"crater_deco_01":0,"crater_deco_02":0,"crater_deco_03":0,"diner_01":1,"diner_02":1,"diner_03":1,"diner_04":1,"diner_07":3,"downtown_building_01":3,"downtown_building_02":4,"downtown_building_03":4,"downtown_building_04":3,"downtown_building_05":2,"downtown_business_06":2,"downtown_business_07":2,"downtown_filler_01":2,"downtown_filler_02":3,"downtown_filler_03":3,"downtown_filler_04":2,"downtown_filler_05":3,"downtown_filler_06":3,"downtown_filler_07":4,"downtown_filler_09":1,"downtown_filler_11":3,"downtown_filler_12":3,"downtown_filler_13":2,"downtown_filler_14":2,"downtown_filler_15":2,"downtown_filler_21":3,"downtown_filler_22":3,"downtown_filler_23":3,"downtown_filler_24":3,"downtown_filler_25":3,"downtown_filler_26":2,"downtown_filler_27":3,"downtown_filler_29":2,"downtown_filler_30":3,"downtown_filler_31":3,"downtown_filler_park_01":0,"downtown_filler_park_02":0,"downtown_filler_park_03":0,"downtown_filler_park_04":0,"downtown_filler_park_05":0,"downtown_filler_plaza_01":0,"downtown_filler_plaza_02":0,"downtown_filler_plaza_03":0,"downtown_filler_plaza_04":0,"downtown_filler_plaza_05":0,"downtown_park_01":0,"downtown_park_02":0,"downtown_park_03":0,"downtown_parking_lot_01":2,"downtown_strip_01":4,"downtown_strip_02":4,"downtown_strip_03":4,"downtown_strip_04":4,"downtown_strip_05":4,"downtown_strip_07":4,"downtown_strip_09":3,"downtown_strip_10":3,"downtown_strip_11":4,"downtown_strip_12":4,"factory_01":5,"factory_02":5,"factory_03":5,"farm_01":2,"farm_02":3,"farm_03":2,"farm_04":2,"farm_05":3,"farm_06":3,"farm_07":2,"farm_08":2,"farm_10":2,"farm_11":2,"farm_12":1,"farm_13":3,"farm_14":2,"farm_15":3,"farm_16":4,"farm_17":2,"farm_18":4,"farm_19":3,"farm_20":4,"fastfood_01":1,"fastfood_02":1,"fastfood_03":1,"fastfood_04":0,"fastfood_05":1,"fastfood_06":3,"fastfood_07":2,"field_concert_01":3,"fire_station_01":2,"fire_station_02":3,"fire_station_03":3,"fire_station_04":2,"football_stadium":5,"funeral_home_01":1,"gas_station_01":1,"gas_station_02":1,"gas_station_03":1,"gas_station_04":1,"gas_station_05":4,"gas_station_06":0,"gas_station_07":1,"gas_station_08":1,"gas_station_09":1,"gas_station_10":1,"gas_station_11":1,"gas_station_12":3,"hospital_01":5,"hotel_01":4,"hotel_02":5,"hotel_03":5,"hotel_04":4,"hotel_ostrich":5,"house_burnt_01":1,"house_burnt_02":2,"house_burnt_03":1,"house_burnt_04":2,"house_burnt_05":2,"house_burnt_06":4,"house_construction_01":1,"house_construction_02":0,"house_construction_03":1,"house_construction_04":1,"house_country_01":1,"house_modern_01":2,"house_modern_02":3,"house_modern_03":2,"house_modern_04":2,"house_modern_05":3,"house_modern_06":2,"house_modern_07":3,"house_modern_08":2,"house_modern_09":2,"house_modern_10":1,"house_modern_11":2,"house_modern_12":1,"house_modern_13":1,"house_modern_14":2,"house_modern_15":2,"house_modern_16":2,"house_modern_17":2,"house_modern_18":4,"house_modern_19":2,"house_modern_20":1,"house_modern_21":3,"house_modern_22":2,"house_modern_23":1,"house_modern_24":4,"house_modern_25":1,"house_modern_26":1,"house_modern_27":1,"house_modern_28":2,"house_modern_29":2,"house_modern_30":3,"house_modern_31":5,"house_modern_32":1,"house_modern_33":1,"house_modern_34":2,"house_modern_35":2,"house_old_bungalow_01":3,"house_old_bungalow_02":2,"house_old_bungalow_03":2,"house_old_bungalow_04":2,"house_old_bungalow_05":2,"house_old_bungalow_06":2,"house_old_bungalow_07":2,"house_old_bungalow_08":2,"house_old_bungalow_09":1,"house_old_bungalow_10":1,"house_old_bungalow_11":3,"house_old_bungalow_12":1,"house_old_cottage_01":1,"house_old_gambrel_01":2,"house_old_gambrel_02":1,"house_old_gambrel_03":3,"house_old_gambrel_04":2,"house_old_mansard_01":2,"house_old_mansard_02":4,"house_old_mansard_03":3,"house_old_mansard_04":3,"house_old_mansard_05":1,"house_old_mansard_06":4,"house_old_mansard_07":4,"house_old_modular_01":1,"house_old_modular_02":3,"house_old_modular_03":2,"house_old_modular_04":2,"house_old_modular_05":1,"house_old_modular_06":1,"house_old_modular_07":1,"house_old_modular_08":1,"house_old_pyramid_01":3,"house_old_pyramid_02":2,"house_old_pyramid_03":2,"house_old_pyramid_04":3,"house_old_pyramid_05":1,"house_old_ranch_01":1,"house_old_ranch_02":3,"house_old_ranch_03":2,"house_old_ranch_04":2,"house_old_ranch_05":2,"house_old_ranch_06":2,"house_old_ranch_07":2,"house_old_ranch_08":2,"house_old_ranch_09":2,"house_old_ranch_10":1,"house_old_ranch_11":2,"house_old_ranch_13":3,"house_old_tudor_01":2,"house_old_tudor_02":1,"house_old_tudor_03":3,"house_old_tudor_04":2,"house_old_tudor_05":2,"house_old_tudor_06":3,"house_old_victorian_01":3,"house_old_victorian_02":2,"house_old_victorian_03":4,"house_old_victorian_04":3,"house_old_victorian_05":1,"house_old_victorian_06":2,"house_old_victorian_07":2,"house_old_victorian_08":1,"house_old_victorian_09":3,"house_old_victorian_10":2,"house_old_victorian_11":2,"house_old_victorian_12":2,"housing_development_01":4,"industrial_60_01":4,"industrial_60_02":4,"industrial_60_03":4,"industrial_60_04":4,"industrial_business_08":2,"industrial_strip_01":2,"industrial_strip_02":2,"industrial_strip_03":2,"industrial_strip_05":3,"industrial_strip_06":4,"industrial_strip_09":2,"industrial_strip_10":2,"industrial_strip_11":3,"installation_red_mesa":5,"junkyard_01":4,"lodge_01":3,"mine_01":5,"motel_01":2,"motel_02":1,"motel_03":3,"motel_04":3,"motel_05":1,"nursing_home_01":5,"office_01":1,"office_02":2,"office_03":2,"office_04":2,"office_05":3,"office_06":3,"oldwest_business_01":1,"oldwest_business_02":1,"oldwest_business_03":1,"oldwest_business_04":1,"oldwest_business_05":0,"oldwest_business_06":1,"oldwest_business_07":0,"oldwest_business_08":1,"oldwest_business_09":0,"oldwest_business_10":1,"oldwest_business_11":1,"oldwest_business_12":1,"oldwest_business_13":1,"oldwest_business_14":1,"oldwest_coal_factory":1,"oldwest_gallows":0,"oldwest_jail":0,"oldwest_stables":0,"oldwest_strip_01":2,"oldwest_strip_02":2,"oldwest_strip_03":1,"oldwest_strip_04":1,"oldwest_watertower":0,"park_01":0,"park_02":0,"park_03":0,"park_basketball":0,"parking_garage_01":0,"parking_garage_02":4,"parking_garage_03":2,"parking_lot_01":1,"parking_lot_02":2,"parking_lot_03":0,"police_station_03":3,"post_office_01":2,"post_office_02":3,"prison_01":5,"prison_02":5,"quarry_02":5,"radio_station_01":3,"radio_station_02":2,"radio_station_03":1,"ranger_station_01":3,"ranger_station_02":1,"ranger_station_03":1,"ranger_station_04":1,"ranger_station_05":1,"ranger_station_06":2,"ranger_station_07":3,"rural_church_01":3,"rural_church_02":2,"rural_drive_in_01":4,"rural_outdoor_wedding_01":2,"sawmill_01":3,"school_01":4,"school_02":4,"school_03":5,"school_daycare_01":1,"school_daycare_02":3,"school_daycare_03":2,"skyscraper_01":5,"skyscraper_02":5,"skyscraper_03":5,"skyscraper_04":4,"soccer_stadium_01":5,"store_autoparts_01":2,"store_bakery_01":2,"store_book_01":2,"store_book_02":3,"store_book_04":1,"store_clothing_01":3,"store_clothing_02":3,"store_discount_01":3,"store_electronics_01":1,"store_electronics_02":2,"store_grocery_01":2,"store_grocery_02":4,"store_grocery_03":3,"store_grocery_04":1,"store_grocery_05":1,"store_grocery_06":1,"store_gun_01":4,"store_gun_02":4,"store_hardware_01":2,"store_hardware_02":3,"store_hardware_03":4,"store_laundry_01":1,"store_pharmacy_01":1,"store_pharmacy_02":3,"survivor_camp_01":0,"survivor_camp_02":0,"survivor_camp_03":0,"survivor_site_01":1,"survivor_site_02":1,"survivor_site_03":1,"survivor_site_04":1,"survivor_site_05":1,"survivor_site_06":1,"survivor_site_07":1,"survivor_site_08":1,"survivor_site_09":1,"survivor_site_10":1,"survivor_site_11":1,"theater_stage_01":5,"trader_bob":0,"trader_hugh":0,"trader_jen":0,"trader_joel":0,"trader_rekt":0,"trailer_park_01":1,"utility_celltower_01":0,"utility_celltower_02":0,"utility_celltower_03":0,"utility_electric_co_01":2,"utility_electric_co_02":4,"utility_refinery_01":3,"utility_refinery_02":4,"utility_substation_01":3,"utility_substation_02":2,"utility_substation_03":1,"utility_waterworks_01":4,"warehouse_01":4,"warehouse_02":3,"warehouse_03":4,"warehouse_04":2,"warehouse_05":3,"warehouse_06":3,"warehouse_07":3,"warehouse_08":3,"weigh_station_01":3};
@@ -204,7 +309,10 @@ var TABS=[["world","🌍 Welt"],["map","🗺️ Map"],["d3","🧊 3D"],["dash","
 var S=JSON.parse(lg("7dtd-companion")||"null")||{tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,col:{},world:null};
 var W={tree:null,curSave:null,maps:{},mapImg:null,roadImg:null,waterImg:null,view:null,sel:null,mapKey:null,scanned:false};
 var W3={dead:true,gl:null,raf:0};
+var RD=null,EDIT={},EDIT_CTX=null;
 if(!S.mapFilter)S.mapFilter={"-1":1,"0":1,"1":1,"2":1,"3":1,"4":1,"5":1};
+function buildRefIndex(){if(!RD)return;RD.byName={};(RD.sandbox||[]).forEach(function(o){RD.byName[o.name]=o;});(RD.plain||[]).forEach(function(o){if(!RD.byName[o.name])RD.byName[o.name]=o;});RD.perkByKey={};(RD.perks||[]).forEach(function(p){RD.perkByKey[p.key]=p;});}
+function loadRef(cb){if(RD){cb&&cb();return;}fetch("/api/refdata",{cache:"force-cache"}).then(function(r){return r.json();}).then(function(d){RD=d;buildRefIndex();cb&&cb();}).catch(function(){cb&&cb();});}
 function save(){var p=JSON.parse(JSON.stringify(S));delete p.map;delete p.playerProgression;ls("7dtd-companion",JSON.stringify(p));}
 function bstate(){if(!S.builds[S.cur])S.builds[S.cur]={chk:{},ext:[]};return S.builds[S.cur];}
 // ---- top ----
@@ -217,7 +325,7 @@ document.getElementById("exp").onclick=function(){
 };
 // ---- tabs ----
 var tb=document.getElementById("tabs");
-TABS.forEach(function(t){var b=document.createElement("div");b.className="tab"+(S.tab===t[0]?" on":"");b.textContent=t[1];b.onclick=function(){S.tab=t[0];save();show();};tb.appendChild(b);});
+TABS.forEach(function(t){var b=document.createElement("div");b.className="tab"+(S.tab===t[0]?" on":"");b.textContent=t[1];b.onclick=function(){S.tab=t[0];S.importMsg=null;S.setMsg=null;save();show();};tb.appendChild(b);});
 function show(){
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
@@ -235,27 +343,37 @@ function lootTier(ls2){return ls2<40?"T0 (primitiv)":ls2<80?"T1 (Eisen)":ls2<118
 function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
  var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
  var ban=b.today?'<div class="banner danger">🩸 BLUTMOND HEUTE NACHT — '+bmc+' Gegner. Sei im Funnel!</div>':b.until===1?'<div class="banner warn">⚠️ MORGEN Blutmond — heute alles vorbereiten (Tab 🩸 Horde)</div>':'<div class="banner safe">✅ Kein Blutmond. Noch '+b.until+' Tage. Looten/bauen/leveln.</div>';
- document.getElementById("dash").innerHTML=ban+
- '<div class="grid g3">'+
+ var ip=S.importedPlayer, world=S.world, loaded=!!world;
+ function pill(ok,txt){return '<span class="statpill '+(ok?"ok":"no")+'">'+(ok?"✓ ":"— ")+esc(txt)+'</span>';}
+ var status='<div class="card"><h3>📥 Status</h3>'+
+   '<div class="kv"><span>Welt geladen</span><b>'+(loaded?pill(true,world.world+" / "+world.save):pill(false,"keine Welt"))+'</b></div>'+
+   '<div class="kv"><span>Version</span><b>'+(loaded?esc(world.version||"?"):"–")+'</b></div>'+
+   '<div class="kv"><span>Charakter</span><b>'+(ip?pill(true,ip.name+" · Lvl "+ip.level):pill(false,"nicht importiert"))+'</b></div>'+
+   '<div class="kv"><span>Build</span><b>'+esc((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)+'</b></div>'+
+   '<div class="kv"><span>Referenzdaten</span><b>'+(RD?pill(true,"geladen"):pill(false,"laden…"))+'</b></div>'+
+   (loaded?'':'<div class="qbtn" data-go="world" style="margin-top:10px">→ Welt &amp; Charakter im 🌍 Welt-Tab laden</div>')+
+  '</div>';
+ var quick='<div class="card"><h3>⚡ Schnellzugriff</h3><div class="quick">'+
+   '<div class="qbtn" data-go="world">🌍 Welt</div><div class="qbtn" data-go="build">🔨 Build</div><div class="qbtn" data-go="map">🗺️ Map</div>'+
+   '<div class="qbtn" data-go="horde">🩸 Horde</div><div class="qbtn" data-go="loot">📦 Loot</div><div class="qbtn" data-go="mags">📕 Magazine</div></div></div>';
+ var rings1='<div class="grid g3" style="margin-top:12px">'+
   card("📅 Tag","",'<div class="big">'+S.day+'</div><div class="sub">nächster Blutmond: Tag '+b.next+'</div>')+
-  '<div class="card"><h3>🩸 Blutmond</h3><div style="display:flex;gap:12px;align-items:center"><div class="ring">'+ringSVG(Math.max(0,100-b.until*10),b.until<=1?"#d83b32":"#ef7a35")+'<div class="rt"><span class="big" style="font-size:26px">'+b.until+'</span><span class="sub">Tage</span></div></div></div></div>'+
+  '<div class="card"><h3>🩸 Blutmond</h3><div style="display:flex;gap:12px;align-items:center"><div class="ring">'+ringSVG(Math.max(0,100-b.until*10),b.until<=1?"#d83b32":"#ef7a35")+'<div class="rt"><span class="big" style="font-size:26px">'+b.until+'</span><span class="sub">Tage</span></div></div><div class="sub">'+bmc+' Gegner</div></div></div>'+
   '<div class="card"><h3>🔨 Build</h3><div style="display:flex;gap:12px;align-items:center"><div class="ring">'+ringSVG(buildPct(),"#5cc47a")+'<div class="rt"><span class="big" style="font-size:24px">'+buildPct()+'%</span></div></div></div></div>'+
- '</div>'+
- '<div class="grid g3" style="margin-top:12px">'+
+ '</div>';
+ var rings2='<div class="grid g3" style="margin-top:12px">'+
   card("🎯 Game Stage","",'<div class="big">'+gs+'</div><div class="sub">'+(gs>=147?"Demolisher möglich!":gs>=80?"Wights/Cops":"normale Zombies")+'</div>')+
   card("📦 Loot-Tier","",'<div class="big" style="font-size:18px">'+lootTier(ls2)+'</div><div class="sub">Loot Stage '+ls2+' · '+S.biome+'</div>')+
   '<div class="card"><h3>🛡️ Horde-Readiness</h3><div style="display:flex;gap:12px;align-items:center"><div class="ring">'+ringSVG(rs.p,rs.p>=75?"#5cc47a":rs.p>=45?"#f5b73c":"#d83b32")+'<div class="rt"><span class="big" style="font-size:30px;color:'+(rs.p>=75?"#5cc47a":rs.p>=45?"#f5b73c":"#d83b32")+'">'+rs.g+'</span></div></div><div class="sub">'+rs.p+'% bereit</div></div></div>'+
  '</div>';
+ document.getElementById("dash").innerHTML=ban+'<div class="grid g2">'+status+quick+'</div>'+rings1+rings2;
+ document.querySelectorAll("#dash [data-go]").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};});
 }
 function card(h,sub,body){return '<div class="card"><h3>'+h+'</h3>'+body+'</div>';}
 // ---- BUILD ----
 function rBuild(){var st=bstate();
  var sel='<select id="bsel">';Object.keys(BUILDS).forEach(function(k){sel+='<option value="'+k+'"'+(k===S.cur?" selected":"")+'>'+BUILDS[k].name+'</option>';});sel+='</select>';
  var pct=buildPct();
- var exCol=S.col[S.cur+"ex"]?" col":"";
- var ex='<div class="ph'+exCol+'" style="--pa:var(--px)"><div class="phh" data-col="ex"><span>🎁</span><span class="ttl">Optionale Perks <span style="font-size:11.5px;color:var(--dim);font-weight:400">· antippen zum Hinzufügen</span></span><span class="chev">▼</span></div><div class="body chips">';
- EXTRAS.forEach(function(e,i){var on=st.ext.indexOf(e[0])>=0;ex+='<div class="chip'+(on?" act":"")+'" data-ex="'+i+'"><div class="cn">'+(e[3]?'⚠ ':'')+e[0]+' '+(on?'✓':'＋')+'</div><div class="ce">'+e[1]+' · '+e[2]+'</div></div>';});
- ex+='</div></div>';
  var imported="";
  if(S.importedPlayer&&S.playerProgression){
   var perks=Object.keys(S.playerProgression).filter(function(k){return /^perk/.test(k)&&PERK_NAMES[k]&&S.playerProgression[k]>0;});
@@ -263,7 +381,7 @@ function rBuild(){var st=bstate();
    perks.map(function(k){return '<span class="skillchip">'+esc(PERK_NAMES[k])+' <b>R'+S.playerProgression[k]+'</b></span>';}).join("")+
    '</div><div class="sub">Build automatisch erkannt: <b>'+esc(BUILDS[S.cur].name)+'</b>. Abgehakte Schritte stammen aus dem echten Player-Save.</div></div>';
  }
- var html=imported+'<div class="ctrls">'+sel+'<span style="font-size:13px;color:var(--muted)">'+pct+'% fertig</span></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>'+ex;
+ var html=imported+'<div class="ctrls">'+sel+'<span style="font-size:13px;color:var(--muted)">'+pct+'% fertig</span></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>';
  var gi=0,def=BUILDS[S.cur].done||0;
  BUILDS[S.cur].phases.forEach(function(ph,pi){var body="",d=0,t=ph[4].length;
   ph[4].forEach(function(it){gi++;var id="c"+gi;var on=(id in st.chk)?st.chk[id]:(gi<=def);if(on)d++;
@@ -271,29 +389,79 @@ function rBuild(){var st=bstate();
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
+ html+=rBuildCatalog(st);
  document.getElementById("build").innerHTML=html;
  document.getElementById("bsel").onchange=function(){S.cur=this.value;save();rBuild();};
- document.querySelectorAll("#build [data-ex]").forEach(function(c){c.onclick=function(){var e=EXTRAS[+c.dataset.ex];var i=st.ext.indexOf(e[0]);if(i>=0)st.ext.splice(i,1);else st.ext.push(e[0]);save();rBuild();};});
  document.querySelectorAll("#build [data-col]").forEach(function(h){h.onclick=function(){var pi=h.dataset.col;S.col[S.cur+pi]=!h.parentNode.classList.contains("col")?1:0;save();rBuild();};});
  document.querySelectorAll("#build [data-id]").forEach(function(r){r.onclick=function(){var id=r.dataset.id;st.chk[id]=!st.chk[id];save();rBuild();};});
+ document.querySelectorAll("#build [data-perk]").forEach(function(r){r.onclick=function(){var k=r.dataset.perk;st.picks=st.picks||{};if(st.picks[k])delete st.picks[k];else st.picks[k]=1;save();r.classList.toggle("picked");r.querySelector(".cbx").textContent=st.picks[k]?"✓":"";updatePickCount();};});
+ var pq=document.getElementById("perkq");if(pq)pq.oninput=function(){S.perkq=this.value;applyPerkFilter();};
+ document.querySelectorAll("#build [data-pa]").forEach(function(c){c.onclick=function(){S.perkAttr=c.dataset.pa;document.querySelectorAll("#build [data-pa]").forEach(function(x){x.classList.toggle("on",x===c);});applyPerkFilter();};});
+ applyPerkFilter();
  markNext("build");
 }
+function rBuildCatalog(st){
+ if(!RD||!RD.perks){return '<div class="card" style="margin-top:14px"><div class="wstep">📚 Perk-Katalog wird geladen …</div></div>';}
+ var picks=st.picks=st.picks||{};
+ var rec={};(RD.perks||[]).forEach(function(p){if((p.recommended||[]).indexOf(S.cur)>=0)rec[p.key]=1;});
+ var attrs=["Strength","Perception","Fortitude","Agility","Intellect","General"];
+ var icon={Strength:"💪",Perception:"👁️",Fortitude:"🫀",Agility:"🏃",Intellect:"🧠",General:"⬜"};
+ var groups={};(RD.perks||[]).forEach(function(p){(groups[p.attribute]=groups[p.attribute]||[]).push(p);});
+ var af=S.perkAttr||"all", nPick=Object.keys(picks).length;
+ var chips='<div class="filterchips"><span class="fchip'+(af==="all"?" on":"")+'" data-pa="all">Alle</span><span class="fchip'+(af==="rec"?" on":"")+'" data-pa="rec">★ Empfohlen</span><span class="fchip'+(af==="picked"?" on":"")+'" data-pa="picked">✓ Gewählt ('+nPick+')</span>'+attrs.map(function(a){return '<span class="fchip'+(af===a?" on":"")+'" data-pa="'+a+'">'+icon[a]+' '+a+'</span>';}).join("")+'</div>';
+ var bodyHtml='';
+ attrs.forEach(function(a){var ps=groups[a];if(!ps)return;
+  var rows=ps.map(function(p){var on=!!picks[p.key],isRec=!!rec[p.key];
+   return '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'">'+
+     '<div class="cbx">'+(on?"✓":"")+'</div>'+
+     '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ empfohlen</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
+     '<div class="ef">'+esc(p.desc||"")+'</div></div></div>';
+  }).join("");
+  bodyHtml+='<div class="perkgrp" data-grp="'+a+'"><div class="perkgrph">'+icon[a]+' '+a+'</div>'+rows+'</div>';
+ });
+ return '<div class="card" style="margin-top:14px"><h3>📚 Alle Perks — frei wählbar</h3>'+
+  '<div class="sub" style="margin-bottom:8px">★ = empfohlen für <b>'+esc(BUILDS[S.cur].name)+'</b>. Du kannst trotzdem JEDEN Perk wählen und frei kombinieren (z.B. Sniper-Perks in einem Sledge-Build) — nichts wird ausgeblendet.</div>'+
+  '<input class="searchbar" id="perkq" placeholder="Perk suchen (Name oder Effekt) …" value="'+esc(S.perkq||"")+'">'+chips+
+  '<div id="perkcat">'+bodyHtml+'</div></div>';
+}
+function applyPerkFilter(){
+ var q=(S.perkq||"").toLowerCase(), af=S.perkAttr||"all";
+ document.querySelectorAll("#build .perkgrp").forEach(function(g){
+  var any=false;
+  g.querySelectorAll(".perkrow").forEach(function(r){
+   var okA=af==="all"||(af==="rec"&&r.dataset.rec==="1")||(af==="picked"&&r.classList.contains("picked"))||(r.dataset.attr===af);
+   var okQ=!q||(r.dataset.txt||"").indexOf(q)>=0;
+   var show=okA&&okQ; r.style.display=show?"":"none"; if(show)any=true;
+  });
+  g.style.display=any?"":"none";
+ });
+}
+function updatePickCount(){var st=bstate();var n=Object.keys(st.picks||{}).length;var c=document.querySelector('#build [data-pa="picked"]');if(c)c.textContent="✓ Gewählt ("+n+")";}
 function rowHTML(id,nm,ef,star,on){return '<div class="row'+(on?" done":"")+'" data-id="'+id+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+nm+(star?' <span class="star">★</span>':'')+'</div>'+(ef?'<div class="ef">'+ef+'</div>':'')+'</div></div>';}
 function markNext(sec){var rows=document.querySelectorAll("#"+sec+" .row");for(var i=0;i<rows.length;i++){if(!rows[i].classList.contains("done")){rows[i].classList.add("next");var s=document.createElement("span");s.className="nx";s.innerHTML='<span class="dot"></span>nächster';rows[i].appendChild(s);break;}}}
 // ---- HORDE ----
-function rHorde(){var b=bm(),rs=readyScore();
- var ban=b.today?'<div class="banner danger">🩸 HEUTE NACHT Blutmond!</div>':'<div class="banner '+(b.until<=1?"warn":"safe")+'">noch '+b.until+' Tage bis Blutmond (Tag '+b.next+')</div>';
- var html=ban+'<div class="card"><h3>🛡️ Readiness '+rs.g+' · '+rs.p+'%</h3><div class="bar"><div class="fillb" style="width:'+rs.p+'%;background:'+(rs.p>=75?"var(--done)":rs.p>=45?"var(--acc2)":"var(--blood)")+'"></div></div></div>';
- READY.forEach(function(r,i){var on=!!S.ready[i];html+='<div class="row'+(on?" done":"")+'" data-r="'+i+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+r[0]+'</div></div></div>';});
- html+='<div class="card" style="margin-top:14px"><h3>📋 Schnell-Erinnerung</h3><div class="refrow"><b>Sledge:</b> Body/Bein am Demolisher, nie Brust</div><div class="refrow"><b>Funnel:</b> EINE Engstelle, nie offen gegen 64</div><div class="refrow"><b>Opener:</b> Grandpa\'s Moonshine · <b>Panik:</b> Mega Crush</div><div class="refrow"><b>Forge AUS</b> · Dach gegen Vultures · Bail-Luke frei</div></div>';
+function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
+ var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
+ var ban=b.today?'<div class="banner danger">🩸 HEUTE NACHT Blutmond! '+bmc+' Gegner</div>':'<div class="banner '+(b.until<=1?"warn":"safe")+'">noch '+b.until+' Tage bis Blutmond (Tag '+b.next+') · '+bmc+' Gegner</div>';
+ var html=ban+'<div class="card"><h3>🛡️ Readiness '+rs.g+' · '+rs.p+'%</h3><div class="bar"><div class="fillb" style="width:'+rs.p+'%;background:'+(rs.p>=75?"var(--done)":rs.p>=45?"var(--acc2)":"var(--blood)")+'"></div></div><div class="sub" style="margin-top:6px">Hake unten alles ab, was bereit ist. Note ergibt sich aus Gewichtung (kritische Punkte zählen doppelt).</div></div>';
+ READY.forEach(function(r,i){var on=!!S.ready[i];html+='<div class="row'+(on?" done":"")+'" data-r="'+i+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+r[0]+(r[2]>=2?' <span class="rb rb2">kritisch</span>':'')+'</div></div></div>';});
+ // Special-enemy threat by current gamestage
+ var threats=[["Normale Zombies",0,"Standard-Horde"],["Feral (glühende Augen)",37,"schneller, mehr HP — Kopf treffen"],["Cop / Spucker",80,"explodiert / säuert — Abstand bei Tod"],["Wight",120,"sehr schnell + zäh — Priorität"],["Radiated / Regenerator",147,"heilt sich — Dauerschaden nötig"],["Demolisher",147,"Brust-Charge zündet bei Treffer → NUR Body/Bein/Kopf, NIE Brust/Schrot"]];
+ var tr=threats.map(function(t){var active=gs>=t[1];return '<div class="kv"><span style="color:'+(active?"var(--text)":"var(--dim)")+'">'+(active?"⚔️ ":"🔒 ")+t[0]+(t[1]?" (ab GS "+t[1]+")":"")+'</span><b style="font-family:inherit;font-weight:500;max-width:55%;text-align:right;color:'+(active?"var(--muted)":"var(--dim)")+'">'+t[2]+'</b></div>';}).join("");
+ html+='<div class="card" style="margin-top:14px"><h3>👹 Bedrohung bei deiner Game Stage ('+gs+')</h3>'+tr+'</div>';
+ html+='<div class="card" style="margin-top:12px"><h3>🌙 Blutmond-Nacht — Ablauf</h3>'+
+   '<div class="refrow"><b>22:00</b> — Horde startet, erste Welle. Im Funnel positionieren.</div>'+
+   '<div class="refrow"><b>Wellen</b> — Gegner kommen in Schüben; zwischen Wellen reparieren.</div>'+
+   '<div class="refrow"><b>04:00</b> — Horde endet, Reste aufräumen. Erst dann Funnel verlassen.</div>'+
+   '<div class="refrow"><b>Hitze:</b> Forge/Feuer AUS — sonst zusätzliche Screamer-Spawns mitten im Blutmond.</div></div>';
+ html+='<div class="card" style="margin-top:12px"><h3>📋 Schnell-Erinnerung</h3><div class="refrow"><b>Sledge:</b> Body/Bein am Demolisher, nie Brust</div><div class="refrow"><b>Funnel:</b> EINE Engstelle, nie offen gegen '+bmc+'</div><div class="refrow"><b>Opener:</b> Grandpa\'s Moonshine · <b>Panik:</b> Mega Crush</div><div class="refrow"><b>Forge AUS</b> · Dach gegen Vultures · Bail-Luke frei</div></div>';
  document.getElementById("horde").innerHTML=html;
  document.querySelectorAll("#horde [data-r]").forEach(function(r){r.onclick=function(){var i=r.dataset.r;S.ready[i]=!S.ready[i];save();rHorde();};});
 }
 // ---- LOOT ----
 function rLoot(){var gs=gamestage(),ls2=lootstage();
  var biomeOpts=Object.keys(BIOMES).map(function(k){return '<option'+(k===S.biome?" selected":"")+'>'+k+'</option>';}).join("");
- document.getElementById("loot").innerHTML=
- '<div class="card"><h3>📊 Rechner</h3>'+
+ var html='<div class="card"><h3>📊 Loot-Rechner</h3>'+
  '<label class="fld">Dein Level</label><input type="number" id="il" value="'+(S.lvl||1)+'" min="1" max="300">'+
  '<label class="fld">Biom</label><select id="ib">'+biomeOpts+'</select>'+
  '<label class="fld">Lucky Looter Bonus (%)</label><input type="number" id="ill" value="'+(S.ll||0)+'" min="0" max="50">'+
@@ -302,27 +470,66 @@ function rLoot(){var gs=gamestage(),ls2=lootstage();
   card("🎯 Game Stage","",'<div class="big">'+gs+'</div><div class="sub">'+(gs>=147?"Demolisher!":gs>=120?"Wights":gs>=80?"Ferals/Cops":"normal")+'</div>')+
   card("📦 Loot Stage","",'<div class="big">'+ls2+'</div><div class="sub">'+lootTier(ls2)+'</div>')+
  '</div>'+
- '<div class="card" style="margin-top:12px"><h3>ℹ️ Schwellen</h3><div class="kv"><span>Stahl-Loot ab</span><b>LS 80</b></div><div class="kv"><span>T5/T6 Waffen ab</span><b>LS 262</b></div><div class="kv"><span>Demolisher ab</span><b>GS 147</b></div><div class="kv"><span>Loot-Stage-Cap</span><b>290</b></div></div>';
+ '<div class="card" style="margin-top:12px"><h3>ℹ️ Schwellen (Quick)</h3><div class="kv"><span>Stahl-Loot ab</span><b>LS 80</b></div><div class="kv"><span>T5/T6 Waffen ab</span><b>LS 262</b></div><div class="kv"><span>Demolisher ab</span><b>GS 147</b></div><div class="kv"><span>Loot-Stage-Cap</span><b>290</b></div></div>';
+ var L=RD&&RD.loot;
+ if(L){
+  html+='<input class="searchbar" id="lootq" placeholder="Loot / Kategorie / Fundort suchen …" value="'+esc(S.lootq||"")+'" style="margin-top:14px">';
+  if(L.lootstageTable&&L.lootstageTable.length){
+   html+='<div class="card"><h3>📈 Loot-Stage → Qualität</h3><table class="tbl"><thead><tr><th>Loot-Stage</th><th>Tier</th><th>Notiz</th></tr></thead><tbody>'+
+    L.lootstageTable.map(function(r){return '<tr class="lq"><td><b>'+esc(r.stage)+'</b></td><td>'+esc(r.tier)+'</td><td style="color:var(--muted)">'+esc(r.note)+'</td></tr>';}).join("")+'</tbody></table></div>';
+  }
+  if(L.categories&&L.categories.length){
+   html+='<div class="card"><h3>📦 Loot-Kategorien</h3>'+L.categories.map(function(c){return '<div class="lcard lq"><h4>'+esc(c.name)+'</h4><div class="ld">'+esc(c.desc)+'</div>'+(c.examples?'<div class="lex">z.B. '+esc(c.examples)+'</div>':'')+'</div>';}).join("")+'</div>';
+  }
+  if(L.whereFound&&L.whereFound.length){
+   html+='<div class="card"><h3>📍 Wo finde ich was?</h3><table class="tbl"><thead><tr><th>Loot</th><th>Fundort</th></tr></thead><tbody>'+
+    L.whereFound.map(function(w){return '<tr class="lq"><td><b>'+esc(w.what)+'</b></td><td style="color:var(--muted)">'+esc(w.where)+'</td></tr>';}).join("")+'</tbody></table></div>';
+  }
+  if(L.tips&&L.tips.length){
+   html+='<div class="card"><h3>💡 Loot-Tipps</h3>'+L.tips.map(function(t){return '<div class="refrow lq">• '+esc(t)+'</div>';}).join("")+'</div>';
+  }
+ } else html+='<div class="wstep" style="margin-top:12px">📦 Loot-Referenz wird geladen …</div>';
+ document.getElementById("loot").innerHTML=html;
  document.getElementById("il").oninput=function(){S.lvl=+this.value;save();rLoot();};
  document.getElementById("ib").onchange=function(){S.biome=this.value;save();rLoot();};
  document.getElementById("ill").oninput=function(){S.ll=+this.value;save();rLoot();};
+ var lq=document.getElementById("lootq");if(lq)lq.oninput=function(){S.lootq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#loot .lq").forEach(function(r){r.style.display=(!q||r.textContent.toLowerCase().indexOf(q)>=0)?"":"none";});};
 }
 // ---- MAGS ----
-function rMags(){var html='<div class="card"><h3>📕 Magazin-Fortschritt</h3><div class="sub" style="margin-bottom:8px">★ = wichtig für deinen Sledge-Build. Briefkästen looten!</div></div>';
- if(S.importedPlayer)html+='<div class="banner safe" style="margin-top:10px">🎮 Fortschritt aus <b>'+esc(S.importedPlayer.name)+'</b> importiert. Werte sind Crafting-Fortschritt; bei geänderten „Points per Magazine“ nicht zwingend physische Heftanzahl.</div>';
- MAGS.forEach(function(m,i){var v=S.mag[i]||0,pct=Math.round(v/m[1]*100);
-  html+='<div class="card" style="padding:12px 14px;margin-top:10px"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:15px;font-weight:600">'+(m[3]?'★ ':'')+m[0]+'</div><div class="mm" style="font-size:11.5px;color:var(--muted)">'+m[2]+'</div></div><div class="stepper"><button data-md="'+i+'">−</button><span class="mc">'+v+'/'+m[1]+'</span><button data-mp="'+i+'">+</button></div></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div></div>';
+function rMags(){if(!S.books)S.books={};
+ var html='<div class="card"><h3>📕 Magazine & Bücher</h3><div class="sub">Crafting-Magazine schalten Rezepte/Qualität frei. Perk-Bücher (Reihen) geben permanente Boni. ★ = wichtig für deinen Sledge-Build.</div>'+
+  '<input class="searchbar" id="magq" placeholder="Magazin / Buch suchen …" value="'+esc(S.magq||"")+'" style="margin-top:10px"></div>';
+ if(S.importedPlayer)html+='<div class="banner safe" style="margin-top:10px">🎮 Crafting-Fortschritt aus <b>'+esc(S.importedPlayer.name)+'</b> importiert. Werte = Crafting-Level; bei geändertem „Points per Magazine“ nicht zwingend physische Heftanzahl.</div>';
+ // Crafting magazines grouped by category
+ var groups={};MAGS.forEach(function(m,i){var cat=MAGCAT[m[2]]||MAGCAT[m[0]]||"📦 Sonstige";(groups[cat]=groups[cat]||[]).push(i);});
+ ["🗡️ Waffen","🔧 Werkzeug & Technik","🛡️ Überleben","🚗 Fahrzeuge","📦 Sonstige"].forEach(function(cat){
+  var idxs=groups[cat];if(!idxs)return;
+  html+='<div class="magcat magrow">'+cat+'</div>';
+  idxs.forEach(function(i){var m=MAGS[i],v=S.mag[i]||0,pct=Math.round(v/m[1]*100);
+   html+='<div class="card magrow" data-txt="'+esc((m[0]+" "+m[2]).toLowerCase())+'" style="padding:12px 14px;margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:15px;font-weight:600">'+(m[3]?'★ ':'')+esc(m[0])+'</div><div class="mm" style="font-size:11.5px;color:var(--muted)">'+esc(m[2])+'</div></div><div class="stepper"><button data-md="'+i+'">−</button><span class="mc">'+v+'/'+m[1]+'</span><button data-mp="'+i+'">+</button></div></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div></div>';
+  });
+ });
+ // Perk-book series
+ html+='<div class="magcat magrow" style="margin-top:18px">📘 Perk-Bücher (19 Reihen × 7 Bände)</div>';
+ BOOKS.forEach(function(bk,i){var v=S.books[i]||0,pct=Math.round(v/7*100),done=v>=7;
+  html+='<div class="card magrow" data-txt="'+esc((bk[0]+" "+bk[1]+" "+bk[2]).toLowerCase())+'" style="padding:12px 14px;margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:15px;font-weight:600">'+esc(bk[0])+(done?' <span class="rb rb2" style="background:rgba(92,196,122,.2);color:#5cc47a;border-color:rgba(92,196,122,.5)">komplett</span>':'')+'</div><div class="mm" style="font-size:11.5px;color:var(--muted)">'+esc(bk[1])+' · Perk: '+esc(bk[2])+'</div></div><div class="stepper"><button data-bd="'+i+'">−</button><span class="mc">'+v+'/7</span><button data-bp="'+i+'">+</button></div></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div></div>';
  });
  document.getElementById("mags").innerHTML=html;
  document.querySelectorAll("#mags [data-mp]").forEach(function(b){b.onclick=function(){var i=b.dataset.mp;S.mag[i]=Math.min(MAGS[i][1],(S.mag[i]||0)+1);save();rMags();};});
  document.querySelectorAll("#mags [data-md]").forEach(function(b){b.onclick=function(){var i=b.dataset.md;S.mag[i]=Math.max(0,(S.mag[i]||0)-1);save();rMags();};});
+ document.querySelectorAll("#mags [data-bp]").forEach(function(b){b.onclick=function(){var i=b.dataset.bp;S.books[i]=Math.min(7,(S.books[i]||0)+1);save();rMags();};});
+ document.querySelectorAll("#mags [data-bd]").forEach(function(b){b.onclick=function(){var i=b.dataset.bd;S.books[i]=Math.max(0,(S.books[i]||0)-1);save();rMags();};});
+ var mq=document.getElementById("magq");if(mq)mq.oninput=function(){S.magq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#mags .magrow").forEach(function(r){if(r.classList.contains("magcat")){r.style.display=q?"none":"";return;}r.style.display=(!q||(r.dataset.txt||"").indexOf(q)>=0)?"":"none";});};
 }
 // ---- REF ----
-function rRef(){var html="";
- REF.forEach(function(r){html+='<div class="card" style="margin-bottom:12px"><h3>'+r[0]+'</h3>';r[1].forEach(function(kv){html+='<div class="kv"><span style="color:var(--muted)">'+kv[0]+'</span><b style="font-family:inherit;font-weight:600;text-align:right;max-width:60%">'+kv[1]+'</b></div>';});html+='</div>';});
- html+='<div class="card"><h3>📝 Notizen</h3><textarea id="nt" placeholder="Deine Notizen (Base-Koordinaten, Ziele, …)">'+(S.notes||"")+'</textarea></div>';
+function rRef(){
+ var html='<input class="searchbar" id="refq" placeholder="Referenz durchsuchen …" value="'+esc(S.refq||"")+'">';
+ REF.forEach(function(r){var rows=r[1].map(function(kv){return '<div class="kv"><span style="color:var(--muted)">'+esc(kv[0])+'</span><b style="font-family:inherit;font-weight:600;text-align:right;max-width:62%">'+esc(kv[1])+'</b></div>';}).join("");
+  html+='<div class="card refcard" data-txt="'+esc((r[0]+" "+r[1].map(function(k){return k[0]+" "+k[1];}).join(" ")).toLowerCase())+'" style="margin-bottom:12px"><h3>'+r[0]+'</h3>'+rows+'</div>';});
+ html+='<div class="card"><h3>📝 Notizen</h3><textarea id="nt" placeholder="Deine Notizen (Base-Koordinaten, Ziele, …)">'+esc(S.notes||"")+'</textarea></div>';
  document.getElementById("ref").innerHTML=html;
  document.getElementById("nt").oninput=function(){S.notes=this.value;save();};
+ var rq=document.getElementById("refq");if(rq)rq.oninput=function(){S.refq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#ref .refcard").forEach(function(c){c.style.display=(!q||(c.dataset.txt||"").indexOf(q)>=0)?"":"none";});};
 }
 
 var PERK_NAMES={
@@ -451,25 +658,157 @@ var SETCFG=[
 ];
 function sandVal(nm,vi){var s=SANDVAL[nm];if(s){if(s.d&&(!s.v||s.d.length===s.v.length)&&vi>=0&&vi<s.d.length)return s.d[vi];if(s.v&&vi>=0&&vi<s.v.length)return s.v[vi];}return "Index "+vi;}
 function decodeSandbox(code){var out={};if(!code||code.length<4)return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),vi=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=sandVal(nm,vi);}return out;}
-function renderSettings(st){
- var v3=("SandboxCode" in st),h="",dec=v3?decodeSandbox(st.SandboxCode):{};
- if(v3)h+='<div class="banner safe">🔓 <b>3.0 SandboxCode dekodiert</b> — '+Object.keys(dec).length+' geänderte Optionen aus deinem Save (Basis-Preset: <b>'+esc(st.SandboxPreset||"?")+'</b>). ⟳ = dekodiert.</div>';
- SETCFG.forEach(function(g){
-  var rows="";
-  g[1].forEach(function(it){
-   var key=it[0],lbl=it[1],ty=it[2],hl=it[3];
-   if(key in st){var val=(ty==="str"||ty==="int")?st[key]:fmtV(ty,st[key]);rows+='<div class="sset'+(hl?" hl":"")+'"><div class="sk">'+lbl+'</div><div class="sv">'+esc(val)+'</div></div>';}
-   else if(v3&&(key in dec)){rows+='<div class="sset hl"><div class="sk">'+lbl+' ⟳</div><div class="sv">'+esc(dec[key])+'</div></div>';}
-   else if(v3){rows+='<div class="sset lock"><div class="sk">'+lbl+'</div><div class="sv">Preset-Std</div></div>';}
-  });
-  if(rows)h+='<div class="card" style="margin-bottom:10px"><h3>'+g[0]+'</h3><div class="sgrid">'+rows+'</div></div>';
- });
- if(v3){var inCfg={};SETCFG.forEach(function(g){g[1].forEach(function(it){inCfg[it[0]]=1;});});
-  var extra=Object.keys(dec).filter(function(k){return !inCfg[k];});
-  if(extra.length){var rows="";extra.forEach(function(k){rows+='<div class="sset"><div class="sk">'+esc(k)+'</div><div class="sv">'+esc(dec[k])+'</div></div>';});
-   h+='<div class="card" style="margin-bottom:10px"><h3>🔓 Weitere geänderte Optionen ('+extra.length+')</h3><div class="sgrid">'+rows+'</div><div class="wstep" style="margin:8px 0 0">⟳ aus SandboxCode. „Index N" = Option ohne bekannte Werteliste (z.B. Schaden-Modifier = deine Insane-Schwierigkeit). Struktur verifiziert gegen deine Werte (Blutmond 64/10, Nightmare, Feral Nacht, Airdrop 72h).</div></div>';}
+// ---- SANDBOXCODE decode (value indices) ----
+function decodeSandboxIdx(code){var out={};if(!code||code.length<2)return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),lo=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=lo;}return out;}
+function refOpt(name){return (RD&&RD.byName&&RD.byName[name])||null;}
+// resolve an option's relevance + current value for a given save settings map
+function optState(o,st,v3,sbIdx){
+ var presentPlain=(o.name in st), isSandbox=v3&&(typeof o.idx==="number"&&o.idx>=0);
+ if(!presentPlain&&!isSandbox)return null;
+ var target=presentPlain?"plain":"sandbox", cur=null, curIdx=null;
+ if(presentPlain){cur=st[o.name];}
+ else if(isSandbox){var lo=sbIdx[o.name];if(lo!=null&&o.options&&o.options[lo]){cur=o.options[lo].v;curIdx=lo;}}
+ return {target:target,cur:cur,curIdx:curIdx,presetDefault:(!presentPlain&&curIdx==null)};
+}
+// build unified option list per category from RD
+function settingsCatalog(){
+ var list=[];
+ (RD.sandbox||[]).forEach(function(o){list.push(o);});
+ (RD.plain||[]).forEach(function(o){if(!RD.byName[o.name]||RD.byName[o.name]===o)list.push(o);});
+ return list;
+}
+function ctlHTML(o,sstate){
+ var name=esc(o.name);
+ if(o.control==="select"&&o.options&&o.options.length){
+  var sel='<select class="setinput" data-opt="'+name+'">';
+  if(sstate.presetDefault)sel+='<option value="" selected>— Preset-Standard —</option>';
+  o.options.forEach(function(op){var on=String(sstate.cur)===String(op.v);sel+='<option value="'+esc(op.v)+'"'+(on?" selected":"")+'>'+esc(op.label)+'</option>';});
+  return sel+'</select>';
  }
- return h;
+ if(o.control==="bool"){var on=sstate.cur===true||sstate.cur===1||sstate.cur==="1"||sstate.cur==="True";return '<select class="setinput" data-opt="'+name+'"><option value="true"'+(on?" selected":"")+'>An</option><option value="false"'+(!on?" selected":"")+'>Aus</option></select>';}
+ if(o.control==="number"){return '<input class="setinput" type="number" data-opt="'+name+'" value="'+esc(sstate.cur==null?"":sstate.cur)+'"'+(o.min!=null?' min="'+o.min+'"':'')+(o.max!=null?' max="'+o.max+'"':'')+'>';}
+ // display only
+ var dv=sstate.cur==null?"Preset-Standard":esc(sstate.cur);
+ return '<span class="setval-ro">'+dv+'</span>';
+}
+function riskBadge(r){return r>=2?'<span class="rb rb2" title="riskant – kann Balance brechen">⚠ Risiko</span>':r===1?'<span class="rb rb1" title="spürbarer Effekt"></span>':'';}
+// MAIN editor — world/save context so we can write back
+function settingsEditor(world,save,st){
+ if(!RD){return '<div class="banner warn">⏳ Referenzdaten werden geladen …</div>';}
+ var v3=("SandboxCode" in st), sbIdx=v3?decodeSandboxIdx(st.SandboxCode):{};
+ if(!EDIT_CTX||EDIT_CTX.world!==world||EDIT_CTX.save!==save)EDIT={};
+ EDIT_CTX={world:world,save:save,st:st,v3:v3};
+ var q=(S.setq||"").toLowerCase(), onlyCh=!!S.setchanged;
+ var cat=settingsCatalog(), byCat={};
+ cat.forEach(function(o){
+  var sstate=optState(o,st,v3,sbIdx); if(!sstate)return;
+  if(q&&(o.name.toLowerCase().indexOf(q)<0&&(o.label||"").toLowerCase().indexOf(q)<0&&(o.desc||"").toLowerCase().indexOf(q)<0))return;
+  (byCat[o.cat]=byCat[o.cat]||[]).push([o,sstate]);
+ });
+ var editableCount=0,totalShown=0;
+ var body='';
+ (RD.categories||[]).forEach(function(c){
+  var items=byCat[c[0]]; if(!items||!items.length)return;
+  var rows='';
+  items.forEach(function(pair){
+   var o=pair[0],sstate=pair[1];
+   var editable=o.control!=="display"&&(o.options&&o.options.length||o.control==="number"||o.control==="bool");
+   if(editable)editableCount++; totalShown++;
+   rows+='<div class="setrow'+(editable?"":" ro")+'" data-name="'+esc(o.name)+'">'+
+     '<div class="setmeta"><div class="setlbl">'+esc(o.label||o.name)+riskBadge(o.risk||0)+(sstate.target==="sandbox"?'<span class="srcb" title="3.0 SandboxCode">⟳</span>':'')+'</div>'+
+     (o.desc?'<div class="setdesc">'+esc(o.desc)+'</div>':'')+
+     (o.example?'<div class="setex">'+esc(o.example)+'</div>':'')+'</div>'+
+     '<div class="setctl">'+ctlHTML(o,sstate)+'</div></div>';
+  });
+  var open=!S.setcol||!S.setcol[c[0]];
+  body+='<div class="acc'+(open?"":" col")+'" data-acc="'+c[0]+'"><div class="acch"><span class="ttl">'+c[1]+'</span><span class="pc">'+items.length+'</span><span class="chev">▼</span></div><div class="accb">'+rows+'</div></div>';
+ });
+ if(!body)body='<div class="wstep">Keine Treffer.</div>';
+ var verLine=v3?'<span class="vbadge v3">3.0+</span> SandboxCode editierbar ('+Object.keys(sbIdx).length+' Overrides aktiv)':'<span class="vbadge v2">≤2.6</span> Klartext-Keys editierbar';
+ var head='<div class="card" style="margin-bottom:10px"><h3>⚙️ Welt-Einstellungen — '+esc(world)+' / '+esc(save)+'</h3>'+
+   '<div class="sub" style="margin-bottom:8px">'+verLine+' · '+editableCount+' von '+totalShown+' angezeigten Optionen direkt änderbar.</div>'+
+   '<div class="banner warn" style="margin:0 0 4px">⚠️ Vor dem Speichern <b>das Spiel beenden</b> (sonst überschreibt 7DtD die Datei beim Verlassen). Ein <b>Backup</b> wird automatisch angelegt.</div></div>';
+ var ctrls='<div class="card" style="margin-bottom:10px"><div class="ctrls">'+
+   '<input id="setq" placeholder="Einstellung suchen …" value="'+esc(S.setq||"")+'" style="flex:2;min-width:180px">'+
+   '<button class="btn" id="setexpand">Alle auf</button><button class="btn" id="setcollapse">Alle zu</button>'+
+   '<label class="chk"><input type="checkbox" id="setonlych"'+(onlyCh?" checked":"")+'> nur geänderte</label>'+
+   '</div></div>';
+ var savebar='<div class="savebar" id="savebar"><div class="sbinfo" id="sbinfo">Keine Änderungen</div><button class="btn sbbtn" id="setrevert">Verwerfen</button><button class="btn sbsave" id="setsave" disabled>💾 In Welt schreiben</button></div>';
+ var msg=S.setMsg?('<div class="banner '+(S.setMsg.ok?"safe":"danger")+'">'+esc(S.setMsg.text)+'</div>'):'';
+ return msg+head+ctrls+body+savebar;
+}
+function wireSettingsEditor(){
+ var root=document.getElementById("world"); if(!root||!RD)return;
+ root.querySelectorAll("[data-acc] .acch").forEach(function(h){h.onclick=function(){var id=h.parentNode.dataset.acc;if(!S.setcol)S.setcol={};S.setcol[id]=!h.parentNode.classList.contains("col")?1:0;h.parentNode.classList.toggle("col");save();};});
+ var q=document.getElementById("setq");if(q)q.oninput=function(){S.setq=this.value;applySettingSearch();};
+ var ea=document.getElementById("setexpand");if(ea)ea.onclick=function(){S.setcol={};save();root.querySelectorAll("[data-acc]").forEach(function(a){a.classList.remove("col");});};
+ var ca=document.getElementById("setcollapse");if(ca)ca.onclick=function(){S.setcol={};root.querySelectorAll("[data-acc]").forEach(function(a){S.setcol[a.dataset.acc]=1;a.classList.add("col");});save();};
+ var oc=document.getElementById("setonlych");if(oc)oc.onchange=function(){S.setchanged=this.checked;save();applyOnlyChangedFilter();};
+ applySettingSearch();
+ root.querySelectorAll(".setinput").forEach(function(inp){inp.onchange=function(){onSettingChange(inp);};inp.oninput=function(){onSettingChange(inp);};});
+ var sv=document.getElementById("setsave");if(sv)sv.onclick=doWriteSettings;
+ var rv=document.getElementById("setrevert");if(rv)rv.onclick=function(){EDIT={};S.setMsg=null;save();rWorld();};
+ refreshSaveBar();
+}
+function onSettingChange(inp){
+ var name=inp.dataset.opt,o=refOpt(name);if(!o)return;
+ var st=EDIT_CTX.st, v3=EDIT_CTX.v3, sbIdx=v3?decodeSandboxIdx(st.SandboxCode):{};
+ var sstate=optState(o,st,v3,sbIdx)||{target:(name in st)?"plain":"sandbox",cur:null,curIdx:null};
+ var raw=inp.value, changed=false, payloadVal;
+ if(o.control==="select"){
+  if(raw===""){delete EDIT[name];}
+  else if(sstate.target==="sandbox"){var idx=o.options.findIndex(function(x){return String(x.v)===String(raw);});payloadVal=idx;changed=(idx!==sstate.curIdx);}
+  else {payloadVal=isNaN(+raw)?raw:+raw;changed=(String(raw)!==String(sstate.cur));}
+ } else if(o.control==="bool"){payloadVal=(raw==="true");changed=(payloadVal!==(sstate.cur===true||sstate.cur===1||sstate.cur==="1"||sstate.cur==="True"));}
+ else if(o.control==="number"){payloadVal=+raw;changed=(String(raw)!==String(sstate.cur));}
+ var rowEl=inp.closest(".setrow");
+ if(raw===""||!changed){delete EDIT[name];if(rowEl)rowEl.classList.remove("changed");}
+ else {EDIT[name]={target:sstate.target,value:payloadVal,control:o.control};if(rowEl)rowEl.classList.add("changed");}
+ refreshSaveBar();
+}
+function refreshSaveBar(){
+ var n=Object.keys(EDIT).length,info=document.getElementById("sbinfo"),sv=document.getElementById("setsave"),bar=document.getElementById("savebar");
+ if(!info)return;
+ info.textContent=n?(n+" Änderung"+(n>1?"en":"")+" – noch nicht gespeichert"):"Keine Änderungen";
+ if(sv)sv.disabled=!n; if(bar)bar.classList.toggle("active",!!n);
+}
+function applyOnlyChangedFilter(){applySettingSearch();}
+function applySettingSearch(){
+ var q=(S.setq||"").toLowerCase(), only=!!S.setchanged;
+ document.querySelectorAll("#world [data-acc]").forEach(function(a){
+  var anyVisible=false;
+  a.querySelectorAll(".setrow").forEach(function(r){
+   var hit=!q||r.textContent.toLowerCase().indexOf(q)>=0;
+   var chOk=!only||r.classList.contains("changed");
+   var show=hit&&chOk; r.style.display=show?"":"none"; if(show)anyVisible=true;
+  });
+  a.style.display=anyVisible?"":"none";
+  if((q||only)&&anyVisible)a.classList.remove("col");
+ });
+}
+function doWriteSettings(){
+ var plain={},sandbox={};
+ Object.keys(EDIT).forEach(function(name){var e=EDIT[name];if(e.target==="sandbox")sandbox[name]=e.value;else plain[name]=e.value;});
+ var body={world:EDIT_CTX.world,save:EDIT_CTX.save,plain:plain,sandbox:sandbox};
+ var sv=document.getElementById("setsave");if(sv){sv.disabled=true;sv.textContent="⏳ schreibe …";}
+ fetch("/api/write-settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+  .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+  .then(function(res){
+   if(!res.ok||!res.d.ok){S.setMsg={ok:false,text:"❌ Speichern fehlgeschlagen: "+(res.d.error||"unbekannt")+" — es wurde nichts verändert."};save();rWorld();return;}
+   S.setMsg={ok:true,text:"✅ "+res.d.changed+" Einstellung(en) in die Welt geschrieben. Backup: "+res.d.backup+". Lade die Welt neu im Spiel, damit sie greift."};
+   EDIT={};save();
+   reloadSavesThen(function(){rWorld();});
+  })
+  .catch(function(e){S.setMsg={ok:false,text:"❌ Netzwerkfehler: "+e.message};save();rWorld();});
+}
+function reloadSavesThen(cb){
+ fetch("/api/scan",{cache:"no-store"}).then(function(r){return r.json();}).then(function(data){
+  if(data&&data.saves){data=normalizeScan(data);W.tree=data.saves;W.maps=data.maps||{};
+   if(W.curSave){var m=W.tree.filter(function(s){return s.world===W.curSave.world&&s.save===W.curSave.save;})[0];if(m)W.curSave=m;}
+   if(S.world){var m2=W.tree.filter(function(s){return s.world===S.world.world&&s.save===S.world.save;})[0];if(m2)S.world.settings=m2.settings;}
+  }
+  cb&&cb();
+ }).catch(function(){cb&&cb();});
 }
 // ---- file handling ----
 function onPick(input){
@@ -494,6 +833,15 @@ function openSave(s){
  if(s.players)jobs.push(s.players.text().then(function(t){s.pl=parsePlayers(t);}));
  Promise.all(jobs).then(function(){W.curSave=s;rWorld();}).catch(function(){W.curSave=s;rWorld();});
 }
+function finishImport(pl){
+ // Punkt 2: NACH dem Import KEIN automatischer Tab-Wechsel mehr. Nur Erfolgsmeldung,
+ // Nutzer bleibt im Welt/Import-Tab; ein optionaler Button führt zum Dashboard.
+ S.importMsg = pl
+   ? ("✅ <b>"+esc(pl.name||"Spieler")+"</b> · Level "+(pl.level||"?")+" importiert. Build erkannt: <b>"+esc((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)+"</b>.")
+   : "✅ Welt-Einstellungen geladen (ohne Spieler).";
+ save();
+ if(S.tab==="world")rWorld(); else show();
+}
 function importWorld(s,pl){
  var st=s.settings||{},v3=("SandboxCode" in st);
  S.world={world:s.world,save:s.save,version:v3?"3.0+ (Dead Hot Summer)":"≤2.6 (Legacy)",preset:st.SandboxPreset||"",player:pl?pl.name:"",steam:pl?pl.steam:"",login:pl?pl.login:"",settings:st};
@@ -504,7 +852,7 @@ function importWorld(s,pl){
   if(sm){S.map=sm;S.map.player=(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null;}else S.map=null;
   if(pl)applyImportedCharacter(pl);
   W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W.mapKey=sm?sm.key:null;W3.dead=true;
-  S.tab="dash";save();show();return;
+  finishImport(pl);return;
  }
  var mf=W.maps&&W.maps[s.world];
  if(mf&&mf.biomes&&mf.prefabs){
@@ -513,9 +861,9 @@ function importWorld(s,pl){
    var info=parseMapInfo(a[2]||"");
    var base={world:s.world,img:a[0],size:info.size,seed:info.seed,ver:info.ver,rwg:info.rwg,gen:info.gen,pois:parsePrefabs(a[1]),player:(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null};
    var hmJob=mf.dtm?readHeightmap(mf.dtm,256,info.size):Promise.resolve(null);
-   return hmJob.then(function(hm){if(hm)base.hm={n:hm.n,mn:hm.mn,mx:hm.mx,d:u8ToB64(hm.data)};S.map=base;if(pl)applyImportedCharacter(pl);W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W3.dead=true;S.tab="dash";save();show();});
+   return hmJob.then(function(hm){if(hm)base.hm={n:hm.n,mn:hm.mn,mx:hm.mx,d:u8ToB64(hm.data)};S.map=base;if(pl)applyImportedCharacter(pl);W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;W3.dead=true;finishImport(pl);});
   }).catch(function(e){document.getElementById("world").innerHTML='<div class="banner danger">Import fehlgeschlagen: '+esc(e.message)+'</div>';});
- } else {S.map=null;if(pl)applyImportedCharacter(pl);S.tab="dash";save();show();}
+ } else {S.map=null;if(pl)applyImportedCharacter(pl);finishImport(pl);}
 }
 function u8ToB64(u8){var s="";for(var i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s);}
 function b64ToU8(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u;}
@@ -545,7 +893,7 @@ function rWorld(){
    '<span class="btn filebtn" style="margin-top:4px;background:var(--acc);color:#0c0b09;font-weight:700;padding:11px 16px;border-radius:11px">📂 Ordner wählen<input type="file" id="wpick" webkitdirectory directory multiple></span></div>';
   if(S.world){
    h+='<div class="banner safe" style="margin-top:14px">✅ Zuletzt verlinkt: <b>'+esc(S.world.world)+' · '+esc(S.world.save)+'</b>'+(S.world.player?' · '+esc(S.world.player):'')+'</div>';
-   h+=worldSummaryCard(S.world)+renderSettings(S.world.settings||{});
+   h+=worldSummaryCard(S.world)+settingsEditor(S.world.world,S.world.save,S.world.settings||{});
   }
  } else if(!W.curSave){
   var byW={};W.tree.forEach(function(s){(byW[s.world]=byW[s.world]||[]).push(s);});
@@ -558,20 +906,22 @@ function rWorld(){
  } else {
   var s=W.curSave,st=s.settings||{},v3=("SandboxCode" in st);
   h+='<div class="back" data-back="list">‹ zurück zu Welten</div>';
+  if(S.importMsg)h+='<div class="banner safe">'+S.importMsg+' <span data-go="dash" style="margin-left:8px;text-decoration:underline;cursor:pointer;color:var(--acc2)">→ Zum Dashboard</span></div>';
   h+='<div class="card"><h3>🌍 '+esc(s.world)+' · '+esc(s.save)+'</h3><div class="sub"><span class="vbadge '+(v3?"v3":"v2")+'">'+(v3?"3.0+":"≤2.6")+'</span> '+(st.SandboxPreset?" Preset: <b>"+esc(st.SandboxPreset)+"</b>":"")+'</div></div>';
   var pls=s.pl||[];
   h+='<div class="card" style="margin-top:10px"><h3>👥 Welchen Spieler importieren?</h3>';
   if(!pls.length)h+='<div class="sub">Keine players.xml in diesem Save.</div>';
   pls.forEach(function(p,i){h+='<div class="pcard" data-pl="'+i+'"><div class="pav">'+esc((p.name||"?").slice(0,1).toUpperCase())+'</div><div class="pn"><div class="pnm">'+esc(p.name)+'</div><div class="pmeta">Steam '+esc(p.steam||"–")+' · zuletzt '+esc(p.login||"?")+(p.coop?" · 👥 Co-op":"")+'</div></div><div style="color:var(--acc2);font-weight:700">Import ›</div></div>';});
   h+='<div class="pcard" data-pl="-1" style="border-style:dashed"><div class="pav" style="background:var(--card2);color:var(--muted)">∅</div><div class="pn"><div class="pnm">Nur Welt-Settings</div><div class="pmeta">ohne Spieler</div></div></div></div>';
-  h+='<h3 style="margin:16px 4px 2px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Welt-Einstellungen (Vorschau)</h3>'+renderSettings(st);
+  h+=settingsEditor(s.world,s.save,st);
  }
  var el=document.getElementById("world");el.innerHTML=h;
  var pk=document.getElementById("wpick");if(pk)pk.onchange=function(){onPick(pk);};
  el.querySelectorAll("[data-save]").forEach(function(x){x.onclick=function(){openSave(W.tree[+x.dataset.save]);};});
  el.querySelectorAll("[data-pl]").forEach(function(x){x.onclick=function(){var i=+x.dataset.pl,pl=i>=0?(W.curSave.pl||[])[i]:null;importWorld(W.curSave,pl);};});
  el.querySelectorAll("[data-back]").forEach(function(x){x.onclick=function(){if(x.dataset.back==="pick")W.tree=null;W.curSave=null;rWorld();};});
- el.querySelectorAll("[data-go]").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};});
+ el.querySelectorAll("[data-go]").forEach(function(x){x.onclick=function(){S.importMsg=null;S.tab=x.dataset.go;save();show();};});
+ if(document.getElementById("savebar"))wireSettingsEditor();
 }
 function worldSummaryCard(w){
  return '<div class="card" style="margin:12px 0 10px"><h3>🌍 Aktuelle Welt</h3>'+
@@ -603,7 +953,7 @@ function rMap(){
  var ctrl='<div class="card" style="margin-bottom:10px"><h3>🗺️ Karte</h3>'+
   '<input id="mapq" placeholder="POI suchen (z.B. bunker, trader, factory)…" value="'+esc(S.mapSearch||"")+'">'+
   '<div class="legend">'+legend+'</div>'+
-  '<div class="wstep" style="margin:0">Scrollen = Zoom · Ziehen = Verschieben · Tippen = POI-Info · 🔵 = dein Spawn</div></div>';
+  '<div class="wstep" style="margin:0">Scrollen = Zoom · Ziehen = Verschieben · Tippen = POI-Info · 🔵 = dein Spawn · <span style="color:#3a7ad0">🟦 Flüsse/Seen</span> + Straßen aus den echten Welt-Dateien</div></div>';
  var canv='<div class="mapwrap"><canvas id="mapcv" width="800" height="800"></canvas><div class="maptip" id="maptip"></div></div>';
  var det='<div id="mapdet"></div>';
  el.innerHTML=info+ctrl+canv+det;
@@ -613,48 +963,75 @@ function rMap(){
 }
 function w2cFactors(){var img=W.mapImg,v=W.view,dw=img.naturalWidth*v.k,dh=img.naturalHeight*v.k,sz=S.map.size;return {dw:dw,dh:dh,sz:sz,v:v};}
 function poiScreen(x,z){var f=w2cFactors();return [f.v.tx+(x/f.sz+0.5)*f.dw, f.v.ty+(0.5-z/f.sz)*f.dh];}
+function requestDraw(){if(W.rafPending)return;W.rafPending=true;requestAnimationFrame(function(){W.rafPending=false;drawMap();});}
+// Build ONE overlay (2048², built ONCE) — avoids re-drawing the 5120² splat PNGs
+// every frame (the old lag). WATER = splat4 BLUE channel (the game's real water
+// mask, faint ≤30; same source the 3D map samples) amplified to clear blue. ROADS
+// = splat3 RED channel (asphalt). High res preserves thin rivers + paths.
+function buildMapOverlay(){
+ if(!W.mapImg)return;
+ var N=2048;
+ var oc=document.createElement("canvas");oc.width=N;oc.height=N;var octx=oc.getContext("2d");
+ var out=octx.createImageData(N,N),o=out.data,any=false;
+ function samp(img){if(!img)return null;var c=document.createElement("canvas");c.width=N;c.height=N;var x=c.getContext("2d");try{x.drawImage(img,0,0,N,N);return x.getImageData(0,0,N,N).data;}catch(e){return null;}}
+ var rd=samp(W.roadImg);                                  // roads: splat3 red channel
+ var wm=S.map&&S.map.watermask, wd=null, wn=0;             // water: server-decoded blue mask (canvas can't read splat4's alpha=0)
+ if(wm&&wm.d){wd=b64ToU8(wm.d);wn=wm.n;}
+ W.waterCells=0;
+ for(var i=0;i<N*N*4;i+=4){var px=(i>>2)%N, py=(i>>2)/N|0;
+  if(rd&&(rd[i]>14||(px>0&&rd[i-4]>14)||(px<N-1&&rd[i+4]>14)||(py>0&&rd[i-(N<<2)]>14)||(py<N-1&&rd[i+(N<<2)]>14))){o[i]=255;o[i+1]=178;o[i+2]=92;o[i+3]=255;any=true;}
+  if(wd){var wi=(py*wn/N)|0,wj=(px*wn/N)|0;if(wi>=wn)wi=wn-1;if(wj>=wn)wj=wn-1;
+   if(wd[wi*wn+wj]>=2){o[i]=44;o[i+1]=120;o[i+2]=212;o[i+3]=245;any=true;W.waterCells++;}}
+ }
+ octx.putImageData(out,0,0);W.overlay=any?oc:null;
+}
+function drawLabel(ctx,text,x,y,strong){text=(""+text).slice(0,22);ctx.lineWidth=3;ctx.lineJoin="round";ctx.strokeStyle="rgba(8,7,5,.92)";ctx.strokeText(text,x,y);ctx.fillStyle=strong?"#fff":"#ece8df";ctx.fillText(text,x,y);}
 function drawMap(){
  var cv=document.getElementById("mapcv");if(!cv||!W.mapImg||!W.view)return;
  var ctx=cv.getContext("2d"),Wc=cv.width,Hc=cv.height,v=W.view,img=W.mapImg;
+ var dw=img.naturalWidth*v.k,dh=img.naturalHeight*v.k;
  ctx.clearRect(0,0,Wc,Hc);ctx.fillStyle="#0a0907";ctx.fillRect(0,0,Wc,Hc);
- ctx.imageSmoothingEnabled=false;ctx.drawImage(img,v.tx,v.ty,img.naturalWidth*v.k,img.naturalHeight*v.k);
- if(W.roadImg){ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=.78;ctx.drawImage(W.roadImg,v.tx,v.ty,img.naturalWidth*v.k,img.naturalHeight*v.k);ctx.restore();}
- if(W.waterImg){ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=.9;ctx.drawImage(W.waterImg,v.tx,v.ty,img.naturalWidth*v.k,img.naturalHeight*v.k);ctx.restore();}
- var q=S.mapSearch||"";
+ ctx.imageSmoothingEnabled=false;ctx.drawImage(img,v.tx,v.ty,dw,dh);
+ if(W.overlay){ctx.imageSmoothingEnabled=true;ctx.drawImage(W.overlay,v.tx,v.ty,dw,dh);}
+ var q=S.mapSearch||"", f=w2cFactors(), labels=[];
  (S.map.pois||[]).forEach(function(p){
   if(!mapFilterOn(p[3]))return;
-  var s=poiScreen(p[1],p[2]);if(s[0]<-6||s[0]>Wc+6||s[1]<-6||s[1]>Hc+6)return;
+  var s=poiScreen(p[1],p[2]);if(s[0]<-8||s[0]>Wc+8||s[1]<-8||s[1]>Hc+8)return;
   var hit=q&&p[0].toLowerCase().indexOf(q)>=0;
-  ctx.globalAlpha=(q&&!hit)?0.18:1;
-  var f=w2cFactors(),pw=Math.max(2,(p[5]||10)/f.sz*f.dw),ph=Math.max(2,(p[6]||10)/f.sz*f.dh);
+  ctx.globalAlpha=(q&&!hit)?0.13:1;
+  var pw=Math.max(2.5,(p[5]||10)/f.sz*f.dw),ph=Math.max(2.5,(p[6]||10)/f.sz*f.dh);
   ctx.fillStyle=TIERCOL[p[3]];ctx.fillRect(s[0]-pw/2,s[1]-ph/2,pw,ph);
-  if(hit||v.k>1.8){ctx.lineWidth=hit?2:1;ctx.strokeStyle="#fff";ctx.strokeRect(s[0]-pw/2,s[1]-ph/2,pw,ph);}
-  if(hit||v.k>4){ctx.fillStyle="#f2efe8";ctx.font="9px monospace";ctx.fillText((p[0]||"").slice(0,18),s[0]+pw/2+3,s[1]-2);}
+  if(hit||v.k>v.fit*1.8){ctx.lineWidth=hit?2:1;ctx.strokeStyle="rgba(0,0,0,.55)";ctx.strokeRect(s[0]-pw/2,s[1]-ph/2,pw,ph);}
+  // label LOD: search-hit always; higher tiers earlier; everything when zoomed far in
+  var z=v.k/v.fit;
+  if(hit||(z>5&&p[3]>=4)||(z>9&&p[3]>=3)||z>16)labels.push([s[0],s[1]+3,p[0]||"",hit]); // centred on marker
  });
- ctx.globalAlpha=1;
- if(W.sel!=null){var sp=S.map.pois[W.sel];if(sp){var ss=poiScreen(sp[1],sp[2]);ctx.beginPath();ctx.arc(ss[0],ss[1],8,0,6.283);ctx.lineWidth=2.5;ctx.strokeStyle="#fff";ctx.stroke(); ctx.fillStyle="#f2efe8";ctx.font="9px monospace";ctx.fillText((sp[0]||"").slice(0,16),ss[0]+10,ss[1]-2);}}
- if(S.map.player){var pp=poiScreen(S.map.player.x,S.map.player.z);ctx.beginPath();ctx.arc(pp[0],pp[1],7,0,6.283);ctx.fillStyle="#5aa6ff";ctx.fill();ctx.lineWidth=2;ctx.strokeStyle="#fff";ctx.stroke();}
+ ctx.globalAlpha=1;ctx.font="bold 11px system-ui,'Segoe UI',sans-serif";ctx.textBaseline="middle";ctx.textAlign="center";
+ labels.slice(0,140).forEach(function(l){drawLabel(ctx,l[2],l[0],l[1],l[3]);});
+ if(W.sel!=null){var sp=S.map.pois[W.sel];if(sp){var ss=poiScreen(sp[1],sp[2]);ctx.beginPath();ctx.arc(ss[0],ss[1],9,0,6.283);ctx.lineWidth=2.5;ctx.strokeStyle="#fff";ctx.stroke();ctx.font="bold 12px system-ui,sans-serif";drawLabel(ctx,sp[0]||"",ss[0],ss[1]-12,true);}}
+ if(S.map.player){var pp=poiScreen(S.map.player.x,S.map.player.z);ctx.beginPath();ctx.arc(pp[0],pp[1],7,0,6.283);ctx.fillStyle="#5aa6ff";ctx.fill();ctx.lineWidth=2;ctx.strokeStyle="#fff";ctx.stroke();ctx.font="bold 11px system-ui,sans-serif";drawLabel(ctx,"⌂ Spawn",pp[0],pp[1]-12,true);}
+ ctx.textAlign="left";ctx.textBaseline="alphabetic";
 }
-function nearestPoi(sx,sy){var best=-1,bd=1e9;(S.map.pois||[]).forEach(function(p,i){if(!mapFilterOn(p[3]))return;var s=poiScreen(p[1],p[2]);var d=(s[0]-sx)*(s[0]-sx)+(s[1]-sy)*(s[1]-sy);if(d<bd){bd=d;best=i;}});return bd<=100?best:-1;}
+function nearestPoi(sx,sy){var best=-1,bd=1e9;(S.map.pois||[]).forEach(function(p,i){if(!mapFilterOn(p[3]))return;var s=poiScreen(p[1],p[2]);var d=(s[0]-sx)*(s[0]-sx)+(s[1]-sy)*(s[1]-sy);if(d<bd){bd=d;best=i;}});return bd<=120?best:-1;}
 function setupMap(){
  var cv=document.getElementById("mapcv");if(!cv)return;
- if(W.mapKey!==S.map.key){W.mapKey=S.map.key;W.mapImg=null;W.roadImg=null;W.waterImg=null;W.view=null;W.sel=null;}
- if(S.map.roads&&!W.roadImg){var road=new Image();road.onload=function(){W.roadImg=road;drawMap();};road.src=S.map.roads;}
- if(S.map.water&&!W.waterImg){var water=new Image();water.onload=function(){W.waterImg=water;drawMap();};water.src=S.map.water;}
- if(W.mapImg&&W.mapImg.src===S.map.img){fitIfNeeded();drawMap();}
- else{var img=new Image();img.onload=function(){W.mapImg=img;W.view=null;fitIfNeeded();drawMap();};img.src=S.map.img;}
+ if(W.mapKey!==S.map.key){W.mapKey=S.map.key;W.mapImg=null;W.roadImg=null;W.overlay=null;W.view=null;W.sel=null;}
+ function tryOverlay(){if(W.mapImg&&(!S.map.roads||W.roadImg)){buildMapOverlay();requestDraw();}}
+ if(S.map.roads&&!W.roadImg){var road=new Image();road.onload=function(){W.roadImg=road;tryOverlay();};road.onerror=tryOverlay;road.src=S.map.roads;}
+ if(W.mapImg&&W.mapImg.src===S.map.img){fitIfNeeded();tryOverlay();requestDraw();}
+ else{var img=new Image();img.onload=function(){W.mapImg=img;W.view=null;fitIfNeeded();tryOverlay();requestDraw();};img.src=S.map.img;}
  function rel(e){var r=cv.getBoundingClientRect();return [(e.clientX-r.left)*(cv.width/r.width),(e.clientY-r.top)*(cv.height/r.height)];}
  var drag=null,moved=false;
- cv.onwheel=function(e){e.preventDefault();if(!W.view)return;var p=rel(e),f=e.deltaY<0?1.15:1/1.15,fit=W.view.fit,nk=Math.max(fit*0.95,Math.min(fit*60,W.view.k*f)),ra=nk/W.view.k;W.view.tx=p[0]-(p[0]-W.view.tx)*ra;W.view.ty=p[1]-(p[1]-W.view.ty)*ra;W.view.k=nk;drawMap();};
+ cv.onwheel=function(e){e.preventDefault();if(!W.view)return;var p=rel(e),f=e.deltaY<0?1.15:1/1.15,fit=W.view.fit,nk=Math.max(fit*0.95,Math.min(fit*60,W.view.k*f)),ra=nk/W.view.k;W.view.tx=p[0]-(p[0]-W.view.tx)*ra;W.view.ty=p[1]-(p[1]-W.view.ty)*ra;W.view.k=nk;requestDraw();};
  cv.onpointerdown=function(e){drag=rel(e);moved=false;cv.setPointerCapture(e.pointerId);};
  cv.onpointermove=function(e){var p=rel(e);
-  if(drag){var dx=p[0]-drag[0],dy=p[1]-drag[1];if(Math.abs(dx)+Math.abs(dy)>3)moved=true;W.view.tx+=dx;W.view.ty+=dy;drag=p;drawMap();return;}
+  if(drag){var dx=p[0]-drag[0],dy=p[1]-drag[1];if(Math.abs(dx)+Math.abs(dy)>3)moved=true;W.view.tx+=dx;W.view.ty+=dy;drag=p;requestDraw();return;}
   var tip=document.getElementById("maptip"),i=nearestPoi(p[0],p[1]),r=cv.getBoundingClientRect();
   if(i>=0){var po=S.map.pois[i];tip.innerHTML='<b>'+esc(po[0])+'</b> · '+TIERLBL[po[3]]+(po[3]>0?" — Tier "+po[3]:po[3]===0?" — kein Kampf":" — Tier ?")+'<br>'+po[1]+", "+po[2];tip.style.display="block";var s=poiScreen(po[1],po[2]);tip.style.left=Math.min(cv.clientWidth-140,(s[0]*r.width/cv.width)+10)+"px";tip.style.top=Math.max(0,(s[1]*r.height/cv.height)-10)+"px";}
   else tip.style.display="none";};
- cv.onpointerup=function(e){var p=rel(e);if(!moved){var i=nearestPoi(p[0],p[1]);W.sel=i>=0?i:null;showPoiDet();drawMap();}drag=null;};
+ cv.onpointerup=function(e){var p=rel(e);if(!moved){var i=nearestPoi(p[0],p[1]);W.sel=i>=0?i:null;showPoiDet();requestDraw();}drag=null;};
  cv.onpointerleave=function(){var t=document.getElementById("maptip");if(t)t.style.display="none";};
- function fitIfNeeded(){if(!W.mapImg)return;if(!W.view){var fit=cv.width/W.mapImg.naturalWidth;W.view={k:fit,fit:fit,tx:0,ty:0};if(S.map.player){/*center on spawn*/var f0=fit;var px=(S.map.player.x/S.map.size+0.5)*W.mapImg.naturalWidth*f0,py=(0.5-S.map.player.z/S.map.size)*W.mapImg.naturalHeight*f0;}}}
+ function fitIfNeeded(){if(!W.mapImg)return;if(!W.view){var fit=cv.width/W.mapImg.naturalWidth;W.view={k:fit,fit:fit,tx:0,ty:0};}}
 }
 function showPoiDet(){var d=document.getElementById("mapdet");if(!d)return;if(W.sel==null){d.innerHTML="";return;}
  var p=S.map.pois[W.sel],pl=S.map.player,dist=pl?Math.round(Math.sqrt((p[1]-pl.x)*(p[1]-pl.x)+(p[2]-pl.z)*(p[2]-pl.z))):null;
@@ -686,12 +1063,12 @@ function r3D(){
  el.innerHTML='<div class="card" style="margin-bottom:10px"><h3>🧊 3D-Flug · '+esc(S.map.world)+'</h3>'+
   '<div class="wstep" style="margin:0">🖱️ ziehen = umschauen · <b>W A S D</b> = fliegen · <b>R</b>/<b>F</b> = hoch/runter · <b>Shift</b> = Boost · Scrollrad = vor/zurück · Klick ins Bild zuerst.</div>'+
   '<label class="fld">Höhen-Überhöhung: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.5" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"></div>'+
-  '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">WebGL lädt…</div></div>';
+  '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">WebGL lädt…</div></div>';
  try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D-Fehler: '+esc(e.message)+'</div>';W3.dead=true;return;}
  document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
 }
 function init3D(){
- if(W3.raf)cancelAnimationFrame(W3.raf);W3.dead=false;
+ if(W3.raf)cancelAnimationFrame(W3.raf);W3.dead=false;W3.lblPool=null;
  var cv=document.getElementById("cv3");var gl=cv.getContext("webgl")||cv.getContext("experimental-webgl");
  if(!gl)throw new Error("WebGL nicht verfügbar");
  W3.gl=gl;
@@ -730,9 +1107,11 @@ function init3D(){
    function box(cx,base,cz,w,h,d,col){var x0=cx-w/2,x1=cx+w/2,z0=cz-d/2,z1=cz+d/2,y0=base,y1=base+h;
     var v=[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1],[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],f=[[0,1,2,0,2,3],[4,6,5,4,7,6],[0,4,5,0,5,1],[1,5,6,1,6,2],[2,6,7,2,7,3],[3,7,4,3,4,0]];
     f.forEach(function(q){tri(v[q[0]],v[q[1]],v[q[2]],col);tri(v[q[3]],v[q[4]],v[q[5]],col);});}
+   W3.labelPts=[];
    (S.map.pois||[]).forEach(function(p){if(!mapFilterOn(p[3]))return;var gj=(p[1]/size+0.5)*(N-1),gi=(0.5-p[2]/size)*(N-1);if(gj<0||gj>N-1||gi<0||gi>N-1)return;
-    var base=terrainY(hAt(Math.round(gi),Math.round(gj))),col=hex2rgb(TIERCOL[p[3]]),bw=Math.max(.35,(p[5]||10)/step),bd=Math.max(.35,(p[6]||10)/step),bh=Math.max(.25,(p[7]||6)/step);
+    var base=terrainY(hAt(Math.round(gi),Math.round(gj))),col=hex2rgb(TIERCOL[p[3]]),bw=Math.max(1.0,(p[5]||25)/step),bd=Math.max(1.0,(p[6]||25)/step),bh=Math.max(1.4,(p[7]||10)/step);
     box(gj-(N-1)/2,base,gi-(N-1)/2,bw,bh,bd,col);buildingCount++;
+    W3.labelPts.push({x:gj-(N-1)/2,y:base+bh+0.6,z:gi-(N-1)/2,name:p[0],tier:p[3]}); // label every POI; distance-LOD limits what shows
    });
    if(S.map.player){var gj=(S.map.player.x/size+0.5)*(N-1),gi=(0.5-S.map.player.z/size)*(N-1);if(gj>=0&&gj<=N-1&&gi>=0&&gi<=N-1){pp.push(gj-(N-1)/2,terrainY(hAt(Math.round(gi),Math.round(gj)))+2,gi-(N-1)/2);pc.push(0.35,0.65,1);}}
    poiCount=pp.length/3;
@@ -743,7 +1122,7 @@ function init3D(){
    gl.bindBuffer(gl.ARRAY_BUFFER,boxColB);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(bc),gl.STATIC_DRAW);
  };
  W3.buildTerrain();
- function loadTex(src,pixel){var tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(pixel));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);if(src){var im=new Image();im.onload=function(){gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);};im.src=src;}return tex;}
+ function loadTex(src,pixel){var tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(pixel));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);if(src){var im=new Image();im.onload=function(){gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);};im.src=src;}return tex;}
  var tex=loadTex(S.map.img,[90,110,70,255]),roadTex=loadTex(S.map.roads,[0,0,0,255]),waterTex=loadTex(S.map.water,[0,0,0,255]);
  // camera
  var cam=W3.cam={x:0,y:Math.max(12,maxH+10),z:N*0.55,yaw:0,pitch:-0.35};
@@ -774,6 +1153,7 @@ function init3D(){
    bindA(gl,boxP,"aPos",boxPosB,3);bindA(gl,boxP,"aCol",boxColB,3);
    gl.drawArrays(gl.TRIANGLES,0,boxCount);
    var hud=document.getElementById("hud3");if(hud)hud.textContent="x "+Math.round(cam.x)+" z "+Math.round(cam.z)+" h "+Math.round(cam.y)+" · Blick "+Math.round(cam.yaw*57.3)+"°/"+Math.round(cam.pitch*57.3)+"° · "+buildingCount+" Gebäude";
+   updateLabels3D(mvp,cv);
  }
  W3.renderScene=renderScene;
  var last=0;
@@ -793,7 +1173,24 @@ function init3D(){
 }
 function bindA(gl,prog,name,buf,size){var l=gl.getAttribLocation(prog,name);if(l<0)return;gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,size,gl.FLOAT,false,0,0);}
 function hex2rgb(h){return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];}
+function project3(mvp,x,y,z){var cw=mvp[3]*x+mvp[7]*y+mvp[11]*z+mvp[15];if(cw<=0.05)return null;return {sx:( (mvp[0]*x+mvp[4]*y+mvp[8]*z+mvp[12])/cw*0.5+0.5),sy:(1-((mvp[1]*x+mvp[5]*y+mvp[9]*z+mvp[13])/cw*0.5+0.5))};}
+function updateLabels3D(mvp,cv){
+ var layer=document.getElementById("lbl3");if(!layer||!W3.labelPts)return;
+ var rect=cv.getBoundingClientRect(),Wd=rect.width,Hd=rect.height,cam=W3.cam,vis=[];
+ // Distance-LOD: labels appear only when zoomed in close enough to see a city
+ // (~city-scale). Fully zoomed out = camera far from every POI = no labels.
+ var LOD=3000; // ~55 mesh-units (≈ city view); beyond this nothing is labelled
+ W3.labelPts.forEach(function(p){
+  var dx=p.x-cam.x,dy=p.y-cam.y,dz=p.z-cam.z,d=dx*dx+dy*dy+dz*dz;if(d>LOD)return;
+  var pr=project3(mvp,p.x,p.y,p.z);if(!pr)return;if(pr.sx<-0.04||pr.sx>1.04||pr.sy<-0.04||pr.sy>1.04)return;
+  vis.push({x:pr.sx*Wd,y:pr.sy*Hd,name:p.name,tier:p.tier,d:d});});
+ vis.sort(function(a,b){return a.d-b.d;});vis=vis.slice(0,12);
+ var pool=W3.lblPool=W3.lblPool||[];
+ while(pool.length<vis.length){var e=document.createElement("div");e.className="lbl3d";layer.appendChild(e);pool.push(e);}
+ pool.forEach(function(e,i){if(i<vis.length){var v=vis[i];e.style.display="block";e.style.left=v.x+"px";e.style.top=v.y+"px";e.style.borderColor=TIERCOL[v.tier];e.textContent=(v.name||"").slice(0,22);}else e.style.display="none";});
+}
 renderTop();show();
+loadRef(function(){show();});
 </script>
 </body>
 </html>

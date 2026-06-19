@@ -19,6 +19,14 @@ use tiny_http::{Header, Method, Response, Server, StatusCode};
 const ADDRESS: &str = "127.0.0.1:17873";
 const HEIGHTMAP_N: usize = 256;
 const APP_HTML: &str = include_str!("../7DtD_Skill_Tracker.html");
+const REFDATA: &str = include_str!("refdata.json");
+
+/// Encoding order of the 150 sandbox options (verified against real saves).
+/// The SandboxCode triplet `[hi][mid][lo]` encodes option = hi*26+mid as the
+/// index INTO THIS LIST, value = lo. Order must never change.
+const SANDORDER: [&str; 150] = [
+    "RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","HeadshotMultiplier","CrouchSpeed","WalkSpeed","RunSpeed","JumpStrength","StaminaUsage","StaminaRegen","PlayerLevelBonusApplied","JarRefund","ShowHealthBars","ShowEnemyDamage","NewbieCoat","HeadshotMode","IncomingDamage","XPMultiplier","ShowXP","EncumbranceModifier","ItemDegradation","LoseItemsOnDeathType","LoseItemsOnDeathCount","DegradeItemsOnDeath","DegradeAmountOnDeath","DeathPenalty","DropOnDeath","DropOnQuit","InfectionRate","EnemySpawnMode","EntityDamage","BlockDamageAI","BlockDamageAIBM","ZombieMove","ZombieMoveNight","ZombieFeralMove","ZombieBMMove","ZombieFeralSense","AISmellMode","AllowZombieDigging","ZombieRageChance","EntityIncomingDamage","MaxEnemyTier","BiomeZombieRespawn","BiomeAnimalRespawn","BiomeEnemyDensity","ZombiesEatAnimals","BloodMoonFrequency","BloodMoonRange","BloodMoonWarning","BloodMoonEnemyCount","AirDropFrequency","AirDropMarker","AirDropRandomTime","BiomeProgression","TemperatureSurvival","StormFreq","StormWarning","HeatMapSensitivity","GlobalGSModifier","BiomeGSModifier","GlobalLSModifier","BiomeLSModifier","POITierLSModifier","GlobalTSModifier","DayNightLength","DayLightLength","AllowMap","AllowCompass","AllowScreenMarkers","ShowLocationInfo","ShowDayTime","WorkstationsInTheWild","MaxTechType","LootRespawnDays","LootTimer","LootMaxTier","GlobalLootCount","FoodLootCount","DrinkLootCount","MedicalLootCount","AmmoLootCount","ResourceLootCount","ArmorLootCount","MeleeLootCount","RangedLootCount","DukesLootCount","CraftingMagazinesLootCount","TreasureMapChance","LootBagChance","CropOutput","SeedDropOutput","CropGrowthSpeed","BackpackCrafting","WorkstationCrafting","CraftingProgression","CraftingTime","CraftingInput","CraftingOutput","CraftingMaxTier","MiningOutput","HarvestingOutput","ScrappingOutput","SmeltingType","DewCollectorTime","DewCollectorOutput","DewCollectorInput","ApiaryTime","ApiaryOutput","ApiaryInput","RepairTypes","MaxDegradationAmount","PointsPerMagazine","SkillGainRate","SkillPointsPerLevel","QuestsEnabled","IntroQuestEnabled","TraderToTraderQuestsEnabled","StarterSkillPoints","QuestsPerTier","QuestProgressionDailyLimit","BuriedQuestsEnabled","POIQuestsEnabled","TraderDialog","TraderHours","TradersEnabled","VendingEnabled","TraderSellPrices","TraderBuyPrices","TraderProtection","TraderResetInterval","TraderItemAbundance","TraderBuyLimit","TraderMaxTier","VendingResetInterval","VendingItemAbundance","ChallengesEnabled","IntroChallengesEnabled","VehicleFuelUsage","VehicleEntityDamage","VehicleBlockDamage","VehicleSelfDamage","ElectricalOutput","SillyCelebrate","SillyBigHeads","SillyTinyZombies","SillySounds","SillyLowGravity","SillyBlackandWhite",
+];
 
 #[derive(Clone, Serialize)]
 struct Player {
@@ -66,6 +74,12 @@ struct HeightMap {
 }
 
 #[derive(Clone, Serialize)]
+struct WaterMask {
+    n: usize,
+    d: String,
+}
+
+#[derive(Clone, Serialize)]
 struct WorldMap {
     world: String,
     key: String,
@@ -79,6 +93,8 @@ struct WorldMap {
     gen: BTreeMap<String, String>,
     pois: Vec<Poi>,
     hm: Option<HeightMap>,
+    #[serde(rename = "watermask")]
+    water_mask: Option<WaterMask>,
 }
 
 #[derive(Clone, Serialize)]
@@ -108,7 +124,7 @@ fn main() {
         Ok(server) => server,
         Err(error) => {
             eprintln!("[7DtD] Serverstart fehlgeschlagen: {error}");
-            let _ = open::that(format!("http://{ADDRESS}"));
+            open_browser(&format!("http://{ADDRESS}"));
             return;
         }
     };
@@ -117,7 +133,7 @@ fn main() {
 
     thread::spawn(|| {
         thread::sleep(Duration::from_millis(350));
-        let _ = open::that(format!("http://{ADDRESS}"));
+        open_browser(&format!("http://{ADDRESS}"));
     });
 
     for request in server.incoming_requests() {
@@ -130,19 +146,40 @@ fn main() {
 }
 
 fn handle(
-    request: tiny_http::Request,
+    mut request: tiny_http::Request,
     paths: &Paths,
     cache: &Arc<Mutex<Option<ScanData>>>,
 ) -> Result<(), String> {
     let raw_url = request.url().to_string();
-    let path = raw_url.split('?').next().unwrap_or("/");
-    match (request.method(), path) {
+    let path = raw_url.split('?').next().unwrap_or("/").to_string();
+    if request.method() == &Method::Post && path == "/api/write-settings" {
+        let mut body = String::new();
+        if let Err(error) = request.as_reader().read_to_string(&mut body) {
+            return respond_status_json(
+                request,
+                StatusCode(400),
+                &json!({"ok": false, "error": format!("Body unlesbar: {error}")}),
+            );
+        }
+        return match write_settings(paths, &body) {
+            Ok(value) => respond_json(request, &value),
+            Err(error) => {
+                respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
+            }
+        };
+    }
+    match (request.method(), path.as_str()) {
         (&Method::Get, "/") | (&Method::Get, "/index.html") => serve_bytes(
             request,
             APP_HTML.as_bytes().to_vec(),
             "text/html; charset=utf-8",
         ),
         (&Method::Get, "/api/health") => respond_json(request, &json!({"ok": true})),
+        (&Method::Get, "/api/refdata") => serve_bytes(
+            request,
+            REFDATA.as_bytes().to_vec(),
+            "application/json; charset=utf-8",
+        ),
         (&Method::Get, "/api/scan") | (&Method::Post, "/api/scan") => match scan(paths) {
             Ok(data) => {
                 *cache.lock().map_err(|e| e.to_string())? = Some(data.clone());
@@ -165,8 +202,8 @@ fn handle(
                 ),
             }
         }
-        _ if path.starts_with("/world/") => serve_world_asset(request, paths, path),
-        _ if path.starts_with("/poi/") => serve_poi_asset(request, paths, path),
+        _ if path.starts_with("/world/") => serve_world_asset(request, paths, &path),
+        _ if path.starts_with("/poi/") => serve_poi_asset(request, paths, &path),
         _ => respond_status_json(
             request,
             StatusCode(404),
@@ -242,14 +279,25 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
         } else {
             None
         };
+        // 2D water cannot come from a <canvas> (splat4 has alpha=0 → premultiplied to
+        // black). Decode the blue channel server-side and max-pool it so thin rivers
+        // survive the downsample.
+        let splat4 = [dir.join("splat4_half.png"), dir.join("splat4.png")]
+            .into_iter()
+            .find(|p| p.is_file());
+        let water_mask = splat4.and_then(|p| water_mask(&p, 768));
         maps.insert(
             world.clone(),
             WorldMap {
                 world: world.clone(),
                 key: key.clone(),
                 img: format!("/world/{key}/biomes.png"),
-                roads: file_url_if_exists(&dir, &key, "splat3.png"),
-                water: file_url_if_exists(&dir, &key, "splat4.png"),
+                // Prefer the smaller half-res splats (5120² instead of 10240²) — the
+                // full-res overlays are ~100 MP and were the main browser-map lag source.
+                roads: file_url_if_exists(&dir, &key, "splat3_half.png")
+                    .or_else(|| file_url_if_exists(&dir, &key, "splat3.png")),
+                water: file_url_if_exists(&dir, &key, "splat4_half.png")
+                    .or_else(|| file_url_if_exists(&dir, &key, "splat4.png")),
                 size: map_info.size,
                 seed: map_info.seed,
                 ver: map_info.ver,
@@ -257,6 +305,7 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
                 gen: map_info.gen,
                 pois,
                 hm,
+                water_mask,
             },
         );
     }
@@ -293,6 +342,37 @@ fn find_install() -> Option<PathBuf> {
         .map(PathBuf::from)
         .find(|path| path.join("Data/Prefabs/POIs").is_dir())
 }
+
+/// Open the default browser WITHOUT spawning cmd.exe. The `open` crate used
+/// `cmd /c start <url>`, and a process that reads user files then spawns cmd to
+/// reach the network is exactly the behaviour heuristic AV flags as a password
+/// stealer (false positive). ShellExecuteW opens the shell association directly,
+/// no child process.
+#[cfg(windows)]
+fn open_browser(url: &str) {
+    use windows_sys::Win32::UI::Shell::ShellExecuteW;
+    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+    let wide = |s: &str| {
+        let mut v: Vec<u16> = s.encode_utf16().collect();
+        v.push(0);
+        v
+    };
+    let op = wide("open");
+    let file = wide(url);
+    unsafe {
+        ShellExecuteW(
+            std::ptr::null_mut(),
+            op.as_ptr(),
+            file.as_ptr(),
+            std::ptr::null(),
+            std::ptr::null(),
+            SW_SHOWNORMAL,
+        );
+    }
+}
+
+#[cfg(not(windows))]
+fn open_browser(_url: &str) {}
 
 fn parse_sdf(bytes: &[u8]) -> Map<String, Value> {
     let mut out = Map::new();
@@ -656,6 +736,41 @@ fn sample_heightmap(path: &Path, size: usize) -> Result<HeightMap, String> {
     })
 }
 
+/// Decode splat4 and max-pool its BLUE channel (the game's water mask, faint ≤30)
+/// down to n×n. Max-pool (not average) keeps 1-px rivers from vanishing. Returns
+/// None if the layer holds no water at all.
+fn water_mask(path: &Path, n: usize) -> Option<WaterMask> {
+    let img = image::open(path).ok()?.into_rgba8();
+    let (w, h) = img.dimensions();
+    let (sx, sy) = ((w as usize / n).max(1), (h as usize / n).max(1));
+    let mut out = vec![0u8; n * n];
+    for oy in 0..n {
+        for ox in 0..n {
+            let mut mx = 0u8;
+            for dy in 0..sy {
+                for dx in 0..sx {
+                    let px = (ox * sx + dx) as u32;
+                    let py = (oy * sy + dy) as u32;
+                    if px < w && py < h {
+                        let b = img.get_pixel(px, py)[2];
+                        if b > mx {
+                            mx = b;
+                        }
+                    }
+                }
+            }
+            out[oy * n + ox] = mx;
+        }
+    }
+    if out.iter().all(|&v| v < 2) {
+        return None;
+    }
+    Some(WaterMask {
+        n,
+        d: STANDARD.encode(&out),
+    })
+}
+
 fn file_url_if_exists(dir: &Path, key: &str, name: &str) -> Option<String> {
     dir.join(name)
         .is_file()
@@ -683,7 +798,12 @@ fn serve_world_asset(request: tiny_http::Request, paths: &Paths, url: &str) -> R
     let file = parts[2];
     if !matches!(
         file,
-        "biomes.png" | "splat3.png" | "splat3_processed.png" | "splat4.png"
+        "biomes.png"
+            | "splat3.png"
+            | "splat3_half.png"
+            | "splat3_processed.png"
+            | "splat4.png"
+            | "splat4_half.png"
     ) {
         return respond_status_json(request, StatusCode(403), &json!({"error":"Datei gesperrt"}));
     }
@@ -738,6 +858,282 @@ fn respond_status_json<T: Serialize>(
     request.respond(response).map_err(|e| e.to_string())
 }
 
+// ===================== gameOptions.sdf WRITER =====================
+// Byte-faithful re-encode. Untouched string values keep their original raw
+// bytes so an unchanged save round-trips identically; only edited fields are
+// re-encoded. A round-trip guard refuses to write if re-serialisation of the
+// untouched parse differs from the original file.
+
+#[derive(Clone)]
+enum SdfVal {
+    Int(i32),
+    Str { decoded: String, raw: Vec<u8> },
+    Bool(bool),
+    Float(f32),
+}
+
+#[derive(Clone)]
+struct SdfEntry {
+    kind: u8,
+    key: String,
+    val: SdfVal,
+}
+
+fn parse_sdf_entries(bytes: &[u8]) -> Result<Vec<SdfEntry>, String> {
+    let mut out = Vec::new();
+    let mut pos = 0usize;
+    while pos < bytes.len() {
+        let kind = bytes[pos];
+        pos += 1;
+        if pos + 3 > bytes.len() {
+            return Err("Längenfeld abgeschnitten".into());
+        }
+        let key_len = u16::from_le_bytes([bytes[pos], bytes[pos + 1]]) as usize;
+        pos += 3;
+        if pos + key_len > bytes.len() {
+            return Err("Schlüssel abgeschnitten".into());
+        }
+        let key = String::from_utf8_lossy(&bytes[pos..pos + key_len]).into_owned();
+        pos += key_len;
+        let val = match kind {
+            1 if pos + 4 <= bytes.len() => {
+                let value = i32::from_le_bytes(bytes[pos..pos + 4].try_into().unwrap());
+                pos += 4;
+                SdfVal::Int(value)
+            }
+            2 if pos + 3 <= bytes.len() => {
+                let len = u16::from_le_bytes([bytes[pos], bytes[pos + 1]]) as usize;
+                pos += 3;
+                if pos + len > bytes.len() {
+                    return Err("String-Wert abgeschnitten".into());
+                }
+                let raw = bytes[pos..pos + len].to_vec();
+                pos += len;
+                let decoded = STANDARD
+                    .decode(&raw)
+                    .ok()
+                    .and_then(|v| String::from_utf8(v).ok())
+                    .unwrap_or_else(|| String::from_utf8_lossy(&raw).into_owned());
+                SdfVal::Str { decoded, raw }
+            }
+            3 if pos < bytes.len() => {
+                let value = bytes[pos] != 0;
+                pos += 1;
+                SdfVal::Bool(value)
+            }
+            4 if pos + 4 <= bytes.len() => {
+                let value = f32::from_le_bytes(bytes[pos..pos + 4].try_into().unwrap());
+                pos += 4;
+                SdfVal::Float(value)
+            }
+            _ => return Err(format!("Unbekannter Typ {kind} bei Offset {pos}")),
+        };
+        out.push(SdfEntry { kind, key, val });
+    }
+    Ok(out)
+}
+
+fn write_len(out: &mut Vec<u8>, len: usize) {
+    out.push((len & 0xff) as u8);
+    out.push(((len >> 8) & 0xff) as u8);
+    out.push((len & 0xff) as u8);
+}
+
+fn serialize_sdf(entries: &[SdfEntry]) -> Vec<u8> {
+    let mut out = Vec::new();
+    for entry in entries {
+        out.push(entry.kind);
+        write_len(&mut out, entry.key.len());
+        out.extend_from_slice(entry.key.as_bytes());
+        match &entry.val {
+            SdfVal::Int(value) => out.extend_from_slice(&value.to_le_bytes()),
+            SdfVal::Str { raw, .. } => {
+                write_len(&mut out, raw.len());
+                out.extend_from_slice(raw);
+            }
+            SdfVal::Bool(value) => out.push(if *value { 1 } else { 0 }),
+            SdfVal::Float(value) => out.extend_from_slice(&value.to_le_bytes()),
+        }
+    }
+    out
+}
+
+/// Set (or append) one sandbox option in the SandboxCode triplet string.
+/// Header char is preserved; only the value char of the matching triplet is
+/// replaced, or a new triplet appended for a not-yet-overridden option.
+fn patch_sandbox(code: &str, name: &str, idx: i32) -> Result<String, String> {
+    let opt = SANDORDER
+        .iter()
+        .position(|&n| n == name)
+        .ok_or_else(|| format!("Unbekannte Sandbox-Option: {name}"))?;
+    if !(0..=25).contains(&idx) {
+        return Err(format!("Wert-Index {idx} außerhalb 0-25 für {name}"));
+    }
+    let hi = (opt / 26) as u8;
+    let mid = (opt % 26) as u8;
+    let bytes = code.as_bytes();
+    if bytes.is_empty() {
+        return Err("Leerer SandboxCode".into());
+    }
+    let header = bytes[0];
+    let body = &bytes[1..];
+    if body.len() % 3 != 0 {
+        return Err("SandboxCode-Länge nicht durch 3 teilbar".into());
+    }
+    let mut out: Vec<u8> = vec![header];
+    let mut found = false;
+    let mut j = 0;
+    while j + 3 <= body.len() {
+        let (c0, c1, c2) = (body[j], body[j + 1], body[j + 2]);
+        let o = (c0.wrapping_sub(b'A') as usize) * 26 + (c1.wrapping_sub(b'A') as usize);
+        out.push(c0);
+        out.push(c1);
+        if o == opt {
+            out.push(b'A' + idx as u8);
+            found = true;
+        } else {
+            out.push(c2);
+        }
+        j += 3;
+    }
+    if !found {
+        out.push(b'A' + hi);
+        out.push(b'A' + mid);
+        out.push(b'A' + idx as u8);
+    }
+    String::from_utf8(out).map_err(|e| e.to_string())
+}
+
+fn apply_plain(entry: &mut SdfEntry, value: &Value) -> Result<(), String> {
+    entry.val = match &entry.val {
+        SdfVal::Int(_) => SdfVal::Int(
+            value
+                .as_i64()
+                .ok_or_else(|| format!("{} erwartet Zahl", entry.key))? as i32,
+        ),
+        SdfVal::Bool(_) => SdfVal::Bool(
+            value
+                .as_bool()
+                .or_else(|| value.as_i64().map(|n| n != 0))
+                .ok_or_else(|| format!("{} erwartet bool", entry.key))?,
+        ),
+        SdfVal::Float(_) => SdfVal::Float(
+            value
+                .as_f64()
+                .ok_or_else(|| format!("{} erwartet Zahl", entry.key))? as f32,
+        ),
+        SdfVal::Str { .. } => {
+            let s = value
+                .as_str()
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| value.to_string());
+            SdfVal::Str {
+                raw: STANDARD.encode(s.as_bytes()).into_bytes(),
+                decoded: s,
+            }
+        }
+    };
+    Ok(())
+}
+
+fn safe_segment(value: &str) -> Result<(), String> {
+    if value.is_empty()
+        || value.contains("..")
+        || value.contains('/')
+        || value.contains('\\')
+        || value.contains(':')
+    {
+        return Err("Ungültiger Welt-/Save-Name".into());
+    }
+    Ok(())
+}
+
+fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
+    let req: Value = serde_json::from_str(body).map_err(|e| format!("JSON-Fehler: {e}"))?;
+    let world = req["world"].as_str().ok_or("'world' fehlt")?;
+    let save = req["save"].as_str().ok_or("'save' fehlt")?;
+    safe_segment(world)?;
+    safe_segment(save)?;
+
+    let dir = paths.appdata.join("Saves").join(world).join(save);
+    let sdf = dir.join("gameOptions.sdf");
+    if !sdf.is_file() {
+        return Err(format!("gameOptions.sdf nicht gefunden: {}", sdf.display()));
+    }
+
+    let original = fs::read(&sdf).map_err(|e| format!("Lesen fehlgeschlagen: {e}"))?;
+    let mut entries = parse_sdf_entries(&original)?;
+
+    // Safety: an untouched parse must serialise back byte-identically, otherwise
+    // our encoder does not understand this file and we must NOT write it.
+    if serialize_sdf(&entries) != original {
+        return Err(
+            "Sicherheits-Check fehlgeschlagen: Datei-Format weicht ab — es wurde NICHTS geschrieben."
+                .into(),
+        );
+    }
+
+    let mut changed = 0usize;
+    let mut details: Vec<String> = Vec::new();
+
+    if let Some(plain) = req.get("plain").and_then(|v| v.as_object()) {
+        for (key, value) in plain {
+            match entries.iter_mut().find(|e| &e.key == key) {
+                Some(entry) => {
+                    apply_plain(entry, value)?;
+                    changed += 1;
+                    details.push(key.clone());
+                }
+                None => return Err(format!("Schlüssel nicht in dieser Welt: {key}")),
+            }
+        }
+    }
+
+    if let Some(sandbox) = req.get("sandbox").and_then(|v| v.as_object()) {
+        if !sandbox.is_empty() {
+            let entry = entries
+                .iter_mut()
+                .find(|e| e.key == "SandboxCode")
+                .ok_or("Diese Welt hat keinen SandboxCode (keine 3.0-Welt) — Sandbox-Optionen nicht schreibbar")?;
+            if let SdfVal::Str { decoded, raw } = &mut entry.val {
+                let mut code = decoded.clone();
+                for (name, idx_val) in sandbox {
+                    let idx = idx_val.as_i64().ok_or_else(|| format!("{name}: Index keine Zahl"))? as i32;
+                    code = patch_sandbox(&code, name, idx)?;
+                    changed += 1;
+                    details.push(format!("{name}=#{idx}"));
+                }
+                *raw = STANDARD.encode(code.as_bytes()).into_bytes();
+                *decoded = code;
+            } else {
+                return Err("SandboxCode hat unerwarteten Typ".into());
+            }
+        }
+    }
+
+    if changed == 0 {
+        return Err("Keine Änderungen übermittelt".into());
+    }
+
+    let new_bytes = serialize_sdf(&entries);
+
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let backup = dir.join(format!("gameOptions.sdf.bak.{stamp}"));
+    fs::copy(&sdf, &backup).map_err(|e| format!("Backup fehlgeschlagen (nichts geschrieben): {e}"))?;
+    fs::write(&sdf, &new_bytes).map_err(|e| format!("Schreiben fehlgeschlagen: {e}"))?;
+
+    Ok(json!({
+        "ok": true,
+        "changed": changed,
+        "details": details,
+        "backup": backup.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(),
+        "bytes": new_bytes.len(),
+    }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -783,5 +1179,82 @@ mod tests {
     #[test]
     fn rejects_wrong_progression_version() {
         assert!(parse_progression_block(&[2, 0, 0, 0], 0).is_none());
+    }
+
+    #[test]
+    fn sdf_roundtrip_synthetic() {
+        // [type][u16 len LE][redundant low byte][key][value]
+        let mut bytes = Vec::new();
+        // int key
+        bytes.push(1u8);
+        bytes.extend_from_slice(&[10, 0, 10]);
+        bytes.extend_from_slice(b"ServerPort");
+        bytes.extend_from_slice(&26900i32.to_le_bytes());
+        // string key (base64 of "Europe")
+        let b64 = STANDARD.encode(b"Europe");
+        bytes.push(2u8);
+        bytes.extend_from_slice(&[6, 0, 6]);
+        bytes.extend_from_slice(b"Region");
+        bytes.push(b64.len() as u8);
+        bytes.push(0);
+        bytes.push(b64.len() as u8);
+        bytes.extend_from_slice(b64.as_bytes());
+        // bool
+        bytes.push(3u8);
+        bytes.extend_from_slice(&[9, 0, 9]);
+        bytes.extend_from_slice(b"BuildMode");
+        bytes.push(0);
+
+        let entries = parse_sdf_entries(&bytes).expect("parse");
+        assert_eq!(serialize_sdf(&entries), bytes, "round-trip must be byte-identical");
+    }
+
+    #[test]
+    fn patch_sandbox_replace_and_append() {
+        // ZombieMove is option index 34 -> hi=1(B) mid=8(I); value Nightmare=4(E) => "BIE"
+        let code = "ABIE"; // header 'A' + one triplet BIE
+        // change ZombieMove to Sprint (index 3 = 'D')
+        let changed = patch_sandbox(code, "ZombieMove", 3).unwrap();
+        assert_eq!(changed, "ABID");
+        // append a brand-new override: XPMultiplier is index 18 -> hi=0(A) mid=18(S); idx5 => 'F'
+        let appended = patch_sandbox(&changed, "XPMultiplier", 5).unwrap();
+        assert_eq!(appended, "ABIDASF");
+        // header preserved, length multiple of 3 + 1
+        assert_eq!(appended.as_bytes()[0], b'A');
+        assert_eq!((appended.len() - 1) % 3, 0);
+    }
+
+    #[test]
+    fn patch_sandbox_rejects_bad_index() {
+        assert!(patch_sandbox("ABIE", "ZombieMove", 26).is_err());
+        assert!(patch_sandbox("ABIE", "NoSuchOption", 1).is_err());
+    }
+
+    #[test]
+    fn real_save_roundtrips_if_present() {
+        // Guard the live write path against the user's actual save format.
+        let appdata = match env::var_os("APPDATA") {
+            Some(value) => PathBuf::from(value).join("7DaysToDie"),
+            None => return,
+        };
+        let candidates = [
+            appdata.join("Saves/Putipovu Valley/3.0 beta/gameOptions.sdf"),
+            appdata.join("Saves/Epila Territory/Modet/gameOptions.sdf"),
+        ];
+        let mut tested = 0;
+        for path in candidates {
+            if let Ok(bytes) = fs::read(&path) {
+                let entries = parse_sdf_entries(&bytes)
+                    .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
+                assert_eq!(
+                    serialize_sdf(&entries),
+                    bytes,
+                    "real save must round-trip byte-identical: {}",
+                    path.display()
+                );
+                tested += 1;
+            }
+        }
+        eprintln!("real_save_roundtrips_if_present: {tested} save(s) verified");
     }
 }
