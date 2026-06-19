@@ -125,7 +125,7 @@ fn main() {
         Ok(server) => server,
         Err(error) => {
             eprintln!("[7DtD] Serverstart fehlgeschlagen: {error}");
-            open_browser(&format!("http://{ADDRESS}"));
+            open_browser(&launch_url());
             return;
         }
     };
@@ -134,7 +134,7 @@ fn main() {
 
     thread::spawn(|| {
         thread::sleep(Duration::from_millis(350));
-        open_browser(&format!("http://{ADDRESS}"));
+        open_browser(&launch_url());
     });
 
     for request in server.incoming_requests() {
@@ -347,6 +347,21 @@ fn find_install() -> Option<PathBuf> {
         .iter()
         .map(PathBuf::from)
         .find(|path| path.join("Data/Prefabs/POIs").is_dir())
+}
+
+/// Cache-bust the launch URL with the binary's own modification time so a freshly
+/// built/deployed exe opens a NEW browser tab (user always sees current code), while
+/// relaunching the same exe reuses the existing tab (no tab spam). The HTTP router
+/// strips the query (see `path` in `handle`), so `/?v=N` still serves "/".
+fn launch_url() -> String {
+    let v = std::env::current_exe()
+        .and_then(std::fs::metadata)
+        .and_then(|m| m.modified())
+        .ok()
+        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    format!("http://{ADDRESS}/?v={v}")
 }
 
 /// Open the default browser WITHOUT spawning cmd.exe. The `open` crate used

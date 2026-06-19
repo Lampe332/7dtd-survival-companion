@@ -1464,6 +1464,8 @@ function r3D(){
    W3.dead=true;return;
   }
   if(!S.d3v||S.d3v>4)S.d3v=1;
+  var d3cnt={};(S.map.pois||[]).forEach(function(p){d3cnt[p[3]]=(d3cnt[p[3]]||0)+1;});
+  var d3legend="";["1","2","3","4","5","0","-1"].forEach(function(t){if(!d3cnt[t])return;d3legend+='<span class="tierchip'+(mapFilterOn(t)?"":" off")+'" data-tf="'+t+'"><span class="tdot" style="background:'+TIERCOL[t]+'"></span>'+TIERLBL[t]+' ('+d3cnt[t]+')</span>';});
   el.innerHTML=hero("3D Recon","WebGL terrain flight","Fly the optimized terrain mesh with biome texture, road and water layers, and projected POI labels.","tab_3d")+
    '<div class="ops-strip">'+
     opsLead("TERRAIN / MESH",100,S.map.hm.n+"²","3D World Online",esc(S.map.world)+" terrain and POI volume data are ready.","#68b8c2")+
@@ -1471,7 +1473,7 @@ function r3D(){
     opsStat("BUILDINGS / POI",(S.map.pois||[]).length,"Projected structures")+
     opsStat("HEIGHT / SCALE",S.d3v.toFixed(1)+"×","Current vertical exaggeration")+
     opsStat("RENDER / API","WEBGL","Hardware-accelerated local view",true)+'</div>'+
-   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FLIGHT SYSTEM / '+esc(S.map.world)+'</div><input id="poiSearch" placeholder="Find POI: trader, bunker, factory…" style="width:100%;margin-bottom:6px"><div id="poiResults" class="poi-results"></div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.5" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
+   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…" style="width:100%;margin-bottom:6px"><div id="poiResults" class="poi-results"></div><div class="wstep" style="margin:4px 0 3px">Show buildings by tier — click to toggle:</div><div class="legend" id="d3legend">'+d3legend+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.5" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
    '<div class="card"><h3>Control Deck</h3><div class="key-grid"><span></span><span class="keycap">W</span><span></span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="keycap">R / F</span><span class="keycap wide">SHIFT · BOOST</span></div></div></div>'+
    '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
   try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D error: '+esc(e.message)+'</div>';W3.dead=true;return;}
@@ -1483,8 +1485,9 @@ function r3D(){
    if(!q){pres.innerHTML="";return;}
    var hits=(S.map.pois||[]).map(function(p,i){return [p,i];}).filter(function(o){return (o[0][0]||"").toLowerCase().indexOf(q)>=0;}).slice(0,12);
    pres.innerHTML=hits.length?hits.map(function(o){return '<div class="poi-hit" data-pi="'+o[1]+'"><span class="tdot" style="background:'+TIERCOL[o[0][3]]+'"></span><span class="poi-hit-name">'+esc(o[0][0]||"POI")+'</span><small>'+TIERLBL[o[0][3]]+'</small></div>';}).join(""):'<div class="poi-hit muted">No match — type a building or trader name</div>';
-   pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=p[0];W3.flyTo(t);}var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";psi.value=p[0]||"";};});
+   pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(!mapFilterOn(p[3])){S.mapFilter[p[3]]=1;save();var ch=document.querySelector('#d3legend [data-tf="'+p[3]+'"]');if(ch)ch.classList.remove("off");if(W3.buildTerrain)W3.buildTerrain();}if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=p[0];W3.flyTo(t);}var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";psi.value=p[0]||"";};});
   };
+  el.querySelectorAll("#d3legend [data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();c.classList.toggle("off",!mapFilterOn(t));if(W3.buildTerrain)W3.buildTerrain();};});
  }
 function init3D(){
  if(W3.raf)cancelAnimationFrame(W3.raf);W3.dead=false;W3.lblPool=null;
