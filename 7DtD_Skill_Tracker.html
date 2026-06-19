@@ -203,7 +203,17 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 .magcat{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 2px 4px}
 /* ---- 3D building labels ---- */
 .map3lbl{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.lbl3d{position:absolute;transform:translate(-50%,-130%);background:rgba(10,9,7,.82);border:1px solid var(--line2);border-left-width:3px;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 2px #000;pointer-events:none}
+.poiInfo{position:absolute;top:12px;right:12px;width:300px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);overflow:auto;z-index:8;pointer-events:auto;padding:16px;border:1px solid rgba(240,120,47,.34);border-radius:8px;background:radial-gradient(260px 190px at 100% 0,rgba(240,120,47,.12),transparent 70%),linear-gradient(150deg,#191e22,#0d1114);box-shadow:0 18px 42px rgba(0,0,0,.45)}
+.poiInfo img{width:100%;height:auto;border-radius:6px;border:1px solid var(--line2);display:block;background:#000}
+.poiInfo .pi-noimg{width:100%;aspect-ratio:1/1;border-radius:6px;border:1px dashed var(--line2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.poiInfo h4{margin:11px 0 1px;font:780 18px/1.1 var(--display);color:#fff}
+.poiInfo .pi-sub{color:var(--muted);font:600 11px/1 var(--mono);letter-spacing:.5px}
+.poiInfo .pi-kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:12.5px}
+.poiInfo .pi-kv b{color:#fff;text-align:right}
+.poiInfo .pi-tier{display:inline-block;padding:1px 8px;border-radius:10px;font:700 11px/1.6 var(--mono);color:#0a0a0a}
+.poiInfo .pi-close{position:absolute;top:8px;right:10px;cursor:pointer;color:var(--muted);font-size:18px;line-height:1;border:0;background:0;padding:2px 4px}.poiInfo .pi-close:hover{color:#fff}
+.lbl3d{position:absolute;transform:translate(-50%,-130%);background:rgba(10,9,7,.82);border:1px solid var(--line2);border-left-width:3px;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 2px #000;pointer-events:auto;cursor:pointer}
+.lbl3d:hover{background:rgba(240,120,47,.92);border-color:#fff;z-index:6}
 
 /* ---- Wasteland command interface ---- */
 :root{
@@ -844,7 +854,7 @@ var LABEL_TO_PERK={};Object.keys(PERK_NAMES).forEach(function(k){LABEL_TO_PERK[P
 function normalizeScan(data){
   Object.keys(data.maps||{}).forEach(function(w){
     var m=data.maps[w];m.pois=(m.pois||[]).map(function(p){
-      return [p.name,p.x,p.z,p.tier,p.rotation,p.width,p.depth,p.height,p.thumbnail,p.y];
+      return [p.name,p.x,p.z,p.tier,p.rotation,p.width,p.depth,p.height,p.thumbnail,p.y,p.zombies,p.quests,p.theme];
     });
   });
   return data;
@@ -1473,9 +1483,9 @@ function r3D(){
     opsStat("BUILDINGS / POI",(S.map.pois||[]).length,"Projected structures")+
     opsStat("HEIGHT / SCALE",S.d3v.toFixed(1)+"×","Current vertical exaggeration")+
     opsStat("RENDER / API","WEBGL","Hardware-accelerated local view",true)+'</div>'+
-   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…" style="width:100%;margin-bottom:6px"><div id="poiResults" class="poi-results"></div><div class="wstep" style="margin:4px 0 3px">Show buildings by tier — click to toggle:</div><div class="legend" id="d3legend">'+d3legend+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.5" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
+   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…" style="width:100%;margin-bottom:6px"><div id="poiResults" class="poi-results"></div><div class="wstep" style="margin:4px 0 3px">Show buildings by tier — click to toggle:</div><div class="legend" id="d3legend">'+d3legend+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.2" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
    '<div class="card"><h3>Control Deck</h3><div class="key-grid"><span></span><span class="keycap">W</span><span></span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="keycap">R / F</span><span class="keycap wide">SHIFT · BOOST</span></div></div></div>'+
-   '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
+   '<div class="mapwrap"><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div id="poiInfo" class="poiInfo" style="display:none"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
   try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D error: '+esc(e.message)+'</div>';W3.dead=true;return;}
   document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
   document.getElementById("d3reset").onclick=function(){r3D();};
@@ -1485,7 +1495,7 @@ function r3D(){
    if(!q){pres.innerHTML="";return;}
    var hits=(S.map.pois||[]).map(function(p,i){return [p,i];}).filter(function(o){return (o[0][0]||"").toLowerCase().indexOf(q)>=0;}).slice(0,12);
    pres.innerHTML=hits.length?hits.map(function(o){return '<div class="poi-hit" data-pi="'+o[1]+'"><span class="tdot" style="background:'+TIERCOL[o[0][3]]+'"></span><span class="poi-hit-name">'+esc(o[0][0]||"POI")+'</span><small>'+TIERLBL[o[0][3]]+'</small></div>';}).join(""):'<div class="poi-hit muted">No match — type a building or trader name</div>';
-   pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(!mapFilterOn(p[3])){S.mapFilter[p[3]]=1;save();var ch=document.querySelector('#d3legend [data-tf="'+p[3]+'"]');if(ch)ch.classList.remove("off");if(W3.buildTerrain)W3.buildTerrain();}if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=p[0];W3.flyTo(t);}var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";psi.value=p[0]||"";};});
+   pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(!mapFilterOn(p[3])){S.mapFilter[p[3]]=1;save();var ch=document.querySelector('#d3legend [data-tf="'+p[3]+'"]');if(ch)ch.classList.remove("off");if(W3.buildTerrain)W3.buildTerrain();}if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=p[0];W3.flyTo(t);}openPoiInfo(+r.dataset.pi);var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";psi.value=p[0]||"";};});
   };
   el.querySelectorAll("#d3legend [data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();c.classList.toggle("off",!mapFilterOn(t));if(W3.buildTerrain)W3.buildTerrain();};});
  }
@@ -1530,10 +1540,10 @@ function init3D(){
     var v=[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1],[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],f=[[0,1,2,0,2,3],[4,6,5,4,7,6],[0,4,5,0,5,1],[1,5,6,1,6,2],[2,6,7,2,7,3],[3,7,4,3,4,0]];
     f.forEach(function(q){tri(v[q[0]],v[q[1]],v[q[2]],col);tri(v[q[3]],v[q[4]],v[q[5]],col);});}
    W3.labelPts=[];
-   (S.map.pois||[]).forEach(function(p){if(!mapFilterOn(p[3]))return;var gj=(p[1]/size+0.5)*(N-1),gi=(0.5-p[2]/size)*(N-1);if(gj<0||gj>N-1||gi<0||gi>N-1)return;
+   (S.map.pois||[]).forEach(function(p,pi){if(!mapFilterOn(p[3]))return;var gj=(p[1]/size+0.5)*(N-1),gi=(0.5-p[2]/size)*(N-1);if(gj<0||gj>N-1||gi<0||gi>N-1)return;
     var base=terrainY(hAt(Math.round(gi),Math.round(gj))),col=hex2rgb(TIERCOL[p[3]]),bw=Math.max(1.0,(p[5]||25)/step),bd=Math.max(1.0,(p[6]||25)/step),bh=Math.max(1.4,(p[7]||10)/step);
     box(gj-(N-1)/2,base,gi-(N-1)/2,bw,bh,bd,col);buildingCount++;
-    W3.labelPts.push({x:gj-(N-1)/2,y:base+bh+0.6,z:gi-(N-1)/2,name:p[0],tier:p[3]}); // label every POI; distance-LOD limits what shows
+    W3.labelPts.push({x:gj-(N-1)/2,y:base+bh+0.6,z:gi-(N-1)/2,name:p[0],tier:p[3],pi:pi}); // label every POI; distance-LOD limits what shows
    });
    if(S.map.player){var gj=(S.map.player.x/size+0.5)*(N-1),gi=(0.5-S.map.player.z/size)*(N-1);if(gj>=0&&gj<=N-1&&gi>=0&&gi<=N-1){pp.push(gj-(N-1)/2,terrainY(hAt(Math.round(gi),Math.round(gj)))+2,gi-(N-1)/2);pc.push(0.35,0.65,1);}}
    poiCount=pp.length/3;
@@ -1607,11 +1617,33 @@ function updateLabels3D(mvp,cv){
  W3.labelPts.forEach(function(p){
   var dx=p.x-cam.x,dy=p.y-cam.y,dz=p.z-cam.z,d=dx*dx+dy*dy+dz*dz;if(d>LOD)return;
   var pr=project3(mvp,p.x,p.y,p.z);if(!pr)return;if(pr.sx<-0.04||pr.sx>1.04||pr.sy<-0.04||pr.sy>1.04)return;
-  vis.push({x:pr.sx*Wd,y:pr.sy*Hd,name:p.name,tier:p.tier,d:d});});
+  vis.push({x:pr.sx*Wd,y:pr.sy*Hd,name:p.name,tier:p.tier,d:d,pi:p.pi});});
  vis.sort(function(a,b){return a.d-b.d;});vis=vis.slice(0,12);
  var pool=W3.lblPool=W3.lblPool||[];
- while(pool.length<vis.length){var e=document.createElement("div");e.className="lbl3d";layer.appendChild(e);pool.push(e);}
- pool.forEach(function(e,i){if(i<vis.length){var v=vis[i];e.style.display="block";e.style.left=v.x+"px";e.style.top=v.y+"px";e.style.borderColor=TIERCOL[v.tier];e.textContent=(v.name||"").slice(0,22);}else e.style.display="none";});
+ while(pool.length<vis.length){var e=document.createElement("div");e.className="lbl3d";e.onclick=function(ev){ev.stopPropagation();var pi=+this.dataset.pi;if(pi>=0)openPoiInfo(pi);};layer.appendChild(e);pool.push(e);}
+ pool.forEach(function(e,i){if(i<vis.length){var v=vis[i];e.style.display="block";e.style.left=v.x+"px";e.style.top=v.y+"px";e.style.borderColor=TIERCOL[v.tier];e.dataset.pi=(v.pi==null?-1:v.pi);e.textContent=(v.name||"").slice(0,22);}else e.style.display="none";});
+}
+function closePoiInfo(){var el=document.getElementById("poiInfo");if(el){el.style.display="none";el.innerHTML="";}}
+function prettyPoi(n){return (n||"").replace(/_/g," ").replace(/\b\w/g,function(c){return c.toUpperCase();});}
+function openPoiInfo(pi){
+ var el=document.getElementById("poiInfo");if(!el)return;
+ var p=(S.map&&S.map.pois)?S.map.pois[pi]:null;if(!p){closePoiInfo();return;}
+ var tier=p[3],tcol=TIERCOL[tier]||"#8a8580",tlbl=TIERLBL[tier]||"Unknown";
+ var w=p[5]||0,h=p[7]||0,d=p[6]||0,zomb=p[10]||0,quests=p[11]||"",theme=p[12]||"";
+ var pl=S.map.player,dist=pl?Math.round(Math.hypot(p[1]-pl.x,p[2]-pl.z)):null;
+ var img=p[8]?'<img src="'+esc(p[8])+'" alt="" onerror="this.outerHTML=&apos;<div class=&quot;pi-noimg&quot;>No preview image</div>&apos;">':'<div class="pi-noimg">No preview image</div>';
+ function kv(k,v){return '<div class="pi-kv"><span>'+k+'</span><b>'+v+'</b></div>';}
+ var rows=kv("Difficulty",'<span class="pi-tier" style="background:'+tcol+'">'+esc(tlbl)+'</span>');
+ if(w||h||d)rows+=kv("Size (W×H×D)",w+" × "+h+" × "+d+" blocks");
+ rows+=kv("Zombies",zomb>0?("up to "+zomb):"none / unknown");
+ if(quests)rows+=kv("Quest types",esc(quests));
+ if(theme)rows+=kv("Theme",esc(prettyPoi(theme)));
+ if(dist!=null)rows+=kv("Distance to base",dist.toLocaleString()+" m");
+ el.innerHTML='<button type="button" class="pi-close" aria-label="Close">×</button>'+img+
+  '<h4>'+esc(prettyPoi(p[0]))+'</h4><div class="pi-sub">'+esc(p[0])+'</div>'+
+  '<div style="margin-top:10px">'+rows+'</div>';
+ el.querySelector(".pi-close").onclick=closePoiInfo;
+ el.style.display="block";
 }
 renderTop();show();
 loadRef(function(){show();});

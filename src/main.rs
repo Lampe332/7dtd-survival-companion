@@ -64,6 +64,9 @@ struct Poi {
     depth: i32,
     height: i32,
     thumbnail: Option<String>,
+    zombies: i32,
+    quests: String,
+    theme: String,
 }
 
 #[derive(Clone, Serialize)]
@@ -594,6 +597,9 @@ struct PrefabMeta {
     height: i32,
     depth: i32,
     thumbnail: bool,
+    zombies: i32,
+    quests: String,
+    theme: String,
 }
 
 fn placed_prefab_names(xml: &str) -> Vec<String> {
@@ -613,6 +619,9 @@ fn load_prefab_meta(
     };
     let tier_re = Regex::new(r#"DifficultyTier"\s+value="(\d+)""#).unwrap();
     let size_re = Regex::new(r#"PrefabSize"\s+value="(\d+),\s*(\d+),\s*(\d+)""#).unwrap();
+    let quest_re = Regex::new(r#"QuestTags"\s+value="([^"]*)""#).unwrap();
+    let theme_re = Regex::new(r#"EditorGroups"\s+value="([^"]*)""#).unwrap();
+    let group_re = Regex::new(r#"SleeperVolumeGroup"\s+value="([^"]*)""#).unwrap();
     for name in needed {
         let xml_path = root.join(format!("{name}.xml"));
         let Ok(text) = fs::read_to_string(xml_path) else {
@@ -622,6 +631,30 @@ fn load_prefab_meta(
             .captures(&text)
             .and_then(|capture| capture[1].parse().ok())
             .unwrap_or(-1);
+        let quests = quest_re
+            .captures(&text)
+            .map(|capture| capture[1].trim().to_string())
+            .unwrap_or_default();
+        let theme = theme_re
+            .captures(&text)
+            .map(|capture| capture[1].trim().to_string())
+            .unwrap_or_default();
+        // Max sleeping zombies the POI defines. SleeperVolumeGroup is (group,min,max)
+        // triplets — sum the max of each. NOTE: volume COUNT (SleeperVolumeSize) is a
+        // bad danger proxy: e.g. quarry_02 has 78 volumes but most are 0,0 → real max 12.
+        let zombies = group_re
+            .captures(&text)
+            .map(|capture| {
+                let toks: Vec<&str> = capture[1].split(',').collect();
+                let mut sum = 0i32;
+                let mut i = 2;
+                while i < toks.len() {
+                    sum += toks[i].trim().parse::<i32>().unwrap_or(0);
+                    i += 3;
+                }
+                sum
+            })
+            .unwrap_or(0);
         let (width, height, depth) = size_re
             .captures(&text)
             .and_then(|capture| {
@@ -640,6 +673,9 @@ fn load_prefab_meta(
                 height,
                 depth,
                 thumbnail: root.join(format!("{name}.jpg")).is_file(),
+                zombies,
+                quests,
+                theme,
             },
         );
     }
@@ -683,6 +719,9 @@ fn parse_prefabs(xml: &str, meta: &HashMap<String, PrefabMeta>) -> Vec<Poi> {
             thumbnail: info
                 .thumbnail
                 .then(|| format!("/poi/{}.jpg", encode_segment(&name))),
+            zombies: info.zombies,
+            quests: info.quests,
+            theme: info.theme,
         });
     }
     pois
