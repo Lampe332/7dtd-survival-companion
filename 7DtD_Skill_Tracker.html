@@ -453,27 +453,30 @@ var MAGS=[
 // Magazine categories. MAGS indices stay stable for localStorage compatibility.
 var MAGCAT={"Knuckles":"Weapons","Blades":"Weapons","Clubs":"Weapons","Sledgehammers":"Weapons","Bows":"Weapons","Spears":"Weapons","Handguns":"Weapons","Shotguns":"Weapons","Rifles":"Weapons","Machine Guns":"Weapons","Explosives":"Weapons","Harvesting Tools":"Tools & Technology","Repair Tools":"Tools & Technology","Salvage Tools":"Tools & Technology","Workstations":"Tools & Technology","Electrician":"Tools & Technology","Traps":"Tools & Technology","Robotics":"Tools & Technology","Armor":"Survival","Medical":"Survival","Food":"Survival","Seeds":"Survival","Vehicles":"Vehicles","Mailboxes · Completion fixes stamina":"Weapons"};
 // Perk book series, tracked separately from crafting magazines.
+// 4th field = .ttp perk-volume stem; reading a book sets perk<stem><volume>=1 in
+// the player's progression, so books-read = count of perk<stem>* (≠ bare, ≠ *complete) == 1.
 var BOOKS=[
- ["The Art of Mining","Mining and harvesting","Miner 69'er"],
- ["The Automatic Weapon Handbook","Automatic weapons","Machine Gunner"],
- ["Batter Up!","Clubs and bats","Pummel Pete"],
- ["Bar Brawler","Knuckles and fists","The Brawler"],
- ["The Fireman's Almanac","Fire, Molotovs and heat","—"],
- ["The Great Heist","Locks and safes","Lock Picking"],
- ["The Hunter's Journal","Hunting and animals","Animal Tracker"],
- ["Lucky Looter","Looting","Lucky Looter"],
- ["Magnum Enforcer",".44 Magnum","Gunslinger"],
- ["The Night Stalker","Stealth","From The Shadows"],
- ["Pistol Pete","Pistols","Gunslinger"],
- ["Ranger's Guide to Archery","Bows","Archery"],
- ["Shotgun Messiah","Shotguns","Boomstick"],
- ["Sledge Saga","Sledgehammers","Skull Crusher"],
- ["Sniper","Sniper rifles","Dead Eye"],
- ["Spear Hunter","Spears","Spear Master"],
- ["Urban Combat","Urban clubs and blades","Hidden Strike"],
- ["Tech Junkie","Robotics and electricity","Electrocutioner"],
- ["Wasteland Treasures","Treasure and salvage","Salvage Operations"]
+ ["The Art of Mining","Mining and harvesting","Miner 69'er","artofmining"],
+ ["The Automatic Weapon Handbook","Automatic weapons","Machine Gunner","autoweapons"],
+ ["Batter Up!","Clubs and bats","Pummel Pete","batterup"],
+ ["Bar Brawler","Knuckles and fists","The Brawler","barbrawling"],
+ ["The Fireman's Almanac","Fire, Molotovs and heat","—","firemansalmanac"],
+ ["The Great Heist","Locks and safes","Lock Picking","greatheist"],
+ ["The Hunter's Journal","Hunting and animals","Animal Tracker","huntingjournal"],
+ ["Lucky Looter","Looting","Lucky Looter","luckylooter"],
+ ["Magnum Enforcer",".44 Magnum","Gunslinger","enforcer"],
+ ["The Night Stalker","Stealth","From The Shadows","nightstalker"],
+ ["Pistol Pete","Pistols","Gunslinger","pistolpete"],
+ ["Ranger's Guide to Archery","Bows","Archery","rangers"],
+ ["Shotgun Messiah","Shotguns","Boomstick","shotgunmessiah"],
+ ["Sledge Saga","Sledgehammers","Skull Crusher","sledgesaga"],
+ ["Sniper","Sniper rifles","Dead Eye","sniper"],
+ ["Spear Hunter","Spears","Spear Master","spearhunter"],
+ ["Urban Combat","Urban clubs and blades","Hidden Strike","urbancombat"],
+ ["Tech Junkie","Robotics and electricity","Electrocutioner","techjunkie"],
+ ["Wasteland Treasures","Treasure and salvage","Salvage Operations","wastetreasures"]
 ];
+function booksReadFromProgression(prog,stem){if(!stem||!prog)return 0;var pre="perk"+stem,c=0;for(var k in prog){if(k.indexOf(pre)===0&&k!==pre&&k.slice(-8)!=="complete"&&prog[k]>=1)c++;}return Math.min(7,c);}
 var READY=[["Base fully repaired; steel combat lane","",2],["Sledge at full durability + one spare","",2],["Carry at least 3 Repair Kits","",1],["10+ First Aid Bandages or Kits","",2],["Honey + Vitamins for infection","",1],["Food and water above 70% + reserves","",1],["Grandpa's Moonshine opener + Mega Crush panic button","",1],["Forge OFF to avoid Screamers","",1],["Roof secured against Vultures","",1],["Escape route and bail hatch clear","",2]];
 var REF=[
 ["⚙️ Active Settings",[["Difficulty","Insane — you deal 50%, enemies deal 250%"],["Headshot Multiplier","125% — aim sledge attacks at the head"],["XP","125%"],["Zombie Speed","Nightmare by day and night"],["Feral Sense","Night"],["Block Damage","Enemies 85%, Blood Moon 65%"],["Blood Moon","Every 10 days · 64 enemies"],["Skill Points","2 per level"]]],
@@ -985,6 +988,10 @@ function applyImportedCharacter(pl){
     BUILDS[S.cur].phases.forEach(function(ph){ph[4].forEach(function(it){gi++;st.chk["c"+gi]=rowImportedDone(it[0],prog);});});
     MAGS.forEach(function(m,i){S.mag[i]=m[5]==="book"?Math.min(m[1],bookCount(prog,m[4])):Math.min(m[1],progressionValue(prog,m[4]));});
   }
+  // perk-book volumes are read-only save data → always refresh from the imported
+  // progression (even on same-character re-import), independent of the manual-edit guard.
+  if(!S.books)S.books={};
+  BOOKS.forEach(function(bk,i){S.books[i]=booksReadFromProgression(prog,bk[3]);});
   S.importedPlayer=pl?{name:pl.name,level:pl.level,steam:pl.steam}:null;save();
 }
 // ---- WELT: gameOptions.sdf binary parser (verifiziert gegen echte Saves) ----
