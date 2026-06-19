@@ -1282,6 +1282,7 @@ function finishImport(pl){
 }
 function importWorld(s,pl){
  var st=s.settings||{},v3=("SandboxCode" in st);
+ if(typeof s.day==="number"&&s.day>=1)S.day=s.day; // real in-game day from main.ttw
  if(!pl){S.importedPlayer=null;delete S.playerProgression;}
  S.world={world:s.world,save:s.save,version:v3?"3.0+ (Dead Hot Summer)":"≤2.6 (Legacy)",preset:st.SandboxPreset||"",player:pl?pl.name:"",steam:pl?pl.steam:"",login:pl?pl.login:"",settings:st};
  if(v3){var dc=decodeSandbox(st.SandboxCode);var bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;S.world.bmCount=parseInt(dc.BloodMoonEnemyCount,10)||null;}

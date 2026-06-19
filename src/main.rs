@@ -50,6 +50,7 @@ struct Save {
     scanned: bool,
     #[serde(rename = "hasMap")]
     has_map: bool,
+    day: Option<i32>,
 }
 
 #[derive(Clone, Serialize)]
@@ -301,6 +302,7 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
                 pl: players,
                 scanned: true,
                 has_map: worlds_root.join(&world).is_dir(),
+                day: read_world_day(&save_dir),
             });
         }
     }
@@ -486,6 +488,42 @@ fn parse_sdf(bytes: &[u8]) -> Map<String, Value> {
         out.insert(key, value);
     }
     out
+}
+
+/// Current in-game day from main.ttw. worldTime is a uint64 in the header whose
+/// position is version-dependent (follows WorldState.SaveLoad write order), so we
+/// parse structurally rather than by fixed offset. day = worldTime / 24000 + 1.
+fn read_world_day(save_dir: &Path) -> Option<i32> {
+    let bytes = fs::read(save_dir.join("main.ttw")).ok()?;
+    if bytes.len() < 8 || &bytes[0..4] != b"ttw\0" {
+        return None;
+    }
+    let read_u32 = |p: usize| -> Option<u32> {
+        bytes.get(p..p + 4).map(|s| u32::from_le_bytes(s.try_into().unwrap()))
+    };
+    let mut pos = 4usize;
+    let version = read_u32(pos)?;
+    pos += 4;
+    if version > 11 {
+        // length-prefixed game-version string (1-byte 7-bit length for short strings)
+        let len = *bytes.get(pos)? as usize;
+        pos += 1 + len;
+    }
+    if version > 14 {
+        pos += 16; // releaseType, major, minor, build (4x int32)
+    }
+    pos += 4; // uint32 constant 0
+    if version > 6 {
+        pos += 4; // int32 activeGameMode
+    }
+    pos += 4; // uint32 constant 0
+    pos += 4; // float waterLevel
+    pos += 16; // chunkSizeX/Z/Y + chunkCount (4x int32)
+    pos += 4; // int32 providerId
+    pos += 4; // int32 seed
+    let raw = bytes.get(pos..pos + 8)?;
+    let world_time = u64::from_le_bytes(raw.try_into().unwrap());
+    Some((world_time / 24000) as i32 + 1)
 }
 
 fn parse_players(save_dir: &Path) -> Vec<Player> {
