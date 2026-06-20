@@ -1678,12 +1678,14 @@ function bookCount(prog,prefix){
 }
 // Identity = which SAVE, not just which Steam account: the same Steam player has many saves/worlds with different progress, so include world+save (else switching save keeps the old character's checked steps).
 function charIdentity(pl){return pl?((pl.steam||pl.name||"?")+"|"+(pl.world||"")+"|"+(pl.save||"")):null;}
-function applyImportedCharacter(pl){
+function applyImportedCharacter(pl,force){
   var prog=pl&&pl.progression||{};S.playerProgression=prog;S.lvl=pl&&pl.level||S.lvl;S.cur=detectBuild(prog);
   // Only overwrite the user's manual perk checks + magazine edits when the imported
   // character actually changed; re-importing the SAME survivor preserves manual edits.
+  // EXCEPTION: force=true (LIVE auto-refresh) always mirrors the save — magazine counts and
+  // build progress should follow the game, so manual edits intentionally yield to the real save.
   var newId=charIdentity(pl),oldId=charIdentity(S.importedPlayer);
-  if(!(newId&&oldId&&newId===oldId)){
+  if(force||!(newId&&oldId&&newId===oldId)){
     var st=bstate();st.chk={};var gi=0;
     buildAtomicSteps(S.cur).forEach(function(s){gi++;st.chk["c"+gi]=rowImportedDone(s.name,prog);});
     MAGS.forEach(function(m,i){S.mag[i]=m[5]==="book"?Math.min(m[1],bookCount(prog,m[4])):Math.min(m[1],progressionValue(prog,m[4]));});
@@ -2603,7 +2605,7 @@ function autoApplyRefresh(cur,pl){
  if(v3){try{var dc=decodeSandbox(st.SandboxCode),bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;var bc=parseInt(dc.BloodMoonEnemyCount,10);if(bc>0)S.world.bmCount=bc;}catch(e){}}
  else if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>0)S.freq=bf2;}
  S.world.settings=st;
- if(pl)applyImportedCharacter(pl); else save();
+ if(pl)applyImportedCharacter(pl,true); else save(); // force=true: LIVE mirrors the save (days, level, magazines, build progress)
 }
 function autoRefreshTick(){
  if(!S.autoRefresh||!S.world)return;
