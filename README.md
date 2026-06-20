@@ -4,7 +4,7 @@
 
 # 7DtD Survival Companion
 
-**Local, offline companion app for _7 Days to Die_** — interactive world map, perk planner, and a real settings editor that writes straight back to your save.
+**Local, offline companion app for _7 Days to Die_** — interactive 3D map, gate-correct build & perk planner, 8-player squad board, and a real settings editor that writes straight back to your save.
 
 ![Rust](https://img.shields.io/badge/Rust-backend-orange?logo=rust)
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)
@@ -23,14 +23,15 @@ A single Rust executable that serves a small web app on `127.0.0.1:17873` and re
 
 ## Features
 
-Ten tabs — **World · 3D Map · Dashboard · Build · Perks · Horde · Loot · Magazines · Reference · Wiki** — all reading your real saves. A ⌂ button reopens the world/character picker anytime, so you can switch save without reloading.
+Eleven tabs — **World · 3D Map · Dashboard · Build · Perks · Horde · Squad · Loot · Magazines · Reference · Wiki** — all reading your real saves. Top-bar buttons **refresh from save** (re-read level/day/progress live) or jump **back to the world/character picker** without reloading.
 
 - 🌍 **World settings editor** — edit `gameOptions.sdf` with real write-back (automatic backup + byte-exact re-encode + SandboxCode patching + one-click **restore/undo**). All **150** sandbox options are editable with the game's real value lists, plus one-click **difficulty presets** (Baby → Nightmare) and a plain-English explanation for every setting
 - 🗺️ **3D world map** — WebGL terrain (biomes, roads, water) decoded from your world files; fly the camera, go fullscreen, search 2000+ POIs by **in-game or brand name** with fly-to, filter by difficulty tier, and **click any building** for an info panel: prefab preview image, tier, size, max zombies, quest types and distance to your base
-- 🔨 **Build planner** — 10 build routes with a guided phase plan that imports your real `.ttp` progression. Pick any perk from the full 57-perk catalog and it slots into the route **rank-by-rank at the phase its attribute gate unlocks**, with the attribute-leveling steps auto-inserted as prerequisites (each showing the real per-level attribute buff) and your custom picks flagged. Switch character/world anytime — no reload
+- 🔨 **Build planner** — **19 build routes** with a guided, gate-correct phase plan that imports your real `.ttp` progression. Every step is a single skill point (each perk rank, and each attribute level with its real per-level effect); pick any perk from the 57-perk catalog and it slots into the route at the phase its gate unlocks, prerequisites auto-inserted, custom picks flagged. Each route shows its **win-condition rationale** and the **skill-point budget**, and exports to Markdown to share with your squad
 - 📊 **Perk reference** — every perk with an expandable breakdown of what each of its 5 ranks does, straight from the game data
-- 🩸 **Horde night** — readiness checklist + special-enemy timeline by gamestage
-- 📦 **Loot** & 📕 **Magazines** — loot-stage calculator; all 23 crafting magazines with a readable **quality ladder** (Q1–Q6 unlock breakpoints) and 19 perk-book series, every item linking to the wiki
+- 🩸 **Horde night** — readiness checklist, a real special-enemy threat sheet with counters (Demolisher chest charge, Cop suicide-explosion, Wight, Screamer heat…), Blood Moon sequence and combat doctrine, plus a **Combat Loadout that follows your active build**
+- 👥 **Squad board** — assign up to 8 teammates a build, see **role-coverage gaps** (Anchor / Ranged / Flanker / Support), the real **party Game Stage** + per-player Blood Moon load, and a PvP counter playbook for Kill-Everyone servers
+- 📦 **Loot** & 📕 **Magazines** — loot-stage → gear-tier calculator; all 23 crafting magazines with a readable **quality ladder** (Q1–Q6) plus a **Closest Unlocks** tracker (what to read next), and 19 perk-book series, every item linking to the wiki
 - 📚 **Wiki** — live in-app search of the 7 Days to Die Fandom wiki
 - 📋 **Reference** — quick reference cards (settings, sledge rules, infection, base design, biomes, attributes, crafting, buffs, trader, gamestage thresholds)
 
