@@ -553,6 +553,12 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .squad-del:hover{color:#ff8a7a}
 .squad-gap{padding:7px 0;color:var(--text-soft);font-size:13px;line-height:1.55}
 .squad-roledef{display:flex;gap:12px;align-items:center;padding:6px 0;font-size:13px;color:var(--text-muted)}
+.mag-next{display:flex;flex-direction:column;margin-top:8px}
+.mag-nextrow{display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.mag-nextrow:last-child{border-bottom:none}
+.mag-need{font:700 11px/1 var(--mono);color:var(--tab-cold);background:rgba(var(--tab-rgb),.16);padding:5px 9px;border-radius:999px;flex:0 0 auto;min-width:64px;text-align:center}
+.mag-nextrow b{color:var(--text);min-width:120px}
+.mag-arrow{color:var(--text-muted)}
 .qlegend .qk{display:inline-block;font:600 9.5px/1 var(--mono);padding:3px 7px;border-radius:5px;margin:0 1px;vertical-align:middle}
 .qlegend .qk.on{background:rgba(92,196,122,.16);color:#5cc47a}.qlegend .qk.cur{background:rgba(245,183,60,.16);color:var(--acc2)}.qlegend .qk.off{background:rgba(255,255,255,.05);color:var(--text-muted)}
 #mags .import-notice{display:flex;align-items:center;gap:10px;margin-top:10px}#mags .import-notice::before{content:"LOAD";flex:none;padding:4px 7px;border:1px solid rgba(79,180,119,.36);border-radius:999px;color:var(--ok);font:700 9px/1 var(--mono);letter-spacing:.08em}
@@ -1317,6 +1323,15 @@ function a11yClickable(root){
 }
 // Max craftable quality (1-6) for a crafting unlock at read count v; q = the 6 count breakpoints.
 function craftMaxQ(t,v){return t.q?t.q.filter(function(c){return c<=v;}).length:(v>=t.lvl?1:0);}
+// The closest next unlock for a crafting magazine: smallest read-count above the current that opens a new recipe or quality tier.
+function magNextUnlock(i){var m=MAGS[i];if(!m||m[5]==="book")return null;var v=S.mag[i]||0,cap=m[1];if(v>=cap)return null;
+ var tiers=((RD&&RD.craftingTiers&&RD.craftingTiers[m[4]])||[]).filter(function(t){return t.lvl<=cap;}),best=null;
+ tiers.forEach(function(t){
+  if(t.lvl>v&&t.lvl<=cap){var d=t.lvl-v;if(!best||d<best.need)best={need:d,label:"unlock "+(t.name||m[2])};}
+  if(t.q)t.q.forEach(function(c,qi){if(c>v&&c<=cap){var d=c-v;if(!best||d<best.need)best={need:d,label:"Q"+(qi+1)+" "+(t.name||m[2])};}});
+ });
+ return best?{skill:m[2],need:best.need,label:best.label,cur:v,cap:cap}:null;
+}
 function rMags(){if(!S.books)S.books={};
  var magNow=0,magMax=0,magDone=0,priorityNow=0,priorityMax=0,bookNow=0,bookDone=0;
  MAGS.forEach(function(m,i){if(m[5]==="book")return;var v=S.mag[i]||0;magNow+=v;magMax+=m[1];if(v>=m[1])magDone++;if(m[3]){priorityNow+=v;priorityMax+=m[1];}});
@@ -1330,6 +1345,8 @@ function rMags(){if(!S.books)S.books={};
    opsStat("PRIORITY / SLEDGE",priorityPct+"%",priorityNow+" of "+priorityMax+" priority progress")+'</div>'+
   '<div class="card"><h3>Archive Search</h3><div class="sub">Crafting magazines unlock recipes and quality. Completed perk book series grant permanent bonuses. ★ marks priorities for the active Sledge doctrine.</div>'+
   '<input class="searchbar" id="magq" placeholder="Search magazines or perk books…" value="'+esc(S.magq||"")+'" style="margin-top:10px;margin-bottom:0"></div>';
+ var nexts=[];MAGS.forEach(function(m,i){var n=magNextUnlock(i);if(n)nexts.push(n);});nexts.sort(function(a,b){return a.need-b.need||a.skill.localeCompare(b.skill);});
+ if(nexts.length)html+='<div class="card"><h3>Closest Unlocks</h3><div class="sub">Crafting lines you are nearest a new recipe or quality tier on — read these magazines next.</div><div class="mag-next">'+nexts.slice(0,8).map(function(n){return '<div class="mag-nextrow"><span class="mag-need">+'+n.need+' mag'+(n.need===1?"":"s")+'</span><b>'+esc(n.skill)+'</b><span class="mag-arrow">→ '+esc(n.label)+'</span></div>';}).join("")+'</div></div>';
  if(S.importedPlayer)html+='<div class="banner safe import-notice">Crafting progress imported from <b>'+esc(S.importedPlayer.name)+'</b>. Values are crafting levels and may not equal physical magazine count when Points per Magazine is modified.</div>';
  // Crafting magazines grouped by category
  var groups={};MAGS.forEach(function(m,i){if(m[5]==="book")return;var cat=MAGCAT[m[2]]||MAGCAT[m[0]]||"Other";(groups[cat]=groups[cat]||[]).push(i);});
