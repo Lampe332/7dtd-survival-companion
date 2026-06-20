@@ -281,6 +281,16 @@ fn handle(
                 &json!({"ok": false, "error": error}),
             ),
         },
+        // Lightweight live refresh: re-reads ONLY the saves (settings + players/.ttp + world day),
+        // never the maps/POIs/heightmaps. Cheap enough to poll every few seconds while the game runs.
+        (&Method::Get, "/api/refresh") => match scan_saves(paths) {
+            Ok(saves) => respond_json(request, &json!({ "saves": saves })),
+            Err(error) => respond_status_json(
+                request,
+                StatusCode(500),
+                &json!({ "ok": false, "error": error }),
+            ),
+        },
         (&Method::Get, "/api/data") => {
             let current = cache.lock().map_err(|e| e.to_string())?.clone();
             match current {
@@ -300,6 +310,49 @@ fn handle(
             &json!({"ok": false, "error": "Nicht gefunden"}),
         ),
     }
+}
+
+// Saves-only scan (no maps): used by /api/refresh for cheap live polling. Mirrors the saves loop in scan().
+fn scan_saves(paths: &Paths) -> Result<Vec<Save>, String> {
+    let saves_root = paths.appdata.join("Saves");
+    let worlds_root = paths.appdata.join("GeneratedWorlds");
+    if !saves_root.is_dir() {
+        return Err(format!("Save-Ordner fehlt: {}", saves_root.display()));
+    }
+    let mut saves = Vec::new();
+    for world in read_dirs(&saves_root)? {
+        let world_dir = saves_root.join(&world);
+        for save_name in read_dirs(&world_dir)? {
+            let save_dir = world_dir.join(&save_name);
+            let sdf = save_dir.join("gameOptions.sdf");
+            if !sdf.is_file() {
+                continue;
+            }
+            let settings = match fs::read(&sdf) {
+                Ok(bytes) => parse_sdf(&bytes),
+                Err(error) => {
+                    eprintln!(
+                        "[7DtD] gameOptions.sdf unlesbar, Save übersprungen ({}): {error}",
+                        sdf.display()
+                    );
+                    continue;
+                }
+            };
+            let players = parse_players(&save_dir);
+            saves.push(Save {
+                id: format!("{world} / {save_name}"),
+                world: world.clone(),
+                save: save_name,
+                settings,
+                pl: players,
+                scanned: true,
+                has_map: worlds_root.join(&world).is_dir(),
+                day: read_world_day(&save_dir),
+            });
+        }
+    }
+    saves.sort_by_key(|a| a.id.to_lowercase());
+    Ok(saves)
 }
 
 fn scan(paths: &Paths) -> Result<ScanData, String> {

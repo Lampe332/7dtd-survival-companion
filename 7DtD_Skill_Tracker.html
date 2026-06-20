@@ -591,6 +591,9 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .gs-txt{flex:1;min-width:0}.gs-txt b{display:block;font-size:14px;color:var(--text)}.gs-txt span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gs-empty{padding:22px 15px;color:var(--muted);font-size:13px;text-align:center}
 .icon.notify-on{color:var(--done);border-color:var(--done)}.icon.notify-on:hover{color:var(--done)}
+#livebtn{font:700 10px/1 var(--mono);letter-spacing:.5px;display:inline-flex;align-items:center;gap:4px}
+#livebtn.live-on{color:var(--done);border-color:var(--done);animation:livepulse 1.7s ease-in-out infinite}
+@keyframes livepulse{0%,100%{box-shadow:inset 0 1px rgba(255,255,255,.04),0 0 0 0 rgba(92,196,122,0)}50%{box-shadow:inset 0 1px rgba(255,255,255,.04),0 0 0 3px rgba(92,196,122,.16)}}
 .wiki-cachebadge{display:inline-block;margin-left:8px;font:600 10px var(--mono);color:var(--acc2);border:1px solid var(--line2);border-radius:3px;padding:1px 6px}
 .biomebar{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
 .biomechip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid var(--line2);background:var(--card2);color:var(--text)}
@@ -621,6 +624,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
   <span class="icon" id="gsbtn" title="Global search (Ctrl+K) — find any perk, build, magazine, POI, setting or reference across every tab" role="button" tabindex="0">⌕</span>
   <span class="icon" id="notifybtn" title="Blood Moon desktop alerts — notify me when a horde night is near" role="button" tabindex="0">🔔</span>
   <span class="icon" id="refreshbtn" title="Refresh from save — re-read level, day and progression without leaving the app" role="button" tabindex="0">↻</span>
+  <span class="icon" id="livebtn" title="Live auto-refresh — keep reading your save every 10s so the day, level and Blood Moon countdown follow the game automatically (the game must write its autosave first)" role="button" tabindex="0">◉ LIVE</span>
   <span class="icon" id="backstart" title="Change world / character — back to the start screen" role="button" tabindex="0">⌂</span>
   <span class="icon" id="exp" title="Export/Import">⇅</span>
 </div>
@@ -2588,6 +2592,42 @@ function checkBloodMoonNotify(force){
   try{new Notification("🩸 7DtD Blood Moon",{body:msg});}catch(e){}}
 }
 (function(){var nb=document.getElementById("notifybtn");if(nb){nb.onclick=toggleNotify;nb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleNotify();}}}renderNotifyBtn();setInterval(function(){checkBloodMoonNotify(false);},60000);setTimeout(function(){checkBloodMoonNotify(false);},2500);})();
+/* ===== Live auto-refresh from save (polls the lightweight /api/refresh) ===== */
+var AUTO_REFRESH_MS=10000,_autoTimer=null;
+function renderLiveBtn(){var b=document.getElementById("livebtn");if(b)b.classList.toggle("live-on",!!S.autoRefresh);}
+// Apply a freshly-read save WITHOUT rebuilding the map/3D view (so a 10s poll never resets the camera).
+function autoApplyRefresh(cur,pl){
+ var st=cur.settings||{},v3=("SandboxCode" in st);
+ if(typeof cur.day==="number"&&cur.day>=1)S.day=cur.day;
+ if(pl){pl.world=cur.world;pl.save=cur.save;}
+ if(v3){try{var dc=decodeSandbox(st.SandboxCode),bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;var bc=parseInt(dc.BloodMoonEnemyCount,10);if(bc>0)S.world.bmCount=bc;}catch(e){}}
+ else if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>0)S.freq=bf2;}
+ S.world.settings=st;
+ if(pl)applyImportedCharacter(pl); else save();
+}
+function autoRefreshTick(){
+ if(!S.autoRefresh||!S.world)return;
+ fetch("/api/refresh",{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+  var saves=(d&&d.saves)||[];
+  var cur=saves.filter(function(s){return s.world===S.world.world&&s.save===S.world.save;})[0];if(!cur)return;
+  var pls=cur.pl||cur.players||[],sid=S.importedPlayer&&S.importedPlayer.steam;
+  var pl=pls.filter(function(p){return p.steam&&p.steam===sid;})[0]||pls.filter(function(p){return p.name===(S.importedPlayer&&S.importedPlayer.name);})[0]||pls[0]||null;
+  var oldDay=S.day,oldLvl=S.lvl,oldProg=JSON.stringify(S.playerProgression||{});
+  autoApplyRefresh(cur,pl);
+  var changed=(S.day!==oldDay)||(S.lvl!==oldLvl)||(JSON.stringify(S.playerProgression||{})!==oldProg);
+  renderTop(); // day counter always reflects the latest read
+  if(changed&&S.tab!=="d3")show(); // re-render the active tab, but never the 3D map (would reset the camera)
+  checkBloodMoonNotify(false);
+ }).catch(function(){/* game writing the file / transient — ignore, try again next tick */});
+}
+function setAutoRefresh(on){
+ if(on&&!S.world){toast("Import a world + survivor first, then turn on Live.");return;}
+ S.autoRefresh=!!on;save();renderLiveBtn();
+ if(_autoTimer){clearInterval(_autoTimer);_autoTimer=null;}
+ if(on){_autoTimer=setInterval(autoRefreshTick,AUTO_REFRESH_MS);autoRefreshTick();toast("Live on — reading your save every "+(AUTO_REFRESH_MS/1000)+"s. The day/level follow the game once it autosaves.");}
+ else toast("Live auto-refresh off.");
+}
+(function(){var lb=document.getElementById("livebtn");if(lb){lb.onclick=function(){setAutoRefresh(!S.autoRefresh);};lb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setAutoRefresh(!S.autoRefresh);}}}renderLiveBtn();if(S.autoRefresh&&S.world){_autoTimer=setInterval(autoRefreshTick,AUTO_REFRESH_MS);setTimeout(autoRefreshTick,1500);}})();
 renderTop();show();
 loadRef(function(){show();});
 </script>
