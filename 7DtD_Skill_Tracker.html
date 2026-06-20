@@ -233,6 +233,9 @@ body.map-fs-active{overflow:hidden}
 .custombadge{font:700 9px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--tab-cold);background:rgba(var(--tab-rgb),.2);padding:3px 7px;border-radius:999px;margin-left:7px}
 .pickrow .rtag{font:700 10px/1 var(--mono);color:var(--tab-cold);background:rgba(var(--tab-rgb),.18);padding:2px 6px;border-radius:5px;margin-left:3px}
 .capnote{color:var(--acc2);font-size:11px}
+.pickrow.attrstep{border-style:solid;border-color:rgba(var(--tab-rgb),.55);background:rgba(var(--tab-rgb),.14);cursor:default}
+.pickrow.attrstep:hover{background:rgba(var(--tab-rgb),.14);border-color:rgba(var(--tab-rgb),.55)}
+.pickrow .attrx{display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 22px;border-radius:5px;background:rgba(var(--tab-rgb),.3);color:var(--tab-cold);font-size:11px}
 .perk-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:10px;cursor:pointer;transition:border-color var(--motion),transform var(--motion)}
 .perk-nav:hover{border-color:rgba(var(--tab-rgb),.55);transform:translateY(-1px)}
 .perk-nav .sub{display:block;margin-top:5px;color:var(--text-muted);font-size:12.5px}
@@ -800,7 +803,10 @@ function rBuild(){var st=bstate();
    body+=rowHTML(id,it[0],it[1],it[2],on);});
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
   // Each selected perk's ranks are distributed into the phase each rank's attribute-gate unlocks; ranks the route can't reach are capped out.
-  rankEntries.filter(function(e){return e.phase===pi;}).sort(function(a,b){return a.gate-b.gate||a.name.localeCompare(b.name)||a.n-b.n;}).forEach(function(e){body+=pickRowHTML(e);});
+  rankEntries.filter(function(e){return e.phase===pi;}).sort(function(a,b){
+    if(a.attrStep&&!b.attrStep)return -1;if(b.attrStep&&!a.attrStep)return 1;
+    if(a.attrStep&&b.attrStep)return a.attr.localeCompare(b.attr);
+    return a.gate-b.gate||a.name.localeCompare(b.name)||a.n-b.n;}).forEach(function(e){body+=pickRowHTML(e);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
  html+='<div class="module-title">Perk Reference <span>READ-ONLY · WHAT EVERY PERK DOES</span></div>'+
@@ -837,17 +843,22 @@ function buildAttrCaps(bid){
 }
 // Flatten selected perks into per-rank entries, each placed in the phase its gate unlocks; cap ranks the route can't reach.
 function pickRankEntries(st){
- var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[];
+ var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],attrNeed={};
  (RD&&RD.perks?RD.perks:[]).forEach(function(p){
   if(!(st.picks&&st.picks[p.key]))return;
   var gates=perkGates(p);if(!gates.length)return;
-  var cap=p.attribute==="General"?10:Math.max(caps[p.attribute]||1,gates[0]);
-  var lastReach=0;gates.forEach(function(g,i){if(g<=cap)lastReach=i+1;});
   var ranks=(RD.perkRanks&&RD.perkRanks[p.key])||[];
-  gates.forEach(function(g,i){var n=i+1;if(g>cap)return;
-   out.push({key:p.key,name:p.name,attr:p.attribute,n:n,gate:g,phase:phaseForGate(g,pc),title:(ranks[i]&&ranks[i].t)||"",capped:(n===lastReach&&lastReach<gates.length),capGate:gates[lastReach]||0});
+  // A custom pick is an explicit intent to invest, so ALL ranks slot in (no off-attribute cap); each rank sits in the phase its gate unlocks.
+  gates.forEach(function(g,i){var n=i+1;
+   out.push({key:p.key,name:p.name,attr:p.attribute,n:n,gate:g,phase:phaseForGate(g,pc),title:(ranks[i]&&ranks[i].t)||""});
   });
+  // Record the attribute investment this pick demands (max gate = level needed for its last rank; first gate = when it starts).
+  if(p.attribute!=="General"){var max=gates[gates.length-1],min=gates[0],cur=attrNeed[p.attribute];
+   if(!cur){attrNeed[p.attribute]={level:max,firstGate:min};}else{if(max>cur.level)cur.level=max;if(min<cur.firstGate)cur.firstGate=min;}}
  });
+ // Emit an explicit "raise <attr>" step for attributes the written build plan doesn't already level high enough.
+ Object.keys(attrNeed).forEach(function(a){var nd=attrNeed[a],base=caps[a]||1;if(base>=nd.level)return;
+  out.push({attrStep:true,attr:a,level:nd.level,from:base,phase:phaseForGate(nd.firstGate,pc)});});
  return out;
 }
 // Perks already written into the active build's phase plan (by name), so the selection list can mark them "in route" and disable re-picking.
@@ -862,9 +873,11 @@ function buildPerkKeys(bid){
  return set;
 }
 function pickRowHTML(e){
+ if(e.attrStep){
+  return '<div class="pickrow attrstep" title="Attribute investment your custom perks require"><div class="cbx attrx">▲</div><div class="txt"><div class="lbl">Raise '+esc(e.attr)+' to '+e.level+' <span class="custombadge">required</span></div><div class="ef">Needed for your custom '+esc(e.attr)+' perks ('+e.from+' → '+e.level+')</div></div></div>';
+ }
  var req=e.attr==="General"?"general perk":"needs "+e.attr+" "+e.gate;
- var cap=e.capped?' <span class="capnote">R'+(e.n+1)+'+ need '+e.attr+' ≥'+e.capGate+' — not in this route</span>':'';
- return '<div class="pickrow" data-pick="'+esc(e.key)+'" role="button" tabindex="0" title="Custom pick — click to remove the whole perk"><div class="cbx pickx">✕</div><div class="txt"><div class="lbl">'+esc(e.name)+' <span class="rtag">R'+e.n+'</span> <span class="custombadge">custom</span></div><div class="ef">'+(e.title?esc(e.title)+' · ':'')+req+cap+'</div></div></div>';
+ return '<div class="pickrow" data-pick="'+esc(e.key)+'" role="button" tabindex="0" title="Custom pick — click to remove the whole perk"><div class="cbx pickx">✕</div><div class="txt"><div class="lbl">'+esc(e.name)+' <span class="rtag">R'+e.n+'</span> <span class="custombadge">custom</span></div><div class="ef">'+(e.title?esc(e.title)+' · ':'')+req+'</div></div></div>';
 }
 function wireDropdown(id,onPick){
  var dd=document.getElementById(id);if(!dd)return;
