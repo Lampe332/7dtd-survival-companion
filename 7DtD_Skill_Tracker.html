@@ -835,6 +835,7 @@ function show(){
  try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,squad:rSquad,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
  catch(e){showRenderError(e);}
  a11yClickable(); // keyboard-enable tabs + freshly rendered clickable elements
+ if(typeof checkBloodMoonNotify==="function")checkBloodMoonNotify(false); // re-check Blood Moon alert on every day/tab change (instant, deduped per day)
 }
 function showRenderError(e){
  var el=document.getElementById(S.tab)||document.body;
