@@ -241,6 +241,7 @@ body[data-tab="horde"]{--tab-rgb:211,54,43;--tab-hot:#d3362b;--tab-cold:#ff8a54}
 body[data-tab="loot"]{--tab-rgb:202,145,48;--tab-hot:#ca9130;--tab-cold:#edc860}
 body[data-tab="mags"]{--tab-rgb:157,121,196;--tab-hot:#9d79c4;--tab-cold:#c5a0e5}
 body[data-tab="ref"]{--tab-rgb:111,167,120;--tab-hot:#6fa778;--tab-cold:#9dcc9b}
+body[data-tab="wiki"]{--tab-rgb:90,166,255;--tab-hot:#5aa6ff;--tab-cold:#8fc4ff}
 body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
  radial-gradient(650px 650px at 5% 42%,transparent 0 36%,rgba(var(--tab-rgb),.055) 36.15% 36.35%,transparent 36.5% 44%,rgba(var(--tab-rgb),.03) 44.15% 44.35%,transparent 44.5%),
  radial-gradient(520px 520px at 97% 68%,transparent 0 40%,rgba(var(--tab-rgb),.04) 40.2% 40.45%,transparent 40.6% 51%,rgba(var(--tab-rgb),.025) 51.2% 51.45%,transparent 51.6%),
@@ -377,7 +378,16 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .bvbadge{justify-self:start;padding:2px 7px;border-radius:10px;font:700 9.5px/1.55 var(--mono);letter-spacing:.5px;white-space:nowrap}
 .bvbadge.yes{background:rgba(92,196,122,.18);color:#5cc47a;border:1px solid rgba(92,196,122,.45)}
 .bvbadge.no{background:rgba(255,255,255,.05);color:var(--dim);border:1px solid rgba(255,255,255,.1)}
-.bveff{color:#cfc8c0;line-height:1.4}.bvmore{color:var(--acc2);font:600 11px/1 var(--mono);white-space:nowrap}.wlink{color:var(--tab-cold);text-decoration:none;border-bottom:1px dotted rgba(112,211,199,.45)}.wlink:hover{color:#fff;border-bottom-color:#fff}.bvq{color:var(--dim);font:600 10px/1 var(--mono);white-space:nowrap}.bvbadge.q6{background:rgba(245,183,60,.18);color:var(--acc2);border:1px solid rgba(245,183,60,.5)}.qladder{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}.qstep{font:600 9px/1.5 var(--mono);padding:1px 5px;border-radius:7px;white-space:nowrap}.qstep.on{background:rgba(92,196,122,.15);color:#5cc47a;border:1px solid rgba(92,196,122,.4)}.qstep.off{background:rgba(255,255,255,.035);color:var(--dim);border:1px solid rgba(255,255,255,.08)}.qstep.cur{background:rgba(245,183,60,.16);color:var(--acc2);border-color:rgba(245,183,60,.55)}.mag-entry{position:relative;padding:13px 150px 13px 14px;border:1px solid rgba(255,255,255,.065);border-radius:5px;background:#151a1e}.mag-entry:hover{border-color:rgba(var(--tab-rgb),.27);background:rgba(var(--tab-rgb),.045)}.mag-entry.priority{box-shadow:inset 2px 0 var(--tab-hot)}.mag-entry.complete{border-color:rgba(111,167,120,.25);background:rgba(79,130,87,.055)}.mag-name{font-size:13px;font-weight:680}.mag-meta{margin-top:3px;color:#807a74;font-size:10px}.mag-entry .stepper{position:absolute;right:12px;top:11px}.mag-entry .stepper button{width:25px;height:25px;border-radius:4px}.mag-entry .stepper .mc{min-width:48px;font-size:11px}.mag-entry .bar{margin-top:12px;height:5px}
+.bveff{color:#cfc8c0;line-height:1.4}.bvmore{color:var(--acc2);font:600 11px/1 var(--mono);white-space:nowrap}.wlink{color:var(--tab-cold);text-decoration:none;border-bottom:1px dotted rgba(112,211,199,.45)}.wlink:hover{color:#fff;border-bottom-color:#fff}.bvq{color:var(--dim);font:600 10px/1 var(--mono);white-space:nowrap}.bvbadge.q6{background:rgba(245,183,60,.18);color:var(--acc2);border:1px solid rgba(245,183,60,.5)}.qladder{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}.qstep{font:600 9px/1.5 var(--mono);padding:1px 5px;border-radius:7px;white-space:nowrap}.qstep.on{background:rgba(92,196,122,.15);color:#5cc47a;border:1px solid rgba(92,196,122,.4)}.qstep.off{background:rgba(255,255,255,.035);color:var(--dim);border:1px solid rgba(255,255,255,.08)}.qstep.cur{background:rgba(245,183,60,.16);color:var(--acc2);border-color:rgba(245,183,60,.55)}
+.wiki-searchrow{display:flex;gap:8px;margin-top:10px}.wiki-searchrow .searchbar{flex:1}
+.wiki-count{margin:14px 2px 8px;color:var(--muted);font:700 10px/1 var(--mono);letter-spacing:.6px;text-transform:uppercase}
+.wiki-results{display:flex;flex-direction:column;gap:8px}
+.wiki-hit{display:block;text-decoration:none;border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:11px 13px;background:#151a1e;transition:.15s}
+.wiki-hit:hover{border-color:rgba(var(--tab-rgb),.5);background:rgba(var(--tab-rgb),.06);transform:translateY(-1px)}
+.wiki-hit-title{color:var(--tab-cold);font-weight:700;font-size:14px}.wiki-hit:hover .wiki-hit-title{color:#fff}
+.wiki-hit-sub{margin-top:3px;color:var(--muted);font-size:11.5px;line-height:1.45;font-family:var(--mono)}
+.wiki-empty{padding:16px 2px;color:var(--muted);font-size:13px}
+.mag-entry{position:relative;padding:13px 150px 13px 14px;border:1px solid rgba(255,255,255,.065);border-radius:5px;background:#151a1e}.mag-entry:hover{border-color:rgba(var(--tab-rgb),.27);background:rgba(var(--tab-rgb),.045)}.mag-entry.priority{box-shadow:inset 2px 0 var(--tab-hot)}.mag-entry.complete{border-color:rgba(111,167,120,.25);background:rgba(79,130,87,.055)}.mag-name{font-size:13px;font-weight:680}.mag-meta{margin-top:3px;color:#807a74;font-size:10px}.mag-entry .stepper{position:absolute;right:12px;top:11px}.mag-entry .stepper button{width:25px;height:25px;border-radius:4px}.mag-entry .stepper .mc{min-width:48px;font-size:11px}.mag-entry .bar{margin-top:12px;height:5px}
 .ref-console{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px}.ref-console .searchbar{margin:0}.ref-count{padding:11px 14px;border:1px solid rgba(var(--tab-rgb),.24);border-radius:6px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.055);font:700 10px/1 var(--mono);letter-spacing:.8px;white-space:nowrap}.ref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}.ref-grid .refcard{margin:0!important;min-height:185px}.refcard h3::before{content:attr(data-code);margin-right:8px;color:var(--tab-cold);font:720 9px/1 var(--mono)}.refcard{cursor:pointer;transition:.17s}.refcard:hover{transform:translateY(-2px);border-color:rgba(var(--tab-rgb),.3)}.refcard.compact{min-height:0}.refcard.compact .kv{display:none}.refcard.compact h3{margin:0}
 .world-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.world-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.world-catalog .world-group{grid-column:1/-1;margin-top:14px}.world-catalog .wi{margin:0;min-height:72px}.wi::after{content:"OPEN";color:#6c6762;font:700 8px/1 var(--mono);letter-spacing:.8px}.wi:hover::after{color:var(--tab-cold)}
 .map-console{display:grid;grid-template-columns:.78fr 1.22fr;gap:10px;margin-bottom:10px}.map-console .card{margin:0!important}.mapwrap{position:relative}.mapwrap::before{content:"TACTICAL GRID / LIVE";position:absolute;z-index:4;right:10px;top:10px;padding:6px 8px;border:1px solid rgba(var(--tab-rgb),.25);border-radius:3px;color:rgba(255,255,255,.55);background:rgba(7,10,12,.78);font:650 8px/1 var(--mono);letter-spacing:1px;pointer-events:none}.map-actions{display:flex;gap:7px;margin-top:10px}.map-actions .btn{flex:1}
@@ -418,6 +428,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <div id="loot" class="sec"></div>
 <div id="mags" class="sec"></div>
 <div id="ref" class="sec"></div>
+<div id="wiki" class="sec"></div>
 <div class="foot">All data <b>stored locally</b> · <b>offline</b> · no cloud · ⇅ exports or imports your progress</div>
 </div>
 <script>
@@ -511,7 +522,7 @@ var TIERCOL={"-1":"#6f6a5c","0":"#8a8478","1":"#5cc47a","2":"#9bd14a","3":"#f5b7
 var TIERLBL={"-1":"?","0":"T0","1":"T1","2":"T2","3":"T3","4":"T4","5":"T5"};
 var SANDORDER=["RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","HeadshotMultiplier","CrouchSpeed","WalkSpeed","RunSpeed","JumpStrength","StaminaUsage","StaminaRegen","PlayerLevelBonusApplied","JarRefund","ShowHealthBars","ShowEnemyDamage","NewbieCoat","HeadshotMode","IncomingDamage","XPMultiplier","ShowXP","EncumbranceModifier","ItemDegradation","LoseItemsOnDeathType","LoseItemsOnDeathCount","DegradeItemsOnDeath","DegradeAmountOnDeath","DeathPenalty","DropOnDeath","DropOnQuit","InfectionRate","EnemySpawnMode","EntityDamage","BlockDamageAI","BlockDamageAIBM","ZombieMove","ZombieMoveNight","ZombieFeralMove","ZombieBMMove","ZombieFeralSense","AISmellMode","AllowZombieDigging","ZombieRageChance","EntityIncomingDamage","MaxEnemyTier","BiomeZombieRespawn","BiomeAnimalRespawn","BiomeEnemyDensity","ZombiesEatAnimals","BloodMoonFrequency","BloodMoonRange","BloodMoonWarning","BloodMoonEnemyCount","AirDropFrequency","AirDropMarker","AirDropRandomTime","BiomeProgression","TemperatureSurvival","StormFreq","StormWarning","HeatMapSensitivity","GlobalGSModifier","BiomeGSModifier","GlobalLSModifier","BiomeLSModifier","POITierLSModifier","GlobalTSModifier","DayNightLength","DayLightLength","AllowMap","AllowCompass","AllowScreenMarkers","ShowLocationInfo","ShowDayTime","WorkstationsInTheWild","MaxTechType","LootRespawnDays","LootTimer","LootMaxTier","GlobalLootCount","FoodLootCount","DrinkLootCount","MedicalLootCount","AmmoLootCount","ResourceLootCount","ArmorLootCount","MeleeLootCount","RangedLootCount","DukesLootCount","CraftingMagazinesLootCount","TreasureMapChance","LootBagChance","CropOutput","SeedDropOutput","CropGrowthSpeed","BackpackCrafting","WorkstationCrafting","CraftingProgression","CraftingTime","CraftingInput","CraftingOutput","CraftingMaxTier","MiningOutput","HarvestingOutput","ScrappingOutput","SmeltingType","DewCollectorTime","DewCollectorOutput","DewCollectorInput","ApiaryTime","ApiaryOutput","ApiaryInput","RepairTypes","MaxDegradationAmount","PointsPerMagazine","SkillGainRate","SkillPointsPerLevel","QuestsEnabled","IntroQuestEnabled","TraderToTraderQuestsEnabled","StarterSkillPoints","QuestsPerTier","QuestProgressionDailyLimit","BuriedQuestsEnabled","POIQuestsEnabled","TraderDialog","TraderHours","TradersEnabled","VendingEnabled","TraderSellPrices","TraderBuyPrices","TraderProtection","TraderResetInterval","TraderItemAbundance","TraderBuyLimit","TraderMaxTier","VendingResetInterval","VendingItemAbundance","ChallengesEnabled","IntroChallengesEnabled","VehicleFuelUsage","VehicleEntityDamage","VehicleBlockDamage","VehicleSelfDamage","ElectricalOutput","SillyCelebrate","SillyBigHeads","SillyTinyZombies","SillySounds","SillyLowGravity","SillyBlackandWhite"];
 var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XP Only","Injured","Permadeath"]},"DropOnDeath":{"d":["Nothing","Everything","Toolbelt","Backpack","Delete Everything"]},"DropOnQuit":{"d":["Nothing","Everything","Toolbelt","Backpack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Off","Day","Night","All"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morning","Evening"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unlimited"]}};
-var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["horde","Horde"],["loot","Loot"],["mags","Magazines"],["ref","Reference"]];
+var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["horde","Horde"],["loot","Loot"],["mags","Magazines"],["ref","Reference"],["wiki","Wiki"]];
 function loadState(){var raw=lg("7dtd-companion");if(!raw)return {};try{return JSON.parse(raw)||{};}catch(e){try{ls("7dtd-companion.bak",raw);}catch(_){}return {};}}
 function normalizeState(s){s=(s&&typeof s==="object")?s:{};var d={tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},col:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,world:null};s=Object.assign({},d,s);if(!BUILDS[s.cur])s.cur="sledge";if(!BIOMES[s.biome])s.biome="Forest";["builds","mag","ready","col"].forEach(function(k){if(typeof s[k]!=="object"||!s[k])s[k]={};});if(typeof s.day!=="number"||s.day<1)s.day=1;if(typeof s.lvl!=="number"||s.lvl<1)s.lvl=22;return s;}
 var S=normalizeState(loadState());
@@ -556,7 +567,7 @@ function show(){
  if(S.tab!=="d3")document.body.classList.remove("map-fs-active");
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
- try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef})[S.tab]||rWorld)();}
+ try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
  catch(e){showRenderError(e);}
 }
 function showRenderError(e){
@@ -869,6 +880,37 @@ function rMags(){if(!S.books)S.books={};
  document.querySelectorAll("#mags [data-bookexp]").forEach(function(el){el.onclick=function(){var i=+el.dataset.bookexp;if(!S.bookexp)S.bookexp={};S.bookexp[i]=!S.bookexp[i];save();rMags();};});
  document.querySelectorAll("#mags [data-craftexp]").forEach(function(el){el.onclick=function(){var i=+el.dataset.craftexp;if(!S.craftexp)S.craftexp={};S.craftexp[i]=!S.craftexp[i];save();rMags();};});
  var mq=document.getElementById("magq");if(mq)mq.oninput=function(){S.magq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#mags .mag-section").forEach(function(sec){var any=false;sec.querySelectorAll(".magrow").forEach(function(r){var on=!q||(r.dataset.txt||"").indexOf(q)>=0;r.style.display=on?"":"none";if(on)any=true;});sec.style.display=any?"":"none";});};
+}
+// ---- WIKI ----
+function rWiki(){
+ var el=document.getElementById("wiki");
+ var q=S.wikiq||"";
+ el.innerHTML=hero("7DtD Wiki","Fandom search","Search the official 7 Days to Die Fandom wiki and open any page in a new browser tab.","tab_wiki")+
+  '<div class="card"><div class="ops-code">FANDOM / SEARCH</div>'+
+   '<div class="wiki-searchrow"><input id="wikiq" class="searchbar" placeholder="Search the 7DtD Fandom wiki: sledgehammer, blood moon, forge…" value="'+esc(q)+'" style="margin:0"><button class="btn" id="wikigo">Search</button></div>'+
+   '<div id="wikiresults" class="wiki-results"></div></div>';
+ var inp=document.getElementById("wikiq"),btn=document.getElementById("wikigo"),res=document.getElementById("wikiresults");
+ function go(){var term=inp.value.trim();S.wikiq=term;save();wikiSearch(term,res);}
+ btn.onclick=go;inp.onkeydown=function(e){if(e.key==="Enter")go();};inp.focus();
+ if(q)wikiSearch(q,res); // re-run last query when the tab is reopened
+}
+function wikiSearch(term,res){
+ if(!term){res.innerHTML='<div class="wiki-empty">Type a term and press Enter to search the Fandom wiki.</div>';return;}
+ res.innerHTML='<div class="wiki-empty">Searching “'+esc(term)+'” on the Fandom wiki…</div>';
+ var url="https://7daystodie.fandom.com/api.php?action=query&list=search&srsearch="+encodeURIComponent(term)+"&srlimit=20&srprop=snippet&format=json&origin=*";
+ fetch(url).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}).then(function(j){
+   var hits=(j.query&&j.query.search)||[];
+   if(!hits.length){res.innerHTML='<div class="wiki-empty">No wiki page matched “'+esc(term)+'”. <a class="wlink" href="'+fandomUrl({name:term})+'" target="_blank" rel="noopener noreferrer">Open Fandom search ›</a></div>';return;}
+   res.innerHTML='<div class="wiki-count">'+hits.length+' result'+(hits.length===1?"":"s")+' · click to open on Fandom</div>'+hits.map(function(h){
+     var snip=(h.snippet||"").replace(/<[^>]+>/g,"").replace(/&[a-z]+;/g," ").trim();
+     var u=fandomUrl({w:h.title});
+     var sub=snip?esc(snip):esc(u.replace(/^https:\/\//,""));
+     return '<a class="wiki-hit" href="'+u+'" target="_blank" rel="noopener noreferrer"><div class="wiki-hit-title">'+esc(h.title)+'</div><div class="wiki-hit-sub">'+sub+'</div></a>';
+   }).join("");
+ }).catch(function(e){
+   // API blocked/offline: fall back to a direct Fandom search link (honest degradation).
+   res.innerHTML='<div class="wiki-empty">Wiki API unreachable ('+esc(e.message)+'). <a class="wlink" href="'+fandomUrl({name:term})+'" target="_blank" rel="noopener noreferrer">Open the Fandom search page directly ›</a></div>';
+ });
 }
 // ---- REF ----
 var PRIMER=[
