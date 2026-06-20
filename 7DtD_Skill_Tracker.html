@@ -229,6 +229,16 @@ body.map-fs-active{overflow:hidden}
 .perk-nav:hover{border-color:rgba(var(--tab-rgb),.55);transform:translateY(-1px)}
 .perk-nav .sub{display:block;margin-top:5px;color:var(--text-muted);font-size:12.5px}
 .perk-nav-go{font:700 26px/1 var(--display);color:var(--tab-cold)}
+/* per-rank perk breakdown (accordion, like magazines) */
+#perks .perkrow .txt{flex:1;min-width:0}
+.perkexp{margin-left:auto;flex:0 0 auto;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--text-muted);font-size:13px;cursor:pointer;transition:background var(--motion),color var(--motion)}
+.perkexp:hover,.perkexp:focus-visible{background:rgba(var(--tab-rgb),.16);color:var(--text);outline:none}
+.perkranks{display:flex;flex-direction:column;gap:8px;padding:6px 16px 14px 50px}
+.perkranks.hide{display:none}
+.prank{display:grid;grid-template-columns:34px 1fr;gap:11px;align-items:start}
+.prn{font:700 11px/1.85 var(--mono);color:var(--tab-cold);background:rgba(var(--tab-rgb),.16);border-radius:6px;text-align:center}
+.prtxt b{display:block;color:var(--text);font-size:13px;font-weight:680}
+.prtxt span{display:block;margin-top:3px;color:var(--text-muted);font-size:12.5px;line-height:1.5}
 /* ---- loot / magazine ---- */
 .lcard{border:1px solid var(--line);border-radius:13px;padding:12px 14px;margin-bottom:8px;background:var(--card)}
 .lcard h4{font-size:14px;margin-bottom:3px;display:flex;gap:7px;align-items:center}
@@ -808,10 +818,17 @@ function perkCatalogHTML(st){
  var bodyHtml='';
  attrs.forEach(function(a){var ps=groups[a];if(!ps)return;
   var rows=ps.map(function(p){var on=!!picks[p.key],isRec=!!rec[p.key];
-   return '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'" role="button" tabindex="0" aria-pressed="'+(on?"true":"false")+'">'+
-     '<div class="cbx">'+(on?"✓":"")+'</div>'+
-     '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
-     '<div class="ef">'+esc(a)+' perk · gate '+esc(p.gates||"—")+' · slots into Phase '+(perkPhase(p,pc)+1)+'</div></div></div>';
+   var rk=(RD.perkRanks&&RD.perkRanks[p.key])||[];
+   var exp=!!(S.perkexp&&S.perkexp[p.key]);
+   var ranksHtml=rk.length?'<div class="perkranks'+(exp?"":" hide")+'">'+rk.map(function(r){return '<div class="prank"><span class="prn">R'+r.n+'</span><div class="prtxt"><b>'+esc(r.t||("Rank "+r.n))+'</b>'+(r.e&&r.e!==r.t?'<span>'+esc(r.e)+'</span>':'')+'</div></div>';}).join("")+'</div>':'';
+   var toggle=rk.length?'<span class="perkexp" data-perkexp="'+esc(p.key)+'" role="button" tabindex="0" aria-label="Show what each rank does" title="Show what each rank does">'+(exp?"▾":"▸")+'</span>':'';
+   return '<div class="perkitem" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")+" "+rk.map(function(r){return r.t+" "+r.e;}).join(" ")).toLowerCase())+'">'+
+     '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" role="button" tabindex="0" aria-pressed="'+(on?"true":"false")+'">'+
+       '<div class="cbx">'+(on?"✓":"")+'</div>'+
+       '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
+       '<div class="ef">'+esc(a)+' perk · gate '+esc(p.gates||"—")+' · slots into Phase '+(perkPhase(p,pc)+1)+(rk.length?' · '+rk.length+'-rank breakdown':'')+'</div></div>'+
+       toggle+'</div>'+
+     ranksHtml+'</div>';
   }).join("");
   bodyHtml+='<div class="perkgrp" data-grp="'+a+'"><div class="perkgrph">'+a+'</div>'+rows+'</div>';
  });
@@ -830,6 +847,7 @@ function rPerks(){
   perkCatalogHTML(st);
  document.getElementById("perks").innerHTML=html;
  document.querySelectorAll("#perks [data-perk]").forEach(function(r){r.onclick=function(){var k=r.dataset.perk;st.picks=st.picks||{};if(st.picks[k])delete st.picks[k];else st.picks[k]=1;save();rPerks();};r.onkeydown=activateOnKey;});
+ document.querySelectorAll("#perks [data-perkexp]").forEach(function(el){function tog(ev){if(ev)ev.stopPropagation();var k=el.dataset.perkexp;if(!S.perkexp)S.perkexp={};S.perkexp[k]=!S.perkexp[k];save();var item=el.closest(".perkitem"),det=item&&item.querySelector(".perkranks");if(det)det.classList.toggle("hide",!S.perkexp[k]);el.textContent=S.perkexp[k]?"▾":"▸";}el.onclick=tog;el.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog(e);}};});
  var pq=document.getElementById("perkq");if(pq)pq.oninput=function(){S.perkq=this.value;applyPerkFilter();};
  document.querySelectorAll("#perks [data-pa]").forEach(function(c){c.onclick=function(){S.perkAttr=c.dataset.pa;document.querySelectorAll("#perks [data-pa]").forEach(function(x){x.classList.toggle("on",x===c);});applyPerkFilter();};c.onkeydown=activateOnKey;});
  document.querySelectorAll("#perks .perk-nav").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};x.onkeydown=activateOnKey;});
@@ -839,10 +857,11 @@ function applyPerkFilter(){
  var q=(S.perkq||"").toLowerCase(), af=S.perkAttr||"all";
  document.querySelectorAll("#perks .perkgrp").forEach(function(g){
   var any=false;
-  g.querySelectorAll(".perkrow").forEach(function(r){
-   var okA=af==="all"||(af==="rec"&&r.dataset.rec==="1")||(af==="picked"&&r.classList.contains("picked"))||(r.dataset.attr===af);
-   var okQ=!q||(r.dataset.txt||"").indexOf(q)>=0;
-   var show=okA&&okQ; r.style.display=show?"":"none"; if(show)any=true;
+  g.querySelectorAll(".perkitem").forEach(function(it){
+   var picked=!!(it.querySelector(".perkrow")&&it.querySelector(".perkrow").classList.contains("picked"));
+   var okA=af==="all"||(af==="rec"&&it.dataset.rec==="1")||(af==="picked"&&picked)||(it.dataset.attr===af);
+   var okQ=!q||(it.dataset.txt||"").indexOf(q)>=0;
+   var show=okA&&okQ; it.style.display=show?"":"none"; if(show)any=true;
   });
   g.style.display=any?"":"none";
  });
