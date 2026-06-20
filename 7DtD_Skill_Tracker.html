@@ -656,6 +656,7 @@ function show(){
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
  try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
  catch(e){showRenderError(e);}
+ a11yClickable(); // keyboard-enable tabs + freshly rendered clickable elements
 }
 function showRenderError(e){
  var el=document.getElementById(S.tab)||document.body;
@@ -850,6 +851,7 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  document.getElementById("horde").innerHTML=html;
  document.querySelectorAll("#horde [data-r]").forEach(function(r){r.onclick=function(){var i=r.dataset.r;S.ready[i]=!S.ready[i];save();rHorde();};});
  document.querySelectorAll("#horde [data-rg]").forEach(function(btn){btn.onclick=function(){var g=prepGroups[+btn.dataset.rg],all=g.items.every(function(i){return !!S.ready[i];});g.items.forEach(function(i){S.ready[i]=!all;});save();rHorde();};});
+ a11yClickable(document.getElementById("horde")); // re-wire after self re-render
 }
 // ---- LOOT ----
 function rLoot(){var gs=gamestage(),ls2=lootstage();
@@ -893,11 +895,16 @@ function rLoot(){var gs=gamestage(),ls2=lootstage();
  html+='<div class="grid g2" style="margin-top:12px"><div class="card"><h3>High-Value Sources</h3><div class="refrow lq"><b>Weapons & ammo</b> — military POIs, Shotgun Messiah, police stations and gun safes.</div><div class="refrow lq"><b>Magazines</b> — Crack-a-Book, bookshelves, mailboxes and quest rewards.</div><div class="refrow lq"><b>Medical</b> — Pop-N-Pills, hospitals, clinics and medicine cabinets.</div><div class="refrow lq"><b>Endgame gear</b> — hardened T4/T5 chests, air drops and Infested quest rooms.</div></div>'+
  '<div class="card"><h3>Field Notes</h3><div class="refrow lq">Harder biomes increase Loot Stage; Wasteland offers the highest reward and highest risk.</div><div class="refrow lq">Loot Stage and Game Stage are separate values.</div><div class="refrow lq">Complete POIs to reach the final loot room instead of abandoning the route early.</div><div class="refrow lq">Crafting progression still depends on magazines, not high-tier weapon drops.</div></div></div>';
  document.getElementById("loot").innerHTML=html;
- document.getElementById("il").onchange=function(){S.lvl=+this.value||1;save();rLoot();};
+ // Live-update the loot numbers while typing; rLoot() re-renders, so refocus the field + keep caret.
+ function lootNum(id,set,def){var f=document.getElementById(id);if(!f)return;
+  f.oninput=function(){if(this.value==="")return;set(+this.value);save();rLoot();var n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(n.value.length,n.value.length);}catch(_){}}};
+  f.onchange=function(){set(+this.value||def);save();rLoot();};}
+ lootNum("il",function(v){S.lvl=v||1;},1);
+ lootNum("ill",function(v){S.ll=v||0;},0);
  document.getElementById("ib").onchange=function(){S.biome=this.value;save();rLoot();};
- document.getElementById("ill").onchange=function(){S.ll=+this.value||0;save();rLoot();};
  document.querySelectorAll("#loot [data-biome]").forEach(function(c){c.onclick=function(){S.biome=c.dataset.biome;save();rLoot();};});
  var lq=document.getElementById("lootq");if(lq)lq.oninput=function(){S.lootq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#loot .lq").forEach(function(r){r.style.display=(!q||(r.dataset.txt||r.textContent.toLowerCase()).indexOf(q)>=0)?"":"none";});};
+ a11yClickable(document.getElementById("loot")); // re-wire after self re-render (biome cards)
 }
 // ---- MAGS ----
 // Reusable Fandom-wiki URL helper (item link in Magazines + future wiki-search tab).
@@ -909,6 +916,20 @@ function fandomUrl(it){
  return base+"Special:Search?query="+encodeURIComponent(n);
 }
 function activateOnKey(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();this.click();}}
+// Make non-native clickable elements (tabs, dashboard tiles, perk rows, biome cards,
+// readiness rows) keyboard-operable: focusable + role=button + Enter/Space activates.
+function a11yClickable(root){
+ var sel=".tab,[data-go],#build [data-perk],#loot [data-biome],#horde [data-r]";
+ (root||document).querySelectorAll(sel).forEach(function(el){
+  var t=el.tagName;
+  if(t==="BUTTON"||t==="A"||t==="INPUT"||t==="SELECT"||t==="TEXTAREA")return;
+  if(el.getAttribute("data-kbd"))return; // already wired (persistent tabs)
+  el.setAttribute("data-kbd","1");
+  if(!el.hasAttribute("tabindex"))el.tabIndex=0;
+  if(!el.hasAttribute("role"))el.setAttribute("role","button");
+  el.addEventListener("keydown",activateOnKey);
+ });
+}
 // Max craftable quality (1-6) for a crafting unlock at read count v; q = the 6 count breakpoints.
 function craftMaxQ(t,v){return t.q?t.q.filter(function(c){return c<=v;}).length:(v>=t.lvl?1:0);}
 function rMags(){if(!S.books)S.books={};
@@ -979,7 +1000,11 @@ function rWiki(){
    '<div id="wikiresults" class="wiki-results"></div></div>';
  var inp=document.getElementById("wikiq"),btn=document.getElementById("wikigo"),res=document.getElementById("wikiresults");
  function go(){var term=inp.value.trim();S.wikiq=term;save();wikiSearch(term,res);}
- btn.onclick=go;inp.onkeydown=function(e){if(e.key==="Enter")go();};inp.focus();
+ var dq=null;
+ btn.onclick=function(){if(dq)clearTimeout(dq);go();};
+ inp.onkeydown=function(e){if(e.key==="Enter"){if(dq)clearTimeout(dq);go();}};
+ inp.oninput=function(){if(dq)clearTimeout(dq);var v=this.value.trim();if(v.length<2){return;}dq=setTimeout(go,350);}; // live search while typing (debounced)
+ inp.focus();
  if(q)wikiSearch(q,res); // re-run last query when the tab is reopened
 }
 function wikiSearch(term,res){
