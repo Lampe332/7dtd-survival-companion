@@ -865,9 +865,8 @@ function attrPointCost(L){return L<=5?1:L<=8?2:3;}
 function attrLevelEffect(attr,L){
  var w={Perception:"spears, rifles, explosives & tools",Strength:"shotguns, clubs, sledgehammers & tools",Fortitude:"fists & machine guns",Agility:"bows, handguns & knives",Intellect:"stun batons & robotic turrets"}[attr];
  if(!w)return"";
- var hs=L<=8?200+(L-1)*10:(L===9?285:300),dm=L*5;
- if(L<=1)return "Attribute passive: "+hs+"% headshot dmg, "+dm+"% dismember with "+w;
- return "+"+(L<=8?10:15)+"% headshot dmg & +5% dismember with "+w+" — now "+hs+"% / "+dm+"%";}
+ if(L<=1)return "Start — this attribute adds +10% headshot dmg & +5% dismember per level (from lvl 2) for "+w+" ONLY";
+ return "+"+(L<=8?10:15)+"% headshot dmg & +5% dismember with "+w+" ONLY";}
 // Short "what it does" line from a perk rank's full description, like the native route steps.
 // Prefer a mechanical-effect sentence (has a %, no leading flavor pronoun); fall back through numeric sentences;
 // if flavor and effect are glued in one sentence ("You can ... do 10% more damage"), drill to the numeric clause and strip the pronoun.
