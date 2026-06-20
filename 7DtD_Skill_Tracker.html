@@ -59,6 +59,7 @@ input[type=number]{font-family:var(--mono);font-weight:700}
 .txt{flex:1}.lbl{font-size:15px}.ef{font-size:12.5px;color:var(--muted);margin-top:1px}
 .star{color:var(--star);margin-left:6px;text-shadow:0 0 9px rgba(255,206,74,.5)}
 .extramark{margin-left:auto;align-self:center;color:var(--tab-cold);opacity:.7;font-size:12px;padding-left:10px;flex:0 0 auto}
+.ptcost{color:var(--dim);font-size:10px;font-weight:600;opacity:.8;margin-left:4px;white-space:nowrap}
 .nx{font-size:11px;color:var(--next);font-weight:700;align-self:center;display:flex;gap:5px;align-items:center}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--next);box-shadow:0 0 8px var(--next);animation:pulse2 1.3s infinite}
 @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.25}}
@@ -737,7 +738,7 @@ function showRenderError(e){
 // ---- calc ----
 function bm(){var f=S.freq||10;var next=S.day%f===0?S.day:Math.ceil(S.day/f)*f;return {next:next,until:next-S.day,today:S.day%f===0&&S.day>0};}
 function ringSVG(pct,col,size){size=size||90;var r=(size/2)-6;var c=2*Math.PI*r;return '<svg width="'+size+'" height="'+size+'"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+(c-c*pct/100)+'"/></svg>';}
-function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var st=BUILDS[S.cur];var gi=0,n=0,t=0,def=BUILDS[S.cur].done||0;st.phases.forEach(function(p){p[4].forEach(function(){gi++;t++;var id="c"+gi;var on=(id in b.chk)?b.chk[id]:(gi<=def);if(on)n++;});});(b.ext||[]).forEach(function(nm){t++;if(b.chk["x"+nm])n++;});pickRankEntries(b).forEach(function(e){t++;if(b.chk[pickRowId(e)])n++;});return t?Math.round(n/t*100):0;}
+function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var st=BUILDS[S.cur];var gi=0,n=0,t=0,def=BUILDS[S.cur].done||0;st.phases.forEach(function(p){p[4].forEach(function(){gi++;t++;var id="c"+gi;var on=(id in b.chk)?b.chk[id]:(gi<=def);if(on)n++;});});(b.ext||[]).forEach(function(nm){t++;if(b.chk["x"+nm])n++;});pickRankEntries(b).forEach(function(e){if(e.attrStep&&e.start)return;t++;if(b.chk[pickRowId(e)])n++;});return t?Math.round(n/t*100):0;}
 function readyScore(){var got=0,max=0;READY.forEach(function(r,i){max+=r[2];if(S.ready[i])got+=r[2];});var p=max?Math.round(got/max*100):0;var g=p>=90?"A":p>=75?"B":p>=55?"C":p>=35?"D":"F";return {p:p,g:g};}
 function gamestage(){var L=S.lvl||1,d=S.day||1;var adj=Math.min(d,L);return Math.floor((L+adj)*1.2);}
 function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor(L*bm2*(1+(S.ll||0)/100));}
@@ -801,7 +802,7 @@ function rBuild(){var st=bstate();
  var rankEntries=pickRankEntries(st);
  BUILDS[S.cur].phases.forEach(function(ph,pi){var body="",d=0,t=ph[4].length;
   ph[4].forEach(function(it){gi++;var id="c"+gi;var on=(id in st.chk)?st.chk[id]:(gi<=def);if(on)d++;
-   body+=rowHTML(id,it[0],it[1],it[2],on);});
+   body+=rowHTML(id,it[0],attrStepDesc(it[0],it[1]),it[2],on);});
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
   // Selected perks + their attribute raise-steps render as normal route rows (same style as native steps), sorted by gate so each raise-step sits right before the rank it unlocks.
   rankEntries.filter(function(e){return e.phase===pi;}).sort(function(a,b){
@@ -811,9 +812,15 @@ function rBuild(){var st=bstate();
     return (a.name||"").localeCompare(b.name||"")||a.n-b.n;}).forEach(function(e){
     var id=pickRowId(e),on=!!st.chk[id],nm,ef;
     var rt='<span class="extramark" title="Added because of your custom perks">★</span>';
-    if(e.attrStep){var c=attrPointCost(e.level);nm="→ "+esc(e.attr)+" "+e.level;ef=c+" point"+(c>1?"s":"")+" · for your custom "+esc(e.attr)+" perks";}
+    if(e.attrStep){
+     nm="→ "+esc(e.attr)+" "+e.level;
+     var aeff=esc(shortEffect((RD.attrLevels&&RD.attrLevels[e.attr]&&RD.attrLevels[e.attr][e.level])||"")||("+1 "+e.attr+" level"));
+     if(e.start){on=true;ef=aeff+' <span class="ptcost">start level</span>';}
+     else{var c=attrPointCost(e.level);ef=aeff+' <span class="ptcost">'+c+" pt</span>";}
+    }
     else{nm=esc(e.name)+" R"+e.n;ef=esc(shortEffect(e.effect)||e.title||(e.attr==="General"?"general perk":"needs "+e.attr+" "+e.gate));}
-    t++;if(on)d++;body+=rowHTML(id,nm,ef,0,on,rt);});
+    if(!(e.attrStep&&e.start)){t++;if(on)d++;}
+    body+=rowHTML(id,nm,ef,0,on,rt);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
  html+='<div class="module-title">Perk Reference <span>READ-ONLY · WHAT EVERY PERK DOES</span></div>'+
@@ -862,11 +869,17 @@ function shortEffect(e){if(!e)return"";
       ||pick(function(x){return /%/.test(x);})
       ||pick(function(x){return /\d/.test(x);});
  if(!s)return"";
- if(/^You\b/i.test(s)){var cl=s.split(/,|;| and /i),hit="";
-  for(var j=0;j<cl.length;j++){var c=cl[j].trim();if(/\d/.test(c)){hit=c.replace(/^you('re|r| can| are| have| could| might| now)?\b\s*/i,"");break;}}
-  if(hit)s=hit;}
+ if(/^You\b/i.test(s)){var cl=s.split(/,|;| but | and /i),hit="";
+  for(var p=0;p<cl.length;p++){if(/%/.test(cl[p])){hit=cl[p];break;}}
+  if(!hit)for(var j=0;j<cl.length;j++){if(/\d/.test(cl[j])){hit=cl[j];break;}}
+  if(hit){s=hit.trim();var ch=true;while(ch){var ns=s.replace(/^(you're|youre|you|that|but|still|so|and|now|can|are|have|will|do)\b[\s,]*/i,"");ch=ns!==s;s=ns;}}}
  s=s.replace(/[.!?\s]+$/,"");
  return s?(s.charAt(0).toUpperCase()+s.slice(1)+"."):"";}
+// A native build step like "-> Fortitude 8" with desc "2 points": show the real per-level attribute effect, keep the point cost small. Non-attribute steps keep their own desc.
+function attrStepDesc(label,fallback){var m=/^→\s*(Perception|Strength|Fortitude|Agility|Intellect)\s+(\d{1,2})\b/i.exec(label||"");
+ if(!m)return fallback;var attr=m[1][0].toUpperCase()+m[1].slice(1).toLowerCase(),L=+m[2];
+ var eff=shortEffect((RD.attrLevels&&RD.attrLevels[attr]&&RD.attrLevels[attr][L])||"");
+ if(!eff)return fallback;return esc(eff)+(fallback?' <span class="ptcost">'+esc(fallback)+'</span>':'');}
 function pickRankEntries(st){
  var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],need={};
  (RD&&RD.perks?RD.perks:[]).forEach(function(p){
@@ -880,9 +893,9 @@ function pickRankEntries(st){
   // Highest attribute level this pick demands; drives the prerequisite steps below.
   if(p.attribute!=="General"){var top=gates[gates.length-1];if(top>(need[p.attribute]||0))need[p.attribute]=top;}
  });
- // One step PER LEVEL from base+1 up to the highest level any picked perk needs — single +1 steps, no spans, none beyond what a pick requires (deselect lowers the max -> steps drop off).
- Object.keys(need).forEach(function(a){var base=caps[a]||1;for(var L=base+1;L<=need[a];L++){
-  out.push({attrStep:true,attr:a,level:L,prev:L-1,gate:L,phase:phaseForGate(L,pc)});
+ // One step PER LEVEL from the build's base up to the highest level any picked perk needs. The base level (e.g. 1 for an off-attribute = char start) shows as already reached; no spans, none beyond what a pick requires; skip attributes the build already levels itself.
+ Object.keys(need).forEach(function(a){var base=caps[a]||1;if(need[a]<=base)return;for(var L=base;L<=need[a];L++){
+  out.push({attrStep:true,attr:a,level:L,prev:L-1,start:(L===base),gate:L,phase:phaseForGate(L,pc)});
  }});
  return out;
 }
