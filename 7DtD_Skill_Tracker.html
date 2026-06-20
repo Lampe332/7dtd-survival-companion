@@ -1409,7 +1409,8 @@ function rowImportedDone(name,prog){
 function bookCount(prog,prefix){
   return Object.keys(prog||{}).filter(function(k){return k.indexOf(prefix)===0&&k.indexOf("complete")<0&&prog[k]>0;}).length;
 }
-function charIdentity(pl){return pl?(pl.steam||((pl.name||"?")+"|"+(pl.level||0))):null;}
+// Identity = which SAVE, not just which Steam account: the same Steam player has many saves/worlds with different progress, so include world+save (else switching save keeps the old character's checked steps).
+function charIdentity(pl){return pl?((pl.steam||pl.name||"?")+"|"+(pl.world||"")+"|"+(pl.save||"")):null;}
 function applyImportedCharacter(pl){
   var prog=pl&&pl.progression||{};S.playerProgression=prog;S.lvl=pl&&pl.level||S.lvl;S.cur=detectBuild(prog);
   // Only overwrite the user's manual perk checks + magazine edits when the imported
@@ -1424,7 +1425,7 @@ function applyImportedCharacter(pl){
   // progression (even on same-character re-import), independent of the manual-edit guard.
   if(!S.books)S.books={};S.bookfound={};
   BOOKS.forEach(function(bk,i){S.books[i]=booksReadFromProgression(prog,bk[3]);var pre="perk"+bk[3];for(var k in prog){if(k.indexOf(pre)===0&&k!==pre&&k.slice(-8)!=="complete"&&prog[k]>=1)S.bookfound[k]=1;}});
-  S.importedPlayer=pl?{name:pl.name,level:pl.level,steam:pl.steam}:null;save();
+  S.importedPlayer=pl?{name:pl.name,level:pl.level,steam:pl.steam,world:pl.world,save:pl.save}:null;save();
 }
 // ---- WELT: gameOptions.sdf binary parser (verifiziert gegen echte Saves) ----
 function esc(s){return (""+s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
@@ -1722,6 +1723,7 @@ function finishImport(pl){
 function importWorld(s,pl){
  var st=s.settings||{},v3=("SandboxCode" in st);
  if(typeof s.day==="number"&&s.day>=1)S.day=s.day; // real in-game day from main.ttw
+ if(pl){pl.world=s.world;pl.save=s.save;} // tag the survivor with its save so charIdentity distinguishes different saves of the same Steam account
  if(!pl){S.importedPlayer=null;delete S.playerProgression;}
  S.world={world:s.world,save:s.save,version:v3?"3.0+ (Dead Hot Summer)":"≤2.6 (Legacy)",preset:st.SandboxPreset||"",player:pl?pl.name:"",steam:pl?pl.steam:"",login:pl?pl.login:"",settings:st};
  if(v3){var dc=decodeSandbox(st.SandboxCode);var bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;S.world.bmCount=parseInt(dc.BloodMoonEnemyCount,10)||null;}
