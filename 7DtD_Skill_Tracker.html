@@ -814,7 +814,7 @@ function rBuild(){var st=bstate();
     var rt='<span class="extramark" title="Added because of your custom perks">★</span>';
     if(e.attrStep){
      nm="→ "+esc(e.attr)+" "+e.level;
-     var aeff=esc(shortEffect((RD.attrLevels&&RD.attrLevels[e.attr]&&RD.attrLevels[e.attr][e.level])||"")||("+1 "+e.attr+" level"));
+     var aeff=esc(attrLevelEffect(e.attr,e.level));
      if(e.start){on=true;ef=aeff+' <span class="ptcost">start level</span>';}
      else{var c=attrPointCost(e.level);ef=aeff+' <span class="ptcost">'+c+" pt</span>";}
     }
@@ -858,6 +858,12 @@ function buildAttrCaps(bid){
 // Flatten selected perks into per-rank entries, each placed in the phase its gate unlocks; cap ranks the route can't reach.
 // Skill-point cost to reach an attribute level (seven-days-to-die SKILL.md §2: lvl 2-5 = 1pt, 6-8 = 2pt, 9-10 = 3pt).
 function attrPointCost(L){return L<=5?1:L<=8?2:3;}
+// What an attribute LEVEL actually does for the build: the perk ranks it makes buyable (gate == level), from the researched perk gates (SKILL.md §2 gating + §3 per-perk gates). Distinct per level — not the generic per-level headshot/dismember passive.
+function attrLevelEffect(attr,L){if(attr==="General")return"";
+ var h=[];(RD.perks||[]).forEach(function(p){if(p.attribute!==attr)return;perkGates(p).forEach(function(g,i){if(g===L)h.push(p.name+" R"+(i+1));});});
+ if(!h.length)return "No new perk ranks at "+attr+" "+L;
+ var show=h.slice(0,5),extra=h.length-show.length;
+ return "Unlocks "+show.join(", ")+(extra>0?" +"+extra+" more":"");}
 // Short "what it does" line from a perk rank's full description, like the native route steps.
 // Prefer a mechanical-effect sentence (has a %, no leading flavor pronoun); fall back through numeric sentences;
 // if flavor and effect are glued in one sentence ("You can ... do 10% more damage"), drill to the numeric clause and strip the pronoun.
@@ -878,7 +884,7 @@ function shortEffect(e){if(!e)return"";
 // A native build step like "-> Fortitude 8" with desc "2 points": show the real per-level attribute effect, keep the point cost small. Non-attribute steps keep their own desc.
 function attrStepDesc(label,fallback){var m=/^→\s*(Perception|Strength|Fortitude|Agility|Intellect)\s+(\d{1,2})\b/i.exec(label||"");
  if(!m)return fallback;var attr=m[1][0].toUpperCase()+m[1].slice(1).toLowerCase(),L=+m[2];
- var eff=shortEffect((RD.attrLevels&&RD.attrLevels[attr]&&RD.attrLevels[attr][L])||"");
+ var eff=attrLevelEffect(attr,L);
  if(!eff)return fallback;return esc(eff)+(fallback?' <span class="ptcost">'+esc(fallback)+'</span>':'');}
 function pickRankEntries(st){
  var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],need={};
