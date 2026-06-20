@@ -809,9 +809,10 @@ function rBuild(){var st=bstate();
     if(a.attrStep&&!b.attrStep)return -1;if(b.attrStep&&!a.attrStep)return 1;
     if(a.attrStep&&b.attrStep)return a.attr.localeCompare(b.attr);
     return (a.name||"").localeCompare(b.name||"")||a.n-b.n;}).forEach(function(e){
-    var id=pickRowId(e),on=!!st.chk[id],nm,ef,rt="";
+    var id=pickRowId(e),on=!!st.chk[id],nm,ef;
+    var rt='<span class="extramark" title="Added because of your custom perks">★</span>';
     if(e.attrStep){var c=attrPointCost(e.level);nm="→ "+esc(e.attr)+" "+e.level;ef=c+" point"+(c>1?"s":"")+" · for your custom "+esc(e.attr)+" perks";}
-    else{nm=esc(e.name)+" R"+e.n;ef=(e.title?esc(e.title)+" · ":"")+(e.attr==="General"?"general perk":"needs "+esc(e.attr)+" "+e.gate);rt='<span class="extramark" title="Extra perk you added to the route">★</span>';}
+    else{nm=esc(e.name)+" R"+e.n;ef=esc(shortEffect(e.effect)||e.title||(e.attr==="General"?"general perk":"needs "+e.attr+" "+e.gate));}
     t++;if(on)d++;body+=rowHTML(id,nm,ef,0,on,rt);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
@@ -850,6 +851,22 @@ function buildAttrCaps(bid){
 // Flatten selected perks into per-rank entries, each placed in the phase its gate unlocks; cap ranks the route can't reach.
 // Skill-point cost to reach an attribute level (seven-days-to-die SKILL.md §2: lvl 2-5 = 1pt, 6-8 = 2pt, 9-10 = 3pt).
 function attrPointCost(L){return L<=5?1:L<=8?2:3;}
+// Short "what it does" line from a perk rank's full description, like the native route steps.
+// Prefer a mechanical-effect sentence (has a %, no leading flavor pronoun); fall back through numeric sentences;
+// if flavor and effect are glued in one sentence ("You can ... do 10% more damage"), drill to the numeric clause and strip the pronoun.
+function shortEffect(e){if(!e)return"";
+ var sents=(String(e).match(/[^.!?]+[.!?]*/g)||[]).map(function(s){return s.trim();}).filter(Boolean);
+ function pick(t){for(var i=0;i<sents.length;i++)if(t(sents[i]))return sents[i];return"";}
+ var s=pick(function(x){return /%/.test(x)&&!/^You\b/i.test(x);})
+      ||pick(function(x){return /\d/.test(x)&&!/^You\b/i.test(x);})
+      ||pick(function(x){return /%/.test(x);})
+      ||pick(function(x){return /\d/.test(x);});
+ if(!s)return"";
+ if(/^You\b/i.test(s)){var cl=s.split(/,|;| and /i),hit="";
+  for(var j=0;j<cl.length;j++){var c=cl[j].trim();if(/\d/.test(c)){hit=c.replace(/^you('re|r| can| are| have| could| might| now)?\b\s*/i,"");break;}}
+  if(hit)s=hit;}
+ s=s.replace(/[.!?\s]+$/,"");
+ return s?(s.charAt(0).toUpperCase()+s.slice(1)+"."):"";}
 function pickRankEntries(st){
  var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],need={};
  (RD&&RD.perks?RD.perks:[]).forEach(function(p){
@@ -858,7 +875,7 @@ function pickRankEntries(st){
   var ranks=(RD.perkRanks&&RD.perkRanks[p.key])||[];
   // A custom pick is an explicit intent to invest, so ALL ranks slot in (no off-attribute cap); each rank sits in the phase its gate unlocks.
   gates.forEach(function(g,i){var n=i+1;
-   out.push({key:p.key,name:p.name,attr:p.attribute,n:n,gate:g,phase:phaseForGate(g,pc),title:(ranks[i]&&ranks[i].t)||""});
+   out.push({key:p.key,name:p.name,attr:p.attribute,n:n,gate:g,phase:phaseForGate(g,pc),title:(ranks[i]&&ranks[i].t)||"",effect:(ranks[i]&&ranks[i].e)||""});
   });
   // Highest attribute level this pick demands; drives the prerequisite steps below.
   if(p.attribute!=="General"){var top=gates[gates.length-1];if(top>(need[p.attribute]||0))need[p.attribute]=top;}
