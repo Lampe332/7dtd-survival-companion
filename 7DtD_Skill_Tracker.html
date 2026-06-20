@@ -750,7 +750,7 @@ function showRenderError(e){
 // ---- calc ----
 function bm(){var f=S.freq||10;var next=S.day%f===0?S.day:Math.ceil(S.day/f)*f;return {next:next,until:next-S.day,today:S.day%f===0&&S.day>0};}
 function ringSVG(pct,col,size){size=size||90;var r=(size/2)-6;var c=2*Math.PI*r;return '<svg width="'+size+'" height="'+size+'"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+(c-c*pct/100)+'"/></svg>';}
-function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var st=BUILDS[S.cur];var gi=0,n=0,t=0,def=BUILDS[S.cur].done||0;st.phases.forEach(function(p){p[4].forEach(function(){gi++;t++;var id="c"+gi;var on=(id in b.chk)?b.chk[id]:(gi<=def);if(on)n++;});});(b.ext||[]).forEach(function(nm){t++;if(b.chk["x"+nm])n++;});pickRankEntries(b).forEach(function(e){if(e.attrStep&&e.start)return;t++;if(b.chk[pickRowId(e)])n++;});return t?Math.round(n/t*100):0;}
+function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var gi=0,n=0,t=0;buildAtomicSteps(S.cur).forEach(function(){gi++;t++;if(b.chk["c"+gi])n++;});(b.ext||[]).forEach(function(nm){t++;if(b.chk["x"+nm])n++;});pickRankEntries(b).forEach(function(e){if(e.attrStep&&e.start)return;t++;if(b.chk[pickRowId(e)])n++;});return t?Math.round(n/t*100):0;}
 function readyScore(){var got=0,max=0;READY.forEach(function(r,i){max+=r[2];if(S.ready[i])got+=r[2];});var p=max?Math.round(got/max*100):0;var g=p>=90?"A":p>=75?"B":p>=55?"C":p>=35?"D":"F";return {p:p,g:g};}
 function gamestage(){var L=S.lvl||1,d=S.day||1;var adj=Math.min(d,L);return Math.floor((L+adj)*1.2);}
 function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor(L*bm2*(1+(S.ll||0)/100));}
@@ -810,11 +810,12 @@ function rBuild(){var st=bstate();
   '<div class="ops-strip">'+opsStat("SURVIVOR / LVL",level,"Current progression level")+opsStat("PHASES / PLAN",phaseCount,"Structured advancement stages")+opsStat("PERKS / CUSTOM",picked,"Perks slotted into the route")+opsStat("NEXT / STEP",pct>=100?"DONE":"ACTIVE",pct>=100?"Route completed":"Highlighted inside the current phase",true)+'</div>'+imported+
   '<div class="module-title">Perk Selection <span>TICK A PERK TO SLOT IT INTO THE ROUTE</span></div>'+perkCatalogHTML(st,'select')+
   '<div class="module-title">Doctrine Phases <span>CLICK A PHASE TO COLLAPSE</span></div>';
- var gi=0,def=BUILDS[S.cur].done||0;
+ var gi=0;
+ var atomic=buildAtomicSteps(S.cur);
  var rankEntries=pickRankEntries(st);
- BUILDS[S.cur].phases.forEach(function(ph,pi){var body="",d=0,t=ph[4].length;
-  ph[4].forEach(function(it){gi++;var id="c"+gi;var on=(id in st.chk)?st.chk[id]:(gi<=def);if(on)d++;
-   body+=rowHTML(id,it[0],attrStepDesc(it[0],it[1]),it[2],on);});
+ BUILDS[S.cur].phases.forEach(function(ph,pi){var body="",d=0,t=0;
+  atomic.filter(function(s){return s.phase===pi;}).forEach(function(s){gi++;var id="c"+gi;var on=!!st.chk[id];t++;if(on)d++;
+   body+=rowHTML(id,s.name,attrStepDesc(s.name,s.desc),s.prio,on);});
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
   // Selected perks + their attribute raise-steps render as normal route rows (same style as native steps), sorted by gate so each raise-step sits right before the rank it unlocks.
   rankEntries.filter(function(e){return e.phase===pi;}).sort(function(a,b){
@@ -901,6 +902,18 @@ function attrStepDesc(label,fallback){var m=/^→\s*(Perception|Strength|Fortitu
  if(!m)return fallback;var attr=m[1][0].toUpperCase()+m[1].slice(1).toLowerCase(),L=+m[2];
  var eff=attrLevelEffect(attr,L);
  if(!eff)return fallback;return esc(eff)+(fallback?' <span class="ptcost">'+esc(fallback)+'</span>':'');}
+// Split a compact native step into ONE atomic step per skill POINT: each perk rank ("Boomstick R1-3" -> R1, R2, R3) and each attribute level ("-> Strength 5" -> 2,3,4,5) becomes its own checkpoint. attrState threads the running attribute level across the whole build so jumps expand correctly.
+function expandStep(name,desc,attrState){
+ var am=/^(?:→\s*)?(Strength|Perception|Fortitude|Agility|Intellect)\s*(?:→\s*)?(\d{1,2})$/.exec(name);
+ if(am){var a=am[1],N=+am[2],from=attrState[a]||1,out=[];for(var L=from+1;L<=N;L++)out.push(["→ "+a+" "+L,""]);if(N>from)attrState[a]=N;return out.length?out:[[name,desc]];}
+ var rm=/^(.*?)\s+R(\d+)-(\d+)$/.exec(name);
+ if(rm){var base=rm[1],a1=+rm[2],b1=+rm[3];if(b1>=a1&&b1-a1<=6){var o=[];for(var r=a1;r<=b1;r++)o.push([base+" R"+r,r===a1?desc:""]);return o;}}
+ return [[name,desc]];
+}
+// Every atomic step of a build with its phase index — the single source of truth shared by render, import auto-check and progress %, so their checkbox ids stay aligned.
+function buildAtomicSteps(bid){var out=[],attrState={},B=BUILDS[bid];if(!B)return out;
+ B.phases.forEach(function(ph,pi){ph[4].forEach(function(it){expandStep(it[0],it[1],attrState).forEach(function(s){out.push({phase:pi,name:s[0],desc:s[1],prio:it[2]});});});});
+ return out;}
 function pickRankEntries(st){
  var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],need={};
  (RD&&RD.perks?RD.perks:[]).forEach(function(p){
@@ -1432,7 +1445,7 @@ function applyImportedCharacter(pl){
   var newId=charIdentity(pl),oldId=charIdentity(S.importedPlayer);
   if(!(newId&&oldId&&newId===oldId)){
     var st=bstate();st.chk={};var gi=0;
-    BUILDS[S.cur].phases.forEach(function(ph){ph[4].forEach(function(it){gi++;st.chk["c"+gi]=rowImportedDone(it[0],prog);});});
+    buildAtomicSteps(S.cur).forEach(function(s){gi++;st.chk["c"+gi]=rowImportedDone(s.name,prog);});
     MAGS.forEach(function(m,i){S.mag[i]=m[5]==="book"?Math.min(m[1],bookCount(prog,m[4])):Math.min(m[1],progressionValue(prog,m[4]));});
   }
   // perk-book volumes are read-only save data → always refresh from the imported
