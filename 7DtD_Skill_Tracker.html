@@ -225,6 +225,8 @@ body.map-fs-active{overflow:hidden}
 .pickrow .lbl{font-size:14px;font-weight:650;color:var(--text);display:flex;align-items:center}
 .pickrow .ef{font-size:11.5px;color:var(--text-muted);margin-top:2px}
 .custombadge{font:700 9px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--tab-cold);background:rgba(var(--tab-rgb),.2);padding:3px 7px;border-radius:999px;margin-left:7px}
+.pickrow .rtag{font:700 10px/1 var(--mono);color:var(--tab-cold);background:rgba(var(--tab-rgb),.18);padding:2px 6px;border-radius:5px;margin-left:3px}
+.capnote{color:var(--acc2);font-size:11px}
 .perk-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:10px;cursor:pointer;transition:border-color var(--motion),transform var(--motion)}
 .perk-nav:hover{border-color:rgba(var(--tab-rgb),.55);transform:translateY(-1px)}
 .perk-nav .sub{display:block;margin-top:5px;color:var(--text-muted);font-size:12.5px}
@@ -786,12 +788,13 @@ function rBuild(){var st=bstate();
   '<div class="module-title">Perk Selection <span>TICK A PERK TO SLOT IT INTO THE ROUTE</span></div>'+perkCatalogHTML(st,'select')+
   '<div class="module-title">Doctrine Phases <span>CLICK A PHASE TO COLLAPSE</span></div>';
  var gi=0,def=BUILDS[S.cur].done||0;
+ var rankEntries=pickRankEntries(st);
  BUILDS[S.cur].phases.forEach(function(ph,pi){var body="",d=0,t=ph[4].length;
   ph[4].forEach(function(it){gi++;var id="c"+gi;var on=(id in st.chk)?st.chk[id]:(gi<=def);if(on)d++;
    body+=rowHTML(id,it[0],it[1],it[2],on);});
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
-  // P5: custom catalog picks slot into the phase their first attribute-gate unlocks (sorted by gate).
-  (RD&&RD.perks?RD.perks:[]).filter(function(p){return st.picks&&st.picks[p.key]&&perkPhase(p,BUILDS[S.cur].phases.length)===pi;}).sort(function(a,b){return perkFirstGate(a)-perkFirstGate(b)||a.name.localeCompare(b.name);}).forEach(function(p){body+=pickRowHTML(p);});
+  // Each selected perk's ranks are distributed into the phase each rank's attribute-gate unlocks; ranks the route can't reach are capped out.
+  rankEntries.filter(function(e){return e.phase===pi;}).sort(function(a,b){return a.gate-b.gate||a.name.localeCompare(b.name)||a.n-b.n;}).forEach(function(e){body+=pickRowHTML(e);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
  html+='<div class="module-title">Perk Reference <span>READ-ONLY · WHAT EVERY PERK DOES</span></div>'+
@@ -812,8 +815,40 @@ function rBuild(){var st=bstate();
 // P5 ordering: a perk's first attribute-gate (rank-1 requirement) is when it unlocks,
 // so it slots into the phase that gate falls in. Lower gate = earlier phase.
 function perkFirstGate(p){var g=((p&&p.gates)||"").split(/[^0-9]+/).filter(Boolean);return g.length?+g[0]:1;}
-function perkPhase(p,phaseCount){var fg=perkFirstGate(p),ph=fg<=1?0:fg<=3?1:fg<=5?2:fg<=7?3:4;return Math.min(ph,(phaseCount||5)-1);}
-function pickRowHTML(p){return '<div class="pickrow" data-pick="'+esc(p.key)+'" role="button" tabindex="0" title="Custom pick — click to remove"><div class="cbx pickx">✕</div><div class="txt"><div class="lbl">'+esc(p.name)+' <span class="custombadge">custom</span></div><div class="ef">'+esc(p.attribute)+' perk · gate '+esc(p.gates||"—")+'</div></div></div>';}
+function perkGates(p){return ((p&&p.gates)||"").split(/[^0-9]+/).filter(Boolean).map(Number);}
+function phaseForGate(g,phaseCount){var ph=g<=1?0:g<=3?1:g<=5?2:g<=7?3:4;return Math.min(ph,(phaseCount||5)-1);}
+function perkPhase(p,phaseCount){return phaseForGate(perkFirstGate(p),phaseCount);}
+// Highest level each attribute reaches in a build's written plan, so off-attribute perks get capped
+// (explicit "-> Attr N" steps, plus an "<Attr> Mastery" step which means the build maxes that attribute).
+function buildAttrCaps(bid){
+ var caps={Strength:1,Perception:1,Fortitude:1,Agility:1,Intellect:1},attrs=Object.keys(caps);
+ var reNum=/(strength|perception|fortitude|agility|intellect)[^0-9]{0,6}(\d{1,2})/i;
+ (BUILDS[bid]?BUILDS[bid].phases:[]).forEach(function(ph){ph[4].forEach(function(it){var s=it[0];
+   var m=reNum.exec(s);if(m){var a=m[1][0].toUpperCase()+m[1].slice(1).toLowerCase(),n=+m[2];if(n>=1&&n<=10&&n>caps[a])caps[a]=n;}
+   attrs.forEach(function(a){if(new RegExp(a+"\\s+Mastery","i").test(s))caps[a]=Math.max(caps[a],10);});
+ });});
+ return caps;
+}
+// Flatten selected perks into per-rank entries, each placed in the phase its gate unlocks; cap ranks the route can't reach.
+function pickRankEntries(st){
+ var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[];
+ (RD&&RD.perks?RD.perks:[]).forEach(function(p){
+  if(!(st.picks&&st.picks[p.key]))return;
+  var gates=perkGates(p);if(!gates.length)return;
+  var cap=p.attribute==="General"?10:Math.max(caps[p.attribute]||1,gates[0]);
+  var lastReach=0;gates.forEach(function(g,i){if(g<=cap)lastReach=i+1;});
+  var ranks=(RD.perkRanks&&RD.perkRanks[p.key])||[];
+  gates.forEach(function(g,i){var n=i+1;if(g>cap)return;
+   out.push({key:p.key,name:p.name,attr:p.attribute,n:n,gate:g,phase:phaseForGate(g,pc),title:(ranks[i]&&ranks[i].t)||"",capped:(n===lastReach&&lastReach<gates.length),capGate:gates[lastReach]||0});
+  });
+ });
+ return out;
+}
+function pickRowHTML(e){
+ var req=e.attr==="General"?"general perk":"needs "+e.attr+" "+e.gate;
+ var cap=e.capped?' <span class="capnote">R'+(e.n+1)+'+ need '+e.attr+' ≥'+e.capGate+' — not in this route</span>':'';
+ return '<div class="pickrow" data-pick="'+esc(e.key)+'" role="button" tabindex="0" title="Custom pick — click to remove the whole perk"><div class="cbx pickx">✕</div><div class="txt"><div class="lbl">'+esc(e.name)+' <span class="rtag">R'+e.n+'</span> <span class="custombadge">custom</span></div><div class="ef">'+(e.title?esc(e.title)+' · ':'')+req+cap+'</div></div></div>';
+}
 function wireDropdown(id,onPick){
  var dd=document.getElementById(id);if(!dd)return;
  var btn=dd.querySelector(".dd-btn"),menu=dd.querySelector(".dd-menu");
@@ -843,7 +878,7 @@ function perkCatalogHTML(st,mode){
       '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" role="button" tabindex="0" aria-pressed="'+(on?"true":"false")+'">'+
         '<div class="cbx">'+(on?"✓":"")+'</div>'+
         '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
-        '<div class="ef">'+esc(a)+' perk · gate '+esc(p.gates||"—")+' · slots into Phase '+(perkPhase(p,pc)+1)+'</div></div></div></div>';
+        '<div class="ef">'+esc(a)+' perk · gate '+esc(p.gates||"—")+' · ranks slot into the route by gate</div></div></div></div>';
    }
    var exp=!!(S.perkexp&&S.perkexp[p.key]);
    var ranksHtml=rk.length?'<div class="perkranks'+(exp?"":" hide")+'">'+rk.map(function(r){return '<div class="prank"><span class="prn">R'+r.n+'</span><div class="prtxt"><b>'+esc(r.t||("Rank "+r.n))+'</b>'+(r.e&&r.e!==r.t?'<span>'+esc(r.e)+'</span>':'')+'</div></div>';}).join("")+'</div>':'';
