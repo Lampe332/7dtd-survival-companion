@@ -569,6 +569,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <div class="top">
   <div class="logo"><span class="brand-mark">7D</span><span class="brand-copy"><b>Survival Companion</b><small>Wasteland Operations Console</small></span></div>
   <div class="dayctl"><button id="dm">−</button><div><div class="dl">Day</div><input class="dv" id="dayv" type="text" inputmode="numeric" value="1" title="Type a day number or use −/+" style="width:52px;background:transparent;border:none;color:inherit;font:inherit;text-align:center;padding:0"></div><button id="dp">+</button></div>
+  <span class="icon" id="backstart" title="Change world / character — back to the start screen" role="button" tabindex="0">⌂</span>
   <span class="icon" id="exp" title="Export/Import">⇅</span>
 </div>
 <div class="tabs" id="tabs"></div>
@@ -709,6 +710,7 @@ function renderTop(){var d=document.getElementById("dayv");if(!d)return;if(d.tag
 document.getElementById("dp").onclick=function(){S.day++;save();renderTop();show();};
 document.getElementById("dm").onclick=function(){if(S.day>1)S.day--;save();renderTop();show();};
 (function(){var di=document.getElementById("dayv");if(di&&di.tagName==="INPUT")di.onchange=function(){var v=parseInt(this.value,10);if(!(v>=1))v=1;S.day=v;save();renderTop();show();};})();
+(function(){var b=document.getElementById("backstart");if(b){b.onclick=function(){backToLauncher();};b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();backToLauncher();}};}})();
 document.getElementById("exp").onclick=function(){
  var blob=JSON.stringify(S);var inp=prompt("EXPORT / IMPORT\nCopy this code as a backup, or paste a saved code and press OK to restore it:",blob);
  if(inp&&inp!==blob){var n;try{n=JSON.parse(inp);}catch(e){alert("Invalid companion data.");return;}if(!n||typeof n!=="object"){alert("Invalid companion data.");return;}S=normalizeState(n);save();location.reload();}
@@ -1353,6 +1355,8 @@ function unlockApp(){
  var launch=document.getElementById("launcher");launch.classList.add("hide");launch.classList.remove("wizard");
  S.tab="dash";save();renderTop();show();showIntroCoach();
 }
+// Re-open the start screen (world + character selection) without reloading the page. Uses the cached scan; only the app is unlocked post-scan so W.tree is populated.
+function backToLauncher(){if(W.scanned&&W.tree){renderWorldGate();window.scrollTo(0,0);}else location.reload();}
 function showIntroCoach(){
  if(S.seenIntro||document.getElementById("introCoach"))return;
  var d=document.createElement("div");d.id="introCoach";d.className="banner safe";
