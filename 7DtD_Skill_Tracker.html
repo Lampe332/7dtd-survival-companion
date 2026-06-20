@@ -58,6 +58,7 @@ input[type=number]{font-family:var(--mono);font-weight:700}
 .cbx{flex:none;width:22px;height:22px;border-radius:8px;border:2px solid rgba(255,255,255,.22);margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0c0b09;background:rgba(255,255,255,.04);transition:.15s}
 .txt{flex:1}.lbl{font-size:15px}.ef{font-size:12.5px;color:var(--muted);margin-top:1px}
 .star{color:var(--star);margin-left:6px;text-shadow:0 0 9px rgba(255,206,74,.5)}
+.extramark{margin-left:auto;align-self:center;color:var(--tab-cold);opacity:.7;font-size:12px;padding-left:10px;flex:0 0 auto}
 .nx{font-size:11px;color:var(--next);font-weight:700;align-self:center;display:flex;gap:5px;align-items:center}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--next);box-shadow:0 0 8px var(--next);animation:pulse2 1.3s infinite}
 @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.25}}
@@ -808,10 +809,10 @@ function rBuild(){var st=bstate();
     if(a.attrStep&&!b.attrStep)return -1;if(b.attrStep&&!a.attrStep)return 1;
     if(a.attrStep&&b.attrStep)return a.attr.localeCompare(b.attr);
     return (a.name||"").localeCompare(b.name||"")||a.n-b.n;}).forEach(function(e){
-    var id=pickRowId(e),on=!!st.chk[id],nm,ef;
-    if(e.attrStep){nm="→ "+esc(e.attr)+" "+e.level;ef=esc(e.attr)+" "+e.prev+" → "+e.level+" · for your custom "+esc(e.attr)+" perks";}
-    else{nm=esc(e.name)+" R"+e.n;ef=(e.title?esc(e.title)+" · ":"")+(e.attr==="General"?"general perk":"needs "+esc(e.attr)+" "+e.gate);}
-    t++;if(on)d++;body+=rowHTML(id,nm,ef,0,on);});
+    var id=pickRowId(e),on=!!st.chk[id],nm,ef,rt="";
+    if(e.attrStep){var c=attrPointCost(e.level);nm="→ "+esc(e.attr)+" "+e.level;ef=c+" point"+(c>1?"s":"")+" · for your custom "+esc(e.attr)+" perks";}
+    else{nm=esc(e.name)+" R"+e.n;ef=(e.title?esc(e.title)+" · ":"")+(e.attr==="General"?"general perk":"needs "+esc(e.attr)+" "+e.gate);rt='<span class="extramark" title="Extra perk you added to the route">★</span>';}
+    t++;if(on)d++;body+=rowHTML(id,nm,ef,0,on,rt);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
  html+='<div class="module-title">Perk Reference <span>READ-ONLY · WHAT EVERY PERK DOES</span></div>'+
@@ -847,6 +848,8 @@ function buildAttrCaps(bid){
  return caps;
 }
 // Flatten selected perks into per-rank entries, each placed in the phase its gate unlocks; cap ranks the route can't reach.
+// Skill-point cost to reach an attribute level (seven-days-to-die SKILL.md §2: lvl 2-5 = 1pt, 6-8 = 2pt, 9-10 = 3pt).
+function attrPointCost(L){return L<=5?1:L<=8?2:3;}
 function pickRankEntries(st){
  var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],need={};
  (RD&&RD.perks?RD.perks:[]).forEach(function(p){
@@ -856,14 +859,14 @@ function pickRankEntries(st){
   // A custom pick is an explicit intent to invest, so ALL ranks slot in (no off-attribute cap); each rank sits in the phase its gate unlocks.
   gates.forEach(function(g,i){var n=i+1;
    out.push({key:p.key,name:p.name,attr:p.attribute,n:n,gate:g,phase:phaseForGate(g,pc),title:(ranks[i]&&ranks[i].t)||""});
-   // Each rank gated above what the written build already plans for needs an explicit "raise <attr> to g" step right before it — you can't jump 1->10.
-   if(p.attribute!=="General"&&g>(caps[p.attribute]||1)){(need[p.attribute]=need[p.attribute]||{})[g]=1;}
   });
+  // Highest attribute level this pick demands; drives the prerequisite steps below.
+  if(p.attribute!=="General"){var top=gates[gates.length-1];if(top>(need[p.attribute]||0))need[p.attribute]=top;}
  });
- // One raise-step per distinct required level per attribute, interleaved by gate so the route shows the climb (Intellect 3, then 5, then 6 ...).
- Object.keys(need).forEach(function(a){Object.keys(need[a]).map(Number).sort(function(x,y){return x-y;}).forEach(function(L,i,arr){
-  out.push({attrStep:true,attr:a,level:L,prev:(i>0?arr[i-1]:(caps[a]||1)),gate:L,phase:phaseForGate(L,pc)});
- });});
+ // One step PER LEVEL from base+1 up to the highest level any picked perk needs — single +1 steps, no spans, none beyond what a pick requires (deselect lowers the max -> steps drop off).
+ Object.keys(need).forEach(function(a){var base=caps[a]||1;for(var L=base+1;L<=need[a];L++){
+  out.push({attrStep:true,attr:a,level:L,prev:L-1,gate:L,phase:phaseForGate(L,pc)});
+ }});
  return out;
 }
 // Perks already written into the active build's phase plan (by name), so the selection list can mark them "in route" and disable re-picking.
@@ -965,7 +968,7 @@ function filterPerks(scope,q,af){
  });
 }
 function updatePickCount(){var st=bstate();var n=Object.keys(st.picks||{}).length;var c=document.querySelector('#build [data-pa="picked"]');if(c)c.textContent="✓ Selected ("+n+")";}
-function rowHTML(id,nm,ef,star,on){return '<div class="row'+(on?" done":"")+'" data-id="'+id+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+nm+(star?' <span class="star">★</span>':'')+'</div>'+(ef?'<div class="ef">'+ef+'</div>':'')+'</div></div>';}
+function rowHTML(id,nm,ef,star,on,rightTag){return '<div class="row'+(on?" done":"")+'" data-id="'+id+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+nm+(star?' <span class="star">★</span>':'')+'</div>'+(ef?'<div class="ef">'+ef+'</div>':'')+'</div>'+(rightTag||'')+'</div>';}
 function markNext(sec){var rows=document.querySelectorAll("#"+sec+" .row");for(var i=0;i<rows.length;i++){if(!rows[i].classList.contains("done")){rows[i].classList.add("next");var s=document.createElement("span");s.className="nx";s.innerHTML='<span class="dot"></span>next';rows[i].appendChild(s);break;}}}
 // ---- HORDE ----
 function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
