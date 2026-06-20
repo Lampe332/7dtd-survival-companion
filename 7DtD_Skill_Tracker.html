@@ -535,6 +535,24 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 #mags .bookvol{grid-template-columns:48px 88px 1fr;min-height:42px;padding:6px 0;border-bottom:1px solid var(--border)}#mags .bookvol:last-child{border-bottom:0}#mags .bvn{color:var(--text-muted)}#mags .bveff{min-width:0;color:var(--text-soft);font-size:12px}#mags .wlink{color:var(--accent-soft);border-bottom-color:rgba(232,114,42,.42)}#mags .qladder{display:grid;grid-template-columns:repeat(3,minmax(52px,1fr));gap:4px;margin-top:8px}#mags .qstep{min-height:38px;padding:5px 6px;flex-direction:column;gap:1px;text-align:center;line-height:1.15}
 #mags .qstep b{font:700 12px/1.1 var(--mono)}#mags .qstep i{font:500 9.5px/1.1 var(--mono);font-style:normal;opacity:.82}
 .qlegend{margin:2px 0 9px;color:var(--text-muted);font-size:11.5px;line-height:1.7}
+.squad-list{display:flex;flex-direction:column}
+.squad-row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.squad-row:last-child{border-bottom:none}
+.squad-slot{font:700 11px/1 var(--mono);color:var(--dim);width:30px;flex:0 0 30px}
+.squad-name,.squad-lvl,.squad-build{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 10px;font:inherit;font-size:13.5px}
+.squad-name{flex:1.2;min-width:90px}
+.squad-lvl{width:66px;flex:0 0 66px;text-align:center}
+.squad-build{flex:1.5;min-width:150px}
+.squad-role{font:700 10px/1 var(--mono);padding:5px 10px;border-radius:999px;white-space:nowrap;flex:0 0 auto}
+.role-Anchor{background:rgba(216,74,63,.18);color:#ff8a7a}
+.role-Ranged{background:rgba(108,154,214,.20);color:#9bc0ff}
+.role-Flanker{background:rgba(245,183,60,.16);color:var(--acc2)}
+.role-Support{background:rgba(112,180,124,.20);color:#86d39a}
+.role-x{background:rgba(255,255,255,.06);color:var(--dim)}
+.squad-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;flex:0 0 auto;padding:4px 8px}
+.squad-del:hover{color:#ff8a7a}
+.squad-gap{padding:7px 0;color:var(--text-soft);font-size:13px;line-height:1.55}
+.squad-roledef{display:flex;gap:12px;align-items:center;padding:6px 0;font-size:13px;color:var(--text-muted)}
 .qlegend .qk{display:inline-block;font:600 9.5px/1 var(--mono);padding:3px 7px;border-radius:5px;margin:0 1px;vertical-align:middle}
 .qlegend .qk.on{background:rgba(92,196,122,.16);color:#5cc47a}.qlegend .qk.cur{background:rgba(245,183,60,.16);color:var(--acc2)}.qlegend .qk.off{background:rgba(255,255,255,.05);color:var(--text-muted)}
 #mags .import-notice{display:flex;align-items:center;gap:10px;margin-top:10px}#mags .import-notice::before{content:"LOAD";flex:none;padding:4px 7px;border:1px solid rgba(79,180,119,.36);border-radius:999px;color:var(--ok);font:700 9px/1 var(--mono);letter-spacing:.08em}
@@ -582,6 +600,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <div id="build" class="sec"></div>
 <div id="perks" class="sec"></div>
 <div id="horde" class="sec"></div>
+<div id="squad" class="sec"></div>
 <div id="loot" class="sec"></div>
 <div id="mags" class="sec"></div>
 <div id="ref" class="sec"></div>
@@ -715,7 +734,7 @@ var TIERCOL={"-1":"#6f6a5c","0":"#8a8478","1":"#5cc47a","2":"#9bd14a","3":"#f5b7
 var TIERLBL={"-1":"?","0":"T0","1":"T1","2":"T2","3":"T3","4":"T4","5":"T5"};
 var SANDORDER=["RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","HeadshotMultiplier","CrouchSpeed","WalkSpeed","RunSpeed","JumpStrength","StaminaUsage","StaminaRegen","PlayerLevelBonusApplied","JarRefund","ShowHealthBars","ShowEnemyDamage","NewbieCoat","HeadshotMode","IncomingDamage","XPMultiplier","ShowXP","EncumbranceModifier","ItemDegradation","LoseItemsOnDeathType","LoseItemsOnDeathCount","DegradeItemsOnDeath","DegradeAmountOnDeath","DeathPenalty","DropOnDeath","DropOnQuit","InfectionRate","EnemySpawnMode","EntityDamage","BlockDamageAI","BlockDamageAIBM","ZombieMove","ZombieMoveNight","ZombieFeralMove","ZombieBMMove","ZombieFeralSense","AISmellMode","AllowZombieDigging","ZombieRageChance","EntityIncomingDamage","MaxEnemyTier","BiomeZombieRespawn","BiomeAnimalRespawn","BiomeEnemyDensity","ZombiesEatAnimals","BloodMoonFrequency","BloodMoonRange","BloodMoonWarning","BloodMoonEnemyCount","AirDropFrequency","AirDropMarker","AirDropRandomTime","BiomeProgression","TemperatureSurvival","StormFreq","StormWarning","HeatMapSensitivity","GlobalGSModifier","BiomeGSModifier","GlobalLSModifier","BiomeLSModifier","POITierLSModifier","GlobalTSModifier","DayNightLength","DayLightLength","AllowMap","AllowCompass","AllowScreenMarkers","ShowLocationInfo","ShowDayTime","WorkstationsInTheWild","MaxTechType","LootRespawnDays","LootTimer","LootMaxTier","GlobalLootCount","FoodLootCount","DrinkLootCount","MedicalLootCount","AmmoLootCount","ResourceLootCount","ArmorLootCount","MeleeLootCount","RangedLootCount","DukesLootCount","CraftingMagazinesLootCount","TreasureMapChance","LootBagChance","CropOutput","SeedDropOutput","CropGrowthSpeed","BackpackCrafting","WorkstationCrafting","CraftingProgression","CraftingTime","CraftingInput","CraftingOutput","CraftingMaxTier","MiningOutput","HarvestingOutput","ScrappingOutput","SmeltingType","DewCollectorTime","DewCollectorOutput","DewCollectorInput","ApiaryTime","ApiaryOutput","ApiaryInput","RepairTypes","MaxDegradationAmount","PointsPerMagazine","SkillGainRate","SkillPointsPerLevel","QuestsEnabled","IntroQuestEnabled","TraderToTraderQuestsEnabled","StarterSkillPoints","QuestsPerTier","QuestProgressionDailyLimit","BuriedQuestsEnabled","POIQuestsEnabled","TraderDialog","TraderHours","TradersEnabled","VendingEnabled","TraderSellPrices","TraderBuyPrices","TraderProtection","TraderResetInterval","TraderItemAbundance","TraderBuyLimit","TraderMaxTier","VendingResetInterval","VendingItemAbundance","ChallengesEnabled","IntroChallengesEnabled","VehicleFuelUsage","VehicleEntityDamage","VehicleBlockDamage","VehicleSelfDamage","ElectricalOutput","SillyCelebrate","SillyBigHeads","SillyTinyZombies","SillySounds","SillyLowGravity","SillyBlackandWhite"];
 var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XP Only","Injured","Permadeath"]},"DropOnDeath":{"d":["Nothing","Everything","Toolbelt","Backpack","Delete Everything"]},"DropOnQuit":{"d":["Nothing","Everything","Toolbelt","Backpack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Off","Day","Night","All"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morning","Evening"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unlimited"]}};
-var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["perks","Perks"],["horde","Horde"],["loot","Loot"],["mags","Magazines"],["ref","Reference"],["wiki","Wiki"]];
+var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["perks","Perks"],["horde","Horde"],["squad","Squad"],["loot","Loot"],["mags","Magazines"],["ref","Reference"],["wiki","Wiki"]];
 function loadState(){var raw=lg("7dtd-companion");if(!raw)return {};try{return JSON.parse(raw)||{};}catch(e){try{ls("7dtd-companion.bak",raw);}catch(_){}return {};}}
 function normalizeState(s){s=(s&&typeof s==="object")?s:{};var d={tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},col:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,world:null};s=Object.assign({},d,s);if(!BUILDS[s.cur])s.cur="sledge";if(!BIOMES[s.biome])s.biome="Forest";["builds","mag","ready","col"].forEach(function(k){if(typeof s[k]!=="object"||!s[k])s[k]={};});if(typeof s.day!=="number"||s.day<1)s.day=1;if(typeof s.lvl!=="number"||s.lvl<1)s.lvl=22;return s;}
 var S=normalizeState(loadState());
@@ -779,7 +798,7 @@ function show(){
  }
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
- try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
+ try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,squad:rSquad,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
  catch(e){showRenderError(e);}
  a11yClickable(); // keyboard-enable tabs + freshly rendered clickable elements
 }
@@ -796,6 +815,10 @@ function readyScore(){var got=0,max=0;READY.forEach(function(r,i){max+=r[2];if(S
 function gamestage(){var L=S.lvl||1,d=S.day||1;var adj=Math.min(d,L);return Math.floor((L+adj)*1.2);}
 function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor(L*bm2*(1+(S.ll||0)/100));}
 function lootTier(ls2){return ls2<40?"T0 (Primitive)":ls2<80?"T1 (Iron)":ls2<118?"T2 (Steel begins)":ls2<262?"T3 (Q5 / T4 weapons)":"T4 (Q6 / T5-T6 endgame)";}
+// Skill points the whole route costs: each perk rank = 1 point, each attribute level = its real cost (1 pt lvl 2-5, 2 pt 6-8, 3 pt 9-10).
+function routePoints(bid){var pts=0;buildAtomicSteps(bid).forEach(function(s){var m=/^→ (Strength|Perception|Fortitude|Agility|Intellect) (\d+)$/.exec(s.name);pts+=m?attrPointCost(+m[2]):1;});return pts;}
+// Skill points earned per character level (sandbox setting; this world = 2). Used to estimate the level the route is fully affordable at.
+function pointsPerLevel(){var s=S.world&&S.world.settings;var v=parseInt(s&&(s.BaseSkillPoints||s.SkillPointsPerLevel),10);return v>0?v:2;}
 // ---- DASHBOARD ----
 function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
  var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
@@ -848,7 +871,7 @@ function rBuild(){var st=bstate();
  var html=hero("Build Planner","Skill point doctrine","Follow the validated solo route or assemble a custom perk loadout from the complete catalog.","tab_build")+
   '<div class="build-console"><div class="card build-progress"><div class="ring">'+ringSVG(pct,pct>=75?"#70b47c":"var(--tab-hot)",100)+'<div class="rt"><span class="big">'+pct+'%</span></div></div><div><div class="ops-code">ROUTE COMPLETION</div><h3 style="margin:9px 0 5px">'+esc(BUILDS[S.cur].name)+'</h3><div class="sub">Every checked step advances the active doctrine.</div></div></div>'+
   '<div class="card build-controls"><div class="ops-code">ACTIVE DOCTRINE / SELECT ROUTE</div>'+sel+'<div class="bar" style="margin-top:14px"><div class="fillb" style="width:'+pct+'%"></div></div></div></div>'+
-  '<div class="ops-strip">'+opsStat("SURVIVOR / LVL",level,"Current progression level")+opsStat("PHASES / PLAN",phaseCount,"Structured advancement stages")+opsStat("PERKS / CUSTOM",picked,"Perks slotted into the route")+opsStat("NEXT / STEP",pct>=100?"DONE":"ACTIVE",pct>=100?"Route completed":"Highlighted inside the current phase",true)+'</div>'+imported+
+  '<div class="ops-strip">'+opsStat("SURVIVOR / LVL",level,"Current progression level")+opsStat("ROUTE / POINTS",routePoints(S.cur),"Skill points the full route costs — reachable around Lvl "+Math.ceil(routePoints(S.cur)/pointsPerLevel())+" at "+pointsPerLevel()+" pts/level"+(S.importedPlayer?". You are Lvl "+S.importedPlayer.level+" (~"+(S.importedPlayer.level*pointsPerLevel())+" pts).":"."),true)+opsStat("PHASES / PLAN",phaseCount,"Structured advancement stages")+opsStat("PERKS / CUSTOM",picked,"Perks slotted into the route")+opsStat("NEXT / STEP",pct>=100?"DONE":"ACTIVE",pct>=100?"Route completed":"Highlighted inside the current phase",true)+'</div>'+imported+
   '<div class="module-title">Perk Selection <span>TICK A PERK TO SLOT IT INTO THE ROUTE</span></div>'+perkCatalogHTML(st,'select')+
   '<div class="module-title">Doctrine Phases <span>CLICK A PHASE TO COLLAPSE</span></div>';
  var gi=0;
@@ -1161,6 +1184,46 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  document.querySelectorAll("#horde [data-r]").forEach(function(r){r.onclick=function(){var i=r.dataset.r;S.ready[i]=!S.ready[i];save();rHorde();};});
  document.querySelectorAll("#horde [data-rg]").forEach(function(btn){btn.onclick=function(){var g=prepGroups[+btn.dataset.rg],all=g.items.every(function(i){return !!S.ready[i];});g.items.forEach(function(i){S.ready[i]=!all;});save();rHorde();};});
  a11yClickable(document.getElementById("horde")); // re-wire after self re-render
+}
+// ---- SQUAD (8-player team coverage board) ----
+var SQUAD_ROLE={shotgun:"Anchor",mg:"Anchor",club:"Anchor",sledge:"Anchor",brawler:"Anchor",jack:"Anchor",
+ sniper:"Ranged",spear:"Ranged",demolition:"Ranged",
+ stealth:"Flanker",pistol:"Flanker",blade:"Flanker",bow:"Flanker",vulture:"Flanker",
+ robotics:"Support",trader:"Support",medic:"Support",baton:"Support",miner:"Support"};
+var SQUAD_ROLE_DESC={Anchor:"Holds the funnel — horde weapon + HP wall",Ranged:"Deletes Demolishers / Radiated at range (headshot + AP)",Flanker:"PvP roam / scout / burst (500m shared kill range)",Support:"Heals, buffs, turrets, trade — keeps the squad alive"};
+function memberGS(L){L=L||1;return Math.floor((L+Math.min(S.day||1,L))*1.2);}
+function partyGS(){var gs=(S.squad||[]).map(function(m){return memberGS(m.level);}).sort(function(a,b){return b-a;});var p=0;gs.forEach(function(g,i){p+=g*Math.pow(0.5,i);});return Math.round(p);}
+function rSquad(){
+ if(!Array.isArray(S.squad)||!S.squad.length){var ip=S.importedPlayer;S.squad=[{name:ip?ip.name:"You",level:ip?ip.level:(S.lvl||1),build:(BUILDS[S.cur]?S.cur:"sledge")}];}
+ var bopts=Object.keys(BUILDS).map(function(k){return '<option value="'+k+'">'+esc(BUILDS[k].name)+'</option>';}).join("");
+ var roles={Anchor:0,Ranged:0,Flanker:0,Support:0};
+ S.squad.forEach(function(m){var r=SQUAD_ROLE[m.build];if(r)roles[r]++;});
+ var gaps=[];
+ if(!roles.Support)gaps.push("No <b>Support</b> — nobody to heal or buff the squad on Drop-on-Death=Everything. Add a Medic, Robotics or Trader.");
+ if(!roles.Ranged)gaps.push("No <b>Ranged specialist</b> — who deletes Demolishers and Radiated at range (headshot + AP)? Add a Sniper, Spear or Demolitionist.");
+ if(!roles.Anchor)gaps.push("No <b>horde Anchor</b> — who holds the funnel against 64 sprinters with a horde weapon + HP wall? Add a Shotgun, MG or melee tank.");
+ Object.keys(roles).forEach(function(r){if(roles[r]>=3)gaps.push(roles[r]+"× <b>"+r+"</b> — heavy overlap; spread the roles for full coverage.");});
+ var pgs=partyGS(),solo=memberGS((S.importedPlayer&&S.importedPlayer.level)||S.lvl||1);
+ var members=S.squad.map(function(m,i){var sel=bopts.replace('value="'+m.build+'"','value="'+m.build+'" selected');
+   return '<div class="squad-row" data-si="'+i+'"><div class="squad-slot">P'+(i+1)+'</div>'+
+   '<input class="squad-name" data-sf="name" value="'+esc(m.name||"")+'" placeholder="Player name" aria-label="Player name">'+
+   '<input class="squad-lvl" data-sf="level" type="number" min="1" max="300" value="'+(m.level||1)+'" aria-label="Level" title="Level">'+
+   '<select class="squad-build" data-sf="build" aria-label="Build">'+sel+'</select>'+
+   '<span class="squad-role role-'+(SQUAD_ROLE[m.build]||"x")+'">'+(SQUAD_ROLE[m.build]||"—")+'</span>'+
+   '<button class="squad-del" data-sdel="'+i+'" title="Remove player" aria-label="Remove">✕</button></div>';
+ }).join("");
+ var html=hero("Squad Board","8-player team coverage","Assign each teammate a build, spot role gaps, and read the real party Game Stage your group's Blood Moon actually spawns at.","tab_horde")+
+  '<div class="ops-strip">'+opsStat("SQUAD / SIZE",S.squad.length+" / 8","Players on the roster")+opsStat("PARTY / GS",pgs,"Effective group Game Stage — higher than solo, so a tougher Blood Moon and earlier Demolishers/Radiated",true)+opsStat("SOLO / GS",solo,"Your individual Game Stage, for comparison",true)+opsStat("ROLES / COVERED",Object.keys(roles).filter(function(r){return roles[r];}).length+" / 4","Anchor · Ranged · Flanker · Support",true)+'</div>'+
+  (gaps.length?'<div class="card" style="border-color:rgba(216,74,63,.4)"><h3>Coverage Gaps</h3><div>'+gaps.map(function(g){return '<div class="squad-gap">⚠ '+g+'</div>';}).join("")+'</div></div>':'<div class="banner safe">Full role coverage — Anchor, Ranged, Flanker and Support are all present.</div>')+
+  '<div class="card"><h3>Roster</h3><div class="squad-list">'+members+'</div>'+(S.squad.length<8?'<button class="btn" id="squadAdd" style="margin-top:12px">+ Add player</button>':'<div class="sub" style="margin-top:10px">Roster full (8 players).</div>')+'</div>'+
+  '<div class="card"><h3>Roles</h3><div>'+Object.keys(SQUAD_ROLE_DESC).map(function(r){return '<div class="squad-roledef"><span class="squad-role role-'+r+'">'+r+' ×'+roles[r]+'</span><span>'+SQUAD_ROLE_DESC[r]+'</span></div>';}).join("")+'</div>'+
+   '<p class="sub" style="margin-top:10px">Party GS = highest member GS ×1 + 2nd ×0.5 + 3rd ×0.25… (more players = a tougher Blood Moon). Member GS = (level + days survived) ×1.2. Source: seven-days-to-die skill.</p></div>';
+ document.getElementById("squad").innerHTML=html;
+ document.querySelectorAll("#squad [data-si]").forEach(function(row){var i=+row.dataset.si;
+   row.querySelectorAll("[data-sf]").forEach(function(inp){inp.onchange=function(){var f=inp.dataset.sf;S.squad[i][f]=f==="level"?Math.max(1,parseInt(inp.value,10)||1):inp.value;save();rSquad();};});});
+ document.querySelectorAll("#squad [data-sdel]").forEach(function(b){b.onclick=function(){S.squad.splice(+b.dataset.sdel,1);save();rSquad();};});
+ var add=document.getElementById("squadAdd");if(add)add.onclick=function(){if(S.squad.length<8){S.squad.push({name:"Player "+(S.squad.length+1),level:1,build:"sledge"});save();rSquad();}};
+ a11yClickable(document.getElementById("squad"));
 }
 // ---- LOOT ----
 function rLoot(){var gs=gamestage(),ls2=lootstage();
