@@ -398,6 +398,93 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 @media(max-width:1120px){.horde-overview{grid-template-columns:repeat(3,1fr)}.readiness-core{grid-column:1/-1}.horde-groups{grid-template-columns:1fr}.horde-threats{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-workspace{grid-template-columns:1fr}.sethelp{position:relative;top:auto;order:-1;min-height:0}.gate-worlds{grid-template-columns:1fr}}
 @media(max-width:900px){body{padding-inline:13px}.tabs{display:flex;overflow-x:auto}.tab{min-width:105px;flex:0 0 105px}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.enemy-grid,.loot-grid,.biome-grid,.attr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-core,.build-console,.loot-console,.map-console,.flight-deck{grid-template-columns:1fr}.dashboard-overview,.mag-overview,.world-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){body{padding-inline:9px}.top{min-height:auto;padding-top:14px}.logo{min-width:210px}.brand-mark{width:38px;height:38px}.brand-copy b{font-size:20px}.logo small{letter-spacing:1.3px}.dayctl{order:2}.hero{padding:21px 19px}.hero h1{font-size:26px}.hero-state,.hero-telemetry{display:none}.g2,.g3{grid-template-columns:1fr}.quick{grid-template-columns:repeat(2,minmax(0,1fr))}.enemy-grid,.loot-grid,.biome-grid,.attr-grid,.horde-threats,.command-grid,.mag-grid,.ref-grid,.world-catalog,.dashboard-overview,.mag-overview,.world-overview,.gate-summary{grid-template-columns:1fr}.ops-lead{grid-column:auto;grid-template-columns:1fr;text-align:center}.ops-lead .ring{margin:auto}.mag-entry{padding:54px 14px 13px}.mag-entry .stepper{left:12px;right:auto;top:10px}.horde-overview{grid-template-columns:1fr}.readiness-core{grid-template-columns:1fr;text-align:center}.readiness-dial{margin:auto}.setrow{align-items:flex-start;flex-direction:column}.setctl{width:100%;max-width:none}.launchbox{padding:34px 22px}.launchbox h1{font-size:31px}.launch.wizard{padding:10px}.launch.wizard .launchbox{padding:19px}.gate-head{grid-template-columns:46px 1fr}.gate-mark{width:46px;height:46px}.gate-progress{display:none}.gate-choice{grid-template-columns:38px 1fr}.gate-choice-mark{width:36px;height:36px}.gate-choice-go{display:none}.gate-actions{align-items:stretch;flex-direction:column}.gate-skip,.gate-back{width:100%}.sethelp-grid{grid-template-columns:1fr}}
+
+/* ---- Scoped premium polish for the newly added surfaces ---- */
+:root{--surface:#15181d;--surface-2:#1c2027;--border:rgba(255,255,255,.08);--text-muted:#9aa0a6;--accent:#e8722a;--accent-hover:#f0823d;--accent-soft:#f0b88f;--accent-pale:#ffc397;--accent-ink:#140d09;--control:#111419;--text-soft:#d7dadd;--ok:#4fb477;--gold:#d8a24a;--locked:#5a5f66;--radius:6px;--motion:180ms ease}
+.launch,#introCoach,#world,#d3,#mags,#ref,#wiki,.readiness-legend{--bg:#0d0f12;--card:var(--surface);--card2:var(--surface-2);--line:var(--border);--line2:rgba(255,255,255,.14);--text:#f2f3f5;--muted:var(--text-muted);--dim:var(--locked);--acc:var(--accent);--acc2:var(--accent-soft);--done:var(--ok);--star:var(--gold)}
+.launch *,#introCoach *,#world *,#d3 *,#mags *,#ref *,#wiki *{transition-timing-function:ease}
+.launch :is(button,[role=button],input,select):focus-visible,#introCoach :is(button,[role=button]):focus-visible,#world :is(button,[role=button],input,select):focus-visible,#d3 :is(button,[role=button],input,select,canvas):focus-visible,#mags :is(button,[role=button],input,a):focus-visible,#ref :is(button,[role=button],input,textarea,.refcard):focus-visible,#wiki :is(button,input,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(232,114,42,.16)}
+.launchbox,#world .card,#world .acc,#world .wi,#d3 .card,#d3 .mapwrap,#d3 .poiInfo,#mags .card,#mags .mag-section,#mags .mag-entry,#ref .card,#wiki .card,#introCoach{border-radius:var(--radius);border-color:var(--border);background:var(--surface);box-shadow:0 12px 30px rgba(0,0,0,.18)}
+#world .card,#d3 .card,#mags .card,#ref .card,#wiki .card{padding:16px}
+#world .card>h3,#d3 .card>h3,#mags .card>h3,#ref .card>h3,#wiki .card>h3{margin:-16px -16px 16px;padding:12px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(255,255,255,.025),transparent);font:700 11px/1.2 var(--mono);letter-spacing:.08em;color:var(--text);text-transform:uppercase}
+.launch button,.gate-skip,.gate-back,#introCoach button,#world button.btn,#d3 button.btn,#mags button,#wiki button.btn{min-height:38px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text);font:700 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;transition:color var(--motion),background var(--motion),border-color var(--motion),transform var(--motion)}
+.launch button:hover,.gate-skip:hover,.gate-back:hover,#introCoach button:hover,#world button.btn:hover,#d3 button.btn:hover,#mags button:hover,#wiki button.btn:hover{border-color:rgba(232,114,42,.62);background:rgba(232,114,42,.08);color:var(--text);transform:translateY(-1px)}
+.launch button:active,.gate-skip:active,.gate-back:active,#introCoach button:active,#world button.btn:active,#d3 button.btn:active,#mags button:active,#wiki button.btn:active{transform:translateY(0)}
+.launch .launchbtn,#world .sbsave,#world .filebtn,#wiki #wikigo{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);box-shadow:none}
+.launch .launchbtn:hover,#world .sbsave:hover,#world .filebtn:hover,#wiki #wikigo:hover{background:var(--accent-hover);color:var(--accent-ink)}
+#world input,#world select,#d3 input,#mags input,#ref input,#ref textarea,#wiki input{min-height:40px;border:1px solid var(--border);border-radius:var(--radius);background-color:var(--control);color:var(--text);font-size:13px;line-height:1.4}
+#world select{appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--text-muted) 50%),linear-gradient(135deg,var(--text-muted) 50%,transparent 50%);background-position:calc(100% - 16px) 17px,calc(100% - 11px) 17px;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+#world input:hover,#world select:hover,#d3 input:hover,#mags input:hover,#ref input:hover,#ref textarea:hover,#wiki input:hover{border-color:rgba(255,255,255,.2)}
+#world input:focus,#world select:focus,#d3 input:focus,#mags input:focus,#ref input:focus,#ref textarea:focus,#wiki input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,114,42,.14)}
+.status-badge,#world .vbadge,#world .srcb,#mags .bvbadge,#mags .qstep,#mags .complete-badge,#ref .ref-import-badge{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:999px;font:700 10px/1.5 var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.status-badge.ok,#world .import-badge,#mags .bvbadge.yes,#mags .complete-badge,#ref .ref-import-badge{border-color:rgba(79,180,119,.38);background:rgba(79,180,119,.11);color:var(--ok)}
+#mags .bvbadge.no,#mags .qstep.off{border-color:rgba(90,95,102,.35);background:rgba(90,95,102,.08);color:var(--text-muted)}
+#mags .bvbadge.q6,#mags .qstep.cur{border-color:rgba(216,162,74,.46);background:rgba(216,162,74,.12);color:var(--gold)}
+.empty-state{grid-column:1/-1;display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:start;margin:0;padding:16px;border:1px dashed rgba(232,114,42,.34);border-radius:var(--radius);background:rgba(232,114,42,.045);color:var(--text-muted);font-size:13px;line-height:1.55}
+.empty-state::before{content:"!";display:grid;place-items:center;width:40px;height:40px;border:1px solid rgba(232,114,42,.42);border-radius:var(--radius);background:rgba(232,114,42,.08);color:var(--accent);font:800 17px/1 var(--mono)}
+.empty-state b{color:var(--text)}
+
+/* Launcher, setup wizard and first-run coach */
+.launch{background:radial-gradient(720px 440px at 50% 32%,rgba(232,114,42,.12),transparent 72%),var(--bg)}
+.launchbox{border-color:rgba(232,114,42,.28);background:linear-gradient(145deg,var(--surface-2),var(--bg))}
+.launchbox::before{display:none}.launchlogo{display:grid;place-items:center;width:54px;height:54px;margin:0 auto;border:1px solid rgba(232,114,42,.42);border-radius:var(--radius);background:rgba(232,114,42,.07);color:var(--accent);font-size:30px;filter:none}
+.launchbox h1{font-size:24px;letter-spacing:.04em}.launchfeat span{border-radius:999px;border-color:var(--border);background:var(--surface-2);color:var(--text-muted);font:700 10px/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase}
+.launchstatus{color:var(--text-muted);font:600 10px/1.4 var(--mono);letter-spacing:.04em;text-transform:uppercase}.launch-privacy{max-width:480px;margin:16px auto 0;padding:14px 16px 0;border-top:1px solid var(--border);color:var(--text-muted);font-size:12px;line-height:1.55}
+.gate-head{border-color:var(--border)}.gate-step,.gate-choice-go{color:var(--accent)}.gate-mark,.gate-choice-mark{border-radius:var(--radius);border-color:rgba(232,114,42,.36);background:rgba(232,114,42,.07);color:var(--accent-pale)}.gate-choice{border-radius:var(--radius);border-color:var(--border);background:var(--surface);transition:background var(--motion),border-color var(--motion),transform var(--motion)}.gate-choice:hover{border-color:rgba(232,114,42,.5);background:var(--surface-2);box-shadow:none}.gate-selected{border-radius:var(--radius);border-color:rgba(232,114,42,.28);background:rgba(232,114,42,.055)}
+#introCoach{position:fixed;left:50%;bottom:18px;z-index:60;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;width:min(760px,calc(100% - 24px));margin:0;padding:14px 16px;border-left:3px solid var(--accent);transform:translateX(-50%);color:var(--text);font-size:13px;font-weight:400;line-height:1.5}
+#introCoach::before{content:"01";display:grid;place-items:center;width:40px;height:40px;border:1px solid rgba(232,114,42,.35);border-radius:var(--radius);color:var(--accent);background:rgba(232,114,42,.07);font:800 11px/1 var(--mono)}
+#introCoach .coach-copy b:first-child{display:block;margin-bottom:3px;color:var(--text);font:700 11px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+#introCoach #introClose{margin:0;white-space:nowrap}
+
+/* World import and 165-setting editor */
+#world .survivor-import-card{margin:12px 0 10px;overflow:visible}
+#world .survivor-card-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-16px -16px 16px;padding:12px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(232,114,42,.055),transparent)}
+#world .survivor-card-head h3{margin:0;color:var(--text);font:700 11px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+#world .survivor-info-btn{position:relative;width:28px;min-height:28px;padding:0;border:1px solid rgba(232,114,42,.35);border-radius:50%;background:rgba(232,114,42,.06);color:var(--accent);font:800 12px/1 var(--mono);cursor:help}
+#world .survivor-info-btn::after{content:attr(data-tip);position:absolute;z-index:30;right:0;top:36px;width:280px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text-muted);font:400 12px/1.5 "Segoe UI";text-align:left;text-transform:none;letter-spacing:0;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity var(--motion),transform var(--motion);box-shadow:0 12px 24px rgba(0,0,0,.32)}
+#world .survivor-info-btn:hover::after,#world .survivor-info-btn:focus-visible::after{opacity:1;transform:none}
+#world .wi{border-radius:var(--radius);background:var(--surface);transition:background var(--motion),border-color var(--motion),transform var(--motion)}
+#world .wi.active{border-color:rgba(79,180,119,.38);box-shadow:inset 3px 0 var(--ok)}#world .wi-arrow{color:var(--accent);font:700 18px/1 var(--mono)}
+#world .preset-card,#world .settings-head,#world .settings-tools{margin-bottom:10px}
+#world .presetbar{gap:8px}#world .presetbtn{position:relative;min-height:92px;padding:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2);transition:background var(--motion),border-color var(--motion),transform var(--motion)}
+#world .presetbtn:hover{border-color:rgba(232,114,42,.55);background:rgba(232,114,42,.07)}#world .presetbtn .pi{font-size:20px}#world .presetbtn .pn{font:750 13px/1.2 var(--mono);letter-spacing:.04em;text-transform:uppercase}#world .presetbtn small{margin-top:5px;color:var(--text-muted);font-size:11px;line-height:1.35}
+#world .acc{background:var(--surface)}#world .acch{padding:14px 16px;border-left:0;border-bottom:1px solid var(--border);background:rgba(255,255,255,.012)}#world .acch::before{content:"";width:3px;height:18px;border-radius:2px;background:var(--accent)}#world .acch .ttl{font:700 12px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}#world .acch .pc{border:1px solid var(--border);border-radius:999px;background:var(--control);color:var(--text-muted)}
+#world .accb{display:block!important;max-height:12000px;overflow:hidden;opacity:1;transition:max-height var(--motion),opacity var(--motion)}#world .acc.col .accb{max-height:0;opacity:0}#world .acch .chev{transition:transform var(--motion)}
+#world .setrow{min-height:66px;padding:12px 16px}#world .setrow:hover{background:rgba(255,255,255,.018)}#world .setrow.changed{background:rgba(232,114,42,.055);box-shadow:inset 3px 0 var(--accent)}#world .setlbl{color:var(--text);font-size:13px}#world .setdesc{color:var(--text-muted);font:500 11px/1.4 var(--mono)}
+#world .sethelp{border-color:rgba(232,114,42,.26);background:linear-gradient(155deg,var(--surface-2),var(--surface));box-shadow:none}#world .sethelp-symbol,#world .sethelpq{border-color:rgba(232,114,42,.36);background:rgba(232,114,42,.07);color:var(--accent)}#world .sethelp-fact{border-color:var(--border);background:var(--control)}
+#world .savebar{border-radius:var(--radius);border-color:var(--border);background:rgba(13,15,18,.96)}#world .savebar.active{border-color:rgba(232,114,42,.55);box-shadow:0 10px 28px rgba(0,0,0,.32)}
+
+/* 3D map: search, chips, POI panel and fullscreen */
+#d3 .flight-deck{grid-template-columns:minmax(360px,1fr) minmax(240px,.54fr);gap:12px}#d3 .flight-status{justify-content:flex-start}#d3 .map-search{margin:10px 0 6px}#d3 .map-filter-label{margin:8px 0 4px;color:var(--text-muted);font:700 10px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+#d3 .tierchip{min-height:30px;padding:6px 10px;border-color:var(--border);background:var(--surface-2);color:var(--text-muted);font:700 10px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;transition:opacity var(--motion),border-color var(--motion),background var(--motion),transform var(--motion)}#d3 .tierchip:hover{border-color:rgba(232,114,42,.48);color:var(--text);transform:translateY(-1px)}#d3 .tierchip.off{opacity:.36;filter:saturate(.4)}
+#d3 .poi-results{max-height:220px;border-radius:var(--radius);background:var(--control)}#d3 .poi-results:not(:empty){border:1px solid var(--border)}#d3 .poi-hit{width:100%;min-height:38px;padding:8px 10px;border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;color:inherit;text-align:left}#d3 .poi-hit:last-child{border-bottom:0}#d3 .poi-hit:hover{background:rgba(232,114,42,.07)}#d3 .poi-hit small{color:var(--locked);opacity:1;font:600 9px/1 var(--mono)}
+#d3 .mapwrap{border-color:rgba(232,114,42,.22);background:var(--bg)}#d3 .mapfsbtn{top:12px;right:12px;display:grid;place-items:center;width:38px;min-height:38px;padding:0;border-color:rgba(232,114,42,.38);border-radius:var(--radius);background:rgba(13,15,18,.9);color:var(--text);transition:background var(--motion),border-color var(--motion),color var(--motion),transform var(--motion)}#d3 .mapfsbtn:hover{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);transform:translateY(-1px)}
+#d3 .poiInfo{width:330px;padding:16px;border-color:rgba(232,114,42,.3);background:linear-gradient(155deg,var(--surface-2),var(--surface));box-shadow:0 18px 44px rgba(0,0,0,.42)}#d3 .poiInfo img,#d3 .poiInfo .pi-noimg{border-radius:var(--radius);border-color:var(--border)}#d3 .poiInfo h4{font-size:18px}#d3 .poiInfo .pi-sub{color:var(--text-muted)}#d3 .pi-details{margin-top:12px;border-top:1px solid var(--border)}#d3 .poiInfo .pi-kv{padding:8px 0;border-color:var(--border)}#d3 .poiInfo .pi-kv span{color:var(--text-muted)}#d3 .poiInfo .pi-close{top:10px;right:10px;display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--border);border-radius:50%;background:rgba(13,15,18,.88)}
+#d3 .flight-status.fs-overlay{top:12px;left:12px;width:340px;max-width:min(46vw,340px);padding:16px;border-color:rgba(232,114,42,.28);background:rgba(13,15,18,.94)}
+
+/* Magazine archive, quality ladder and perk-book rows */
+#mags .mag-section{padding:16px;background:rgba(21,24,29,.86)}#mags .mag-section-head{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}#mags .mag-section-code{border-radius:var(--radius);border-color:rgba(232,114,42,.32);background:rgba(232,114,42,.07);color:var(--accent)}#mags .mag-section-head b{font:700 12px/1.2 var(--mono);letter-spacing:.08em}#mags .mag-section-head small{color:var(--text-muted)}
+#mags .mag-grid{gap:8px}#mags .mag-entry{padding:14px 154px 14px 14px;background:var(--surface);transition:background var(--motion),border-color var(--motion),transform var(--motion)}#mags .mag-entry:hover{border-color:rgba(232,114,42,.3);background:var(--surface-2);transform:translateY(-1px)}#mags .mag-entry.complete{border-color:rgba(79,180,119,.24);background:rgba(79,180,119,.045)}#mags .mag-entry.priority{box-shadow:inset 3px 0 var(--gold)}
+#mags .mag-name{color:var(--text);font-size:13px}#mags .bookhead{position:relative;padding-left:18px}#mags .bvtoggle{position:absolute;left:0;top:2px;color:var(--accent);transition:transform var(--motion)}#mags .mag-entry.exp .bvtoggle{transform:rotate(0deg)}#mags .mag-meta{color:var(--text-muted)}
+#mags .stepper button{min-height:28px;border-radius:var(--radius);background:var(--control)}#mags .stepper .mc{color:var(--text);font-family:var(--mono)}
+#mags .bookvols{display:flex!important;max-height:1200px;overflow:hidden;opacity:1;transform:none;transition:max-height var(--motion),opacity var(--motion),transform var(--motion),margin var(--motion),padding var(--motion)}#mags .bookvols.hide{max-height:0;margin-top:0;padding-top:0;border-top-color:transparent;opacity:0;transform:translateY(-4px)}
+#mags .bookvol{grid-template-columns:48px 88px 1fr;min-height:42px;padding:6px 0;border-bottom:1px solid var(--border)}#mags .bookvol:last-child{border-bottom:0}#mags .bvn{color:var(--text-muted)}#mags .bveff{min-width:0;color:var(--text-soft);font-size:12px}#mags .wlink{color:var(--accent-soft);border-bottom-color:rgba(232,114,42,.42)}#mags .qladder{display:grid;grid-template-columns:repeat(3,minmax(52px,1fr));gap:4px;margin-top:8px}#mags .qstep{min-height:24px;padding:4px 6px}
+#mags .import-notice{display:flex;align-items:center;gap:10px;margin-top:10px}#mags .import-notice::before{content:"LOAD";flex:none;padding:4px 7px;border:1px solid rgba(79,180,119,.36);border-radius:999px;color:var(--ok);font:700 9px/1 var(--mono);letter-spacing:.08em}
+
+/* Reference primer, import badge and animated field-manual accordion */
+#ref .ref-import-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 14px;border:1px solid rgba(79,180,119,.24);border-radius:var(--radius);background:rgba(79,180,119,.045)}#ref .ref-import-copy{color:var(--text-muted);font-size:12px}#ref .ref-import-copy b{color:var(--text)}
+#ref .primer-grid{counter-reset:primer}#ref .primer-card{counter-increment:primer;position:relative;min-height:190px;padding-top:56px}#ref .primer-card::before{content:"P-0" counter(primer);position:absolute;left:16px;top:16px;color:var(--accent);font:700 10px/1 var(--mono);letter-spacing:.08em}#ref .primer-card h3{margin:0 0 12px;padding:0;border:0;background:none;font-size:12px}#ref .primer-copy{margin:0;color:var(--text-soft);font-size:13px;line-height:1.6}
+#ref .refcard{position:relative;min-height:0;overflow:hidden;cursor:pointer;transition:background var(--motion),border-color var(--motion),transform var(--motion)}#ref .refcard h3{padding-right:28px}#ref .refcard h3::after{content:"−";position:absolute;right:16px;top:15px;color:var(--accent);font:700 16px/1 var(--mono);transition:transform var(--motion)}#ref .refcard.compact h3::after{content:"+"}#ref .refcard .kv{max-height:72px;overflow:hidden;opacity:1;transition:max-height var(--motion),opacity var(--motion),padding var(--motion),border-color var(--motion)}#ref .refcard.compact .kv{display:flex;max-height:0;padding-top:0;padding-bottom:0;border-color:transparent;opacity:0}
+#ref .refcard:hover{border-color:rgba(232,114,42,.28);background:var(--surface-2);transform:translateY(-1px)}
+
+/* Wiki search and results */
+#wiki .wiki-card{padding:18px}#wiki .wiki-searchrow{gap:8px;margin-top:12px}#wiki #wikigo{min-width:112px}#wiki .wiki-results{gap:6px;margin-top:12px}#wiki .wiki-count{margin:0 0 8px;color:var(--text-muted)}#wiki .wiki-hit{position:relative;padding:13px 42px 13px 14px;border-color:var(--border);border-radius:var(--radius);background:var(--surface);transition:background var(--motion),border-color var(--motion),transform var(--motion)}#wiki .wiki-hit::after{content:"↗";position:absolute;right:15px;top:50%;color:var(--locked);font:700 14px/1 var(--mono);transform:translateY(-50%)}#wiki .wiki-hit:hover{border-color:rgba(232,114,42,.42);background:var(--surface-2);transform:translateY(-1px)}#wiki .wiki-hit:hover::after{color:var(--accent)}#wiki .wiki-hit-title{color:var(--accent-soft);font-size:14px}#wiki .wiki-hit-sub{color:var(--text-muted);font-family:"Segoe UI";font-size:12px}
+#wiki .wiki-empty{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:14px;border:1px dashed var(--border);border-radius:var(--radius);background:rgba(255,255,255,.018);color:var(--text-muted)}#wiki .wiki-empty::before{content:"⌕";display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(232,114,42,.3);border-radius:var(--radius);color:var(--accent);font:700 15px/1 var(--mono)}
+
+.readiness-legend{margin:12px 0 0;padding:10px 12px;border-left:2px solid var(--accent);background:rgba(232,114,42,.045);color:var(--text-muted);font-size:12px;line-height:1.5}.readiness-legend b{color:var(--text)}
+@media(max-width:760px){#introCoach{grid-template-columns:36px 1fr}#introCoach::before{width:34px;height:34px}#introCoach #introClose{grid-column:1/-1;width:100%}#d3 .flight-deck{grid-template-columns:1fr}#d3 .flight-status.fs-overlay{max-width:calc(100vw - 24px)}#mags .qladder{grid-template-columns:repeat(3,1fr)}#ref .ref-import-strip{align-items:flex-start;flex-direction:column}}
+@media(max-width:620px){#world .presetbar{grid-template-columns:1fr 1fr}#mags .mag-entry{padding:54px 12px 12px}#mags .bookvol{grid-template-columns:46px 82px 1fr}#mags .qladder{grid-template-columns:repeat(2,1fr)}#wiki .wiki-searchrow{flex-direction:column}#wiki #wikigo{width:100%}}
+@media(prefers-reduced-motion:reduce){.launch *,#introCoach *,#world *,#d3 *,#mags *,#ref *,#wiki *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -409,7 +496,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
     <div class="launchfeat"><span>Live saves</span><span>World editor</span><span>3D map</span><span>Build planner</span><span>Magazine tracking</span></div>
     <button class="btn launchbtn" id="scanbtn">Scan Worlds &amp; Survivors</button>
     <div class="launchstatus" id="launchstatus">100% local · offline · no cloud · one self-contained EXE</div>
-    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;line-height:1.55;color:var(--dim);max-width:460px;margin-left:auto;margin-right:auto">Scanning only <b>reads</b> your local saves to show your worlds, character and settings. Nothing is written to your game until you explicitly press <b>Write to World</b> in the World tab — and that always makes a backup first.</div>
+    <div class="launch-privacy">Scanning only <b>reads</b> your local saves to show your worlds, character and settings. Nothing is written to your game until you explicitly press <b>Write to World</b> in the World tab — and that always makes a backup first.</div>
   </div>
 </div>
 <div class="wrap">
@@ -733,7 +820,7 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  var html=hero("Horde Command","Blood Moon battle station","Turn preparation into a live combat board: arm each system, clear critical failures and track threats before the first wave.","tab_horde")+ban+
   '<div class="horde-overview">'+
    '<div class="card readiness-core"><div class="readiness-dial">'+ringSVG(rs.p,ringCol,118)+'<div class="readiness-grade">'+rs.g+'<small>'+rs.p+'% READY</small></div></div>'+
-    '<div class="readiness-copy"><div class="statusline">'+status+'</div><p>Critical systems carry double weight. Reach 90% before contact; anything lower leaves a known failure point in the defense.</p><p style="opacity:.7;font-size:11.5px">Grades: A ≥90% · B ≥75% · C ≥55% · D ≥35% · F below. <b>F just means not yet prepared</b> — it is a checklist, not an error.</p><div class="bar"><div class="fillb" style="width:'+rs.p+'%"></div></div></div></div>'+
+    '<div class="readiness-copy"><div class="statusline">'+status+'</div><p>Critical systems carry double weight. Reach 90% before contact; anything lower leaves a known failure point in the defense.</p><p class="readiness-legend">Grades: A ≥90% · B ≥75% · C ≥55% · D ≥35% · F below. <b>F just means not yet prepared</b> — it is a checklist, not an error.</p><div class="bar"><div class="fillb" style="width:'+rs.p+'%"></div></div></div></div>'+
    '<div class="card horde-stat"><span class="code">COUNTDOWN / D-'+b.until+'</span><div><div class="value">'+b.until+'</div><div class="unit">days to contact</div></div><div class="signal"></div></div>'+
    '<div class="card horde-stat" title="Game Stage: hidden difficulty from your level + days survived. Higher = tougher, more numerous zombies and better loot."><span class="code">THREAT / GS ⓘ</span><div><div class="value">'+gs+'</div><div class="unit">current Game Stage</div></div><div class="signal"></div></div>'+
    '<div class="card horde-stat"><span class="code">WAVE / CAP</span><div><div class="value">'+bmc+'</div><div class="unit">configured enemies</div></div><div class="signal"></div></div>'+
@@ -821,6 +908,7 @@ function fandomUrl(it){
  var n=(((it&&it.name)||it||"")+"").replace(/\s*\([^)]*\)\s*$/,"").trim();
  return base+"Special:Search?query="+encodeURIComponent(n);
 }
+function activateOnKey(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();this.click();}}
 // Max craftable quality (1-6) for a crafting unlock at read count v; q = the 6 count breakpoints.
 function craftMaxQ(t,v){return t.q?t.q.filter(function(c){return c<=v;}).length:(v>=t.lvl?1:0);}
 function rMags(){if(!S.books)S.books={};
@@ -836,7 +924,7 @@ function rMags(){if(!S.books)S.books={};
    opsStat("PRIORITY / SLEDGE",priorityPct+"%",priorityNow+" of "+priorityMax+" priority progress")+'</div>'+
   '<div class="card"><h3>Archive Search</h3><div class="sub">Crafting magazines unlock recipes and quality. Completed perk book series grant permanent bonuses. ★ marks priorities for the active Sledge doctrine.</div>'+
   '<input class="searchbar" id="magq" placeholder="Search magazines or perk books…" value="'+esc(S.magq||"")+'" style="margin-top:10px;margin-bottom:0"></div>';
- if(S.importedPlayer)html+='<div class="banner safe" style="margin-top:10px">Crafting progress imported from <b>'+esc(S.importedPlayer.name)+'</b>. Values are crafting levels and may not equal physical magazine count when Points per Magazine is modified.</div>';
+ if(S.importedPlayer)html+='<div class="banner safe import-notice">Crafting progress imported from <b>'+esc(S.importedPlayer.name)+'</b>. Values are crafting levels and may not equal physical magazine count when Points per Magazine is modified.</div>';
  // Crafting magazines grouped by category
  var groups={};MAGS.forEach(function(m,i){if(m[5]==="book")return;var cat=MAGCAT[m[2]]||MAGCAT[m[0]]||"Other";(groups[cat]=groups[cat]||[]).push(i);});
  ["Weapons","Tools & Technology","Survival","Vehicles","Other"].forEach(function(cat,ci){
@@ -854,7 +942,7 @@ function rMags(){if(!S.books)S.books={};
      return '<div class="bookvol"><span class="bvn">'+t.lvl+'</span><span class="bvbadge '+cls+'">'+badge+'</span><span class="bveff"><a class="wlink" href="'+fandomUrl(t)+'" target="_blank" rel="noopener noreferrer">'+esc(t.name)+'</a>'+ladder+'</span></div>';
    }).join("")+'</div>';}
    var txt=(m[0]+" "+m[2]+" "+tiers.map(function(t){return t.name;}).join(" ")).toLowerCase();
-   entries+='<div class="mag-entry magrow'+(m[3]?" priority":"")+(v>=m[1]?" complete":"")+(exp?" exp":"")+'" data-txt="'+esc(txt)+'"><div class="mag-name'+(tiers.length?" bookhead":"")+'"'+(tiers.length?' data-craftexp="'+i+'"':'')+'>'+(tiers.length?'<span class="bvtoggle">'+(exp?"▾":"▸")+'</span> ':'')+(m[3]?'★ ':'')+esc(m[0])+'</div><div class="mag-meta">'+esc(m[2])+'</div><div class="stepper"><button data-md="'+i+'">−</button><span class="mc">'+v+'/'+m[1]+'</span><button data-mp="'+i+'">+</button></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>'+detail+'</div>';
+   entries+='<div class="mag-entry magrow'+(m[3]?" priority":"")+(v>=m[1]?" complete":"")+(exp?" exp":"")+'" data-txt="'+esc(txt)+'"><div class="mag-name'+(tiers.length?" bookhead":"")+'"'+(tiers.length?' role="button" tabindex="0" aria-expanded="'+(exp?"true":"false")+'" data-craftexp="'+i+'"':'')+'>'+(tiers.length?'<span class="bvtoggle">'+(exp?"▾":"▸")+'</span> ':'')+(m[3]?'★ ':'')+esc(m[0])+'</div><div class="mag-meta">'+esc(m[2])+'</div><div class="stepper"><button data-md="'+i+'">−</button><span class="mc">'+v+'/'+m[1]+'</span><button data-mp="'+i+'">+</button></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>'+detail+'</div>';
   });
   html+='<section class="mag-section"><div class="mag-section-head"><span class="mag-section-code">C-0'+(ci+1)+'</span><b>'+cat+'</b><small>'+idxs.length+' LINES</small></div><div class="mag-grid">'+entries+'</div></section>';
  });
@@ -869,7 +957,7 @@ function rMags(){if(!S.books)S.books={};
     return '<div class="bookvol"><span class="bvn">Vol '+vv.vol+'</span><span class="bvbadge '+(found?"yes":"no")+'">'+(found?"FOUND":"NOT FOUND")+'</span><span class="bveff">'+esc(vv.eff)+'</span></div>';
   }).join("")+'</div>';}
   var txt=(bk[0]+" "+bk[1]+" "+bk[2]+" "+vols.map(function(x){return x.eff;}).join(" ")).toLowerCase();
-  bookEntries+='<div class="mag-entry magrow bookcard'+(done?" complete":"")+(exp?" exp":"")+'" data-txt="'+esc(txt)+'"><div class="mag-name'+(vols.length?" bookhead":"")+'"'+(vols.length?' data-bookexp="'+i+'"':'')+'>'+(vols.length?'<span class="bvtoggle">'+(exp?"▾":"▸")+'</span> ':'')+esc(bk[0])+(done?' <span class="rb rb2" style="background:rgba(92,196,122,.2);color:#5cc47a;border-color:rgba(92,196,122,.5)">complete</span>':'')+'</div><div class="mag-meta">'+esc(bk[1])+' · Perk: '+esc(bk[2])+'</div><div class="stepper"><button data-bd="'+i+'">−</button><span class="mc">'+v+'/7</span><button data-bp="'+i+'">+</button></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>'+detail+'</div>';
+   bookEntries+='<div class="mag-entry magrow bookcard'+(done?" complete":"")+(exp?" exp":"")+'" data-txt="'+esc(txt)+'"><div class="mag-name'+(vols.length?" bookhead":"")+'"'+(vols.length?' role="button" tabindex="0" aria-expanded="'+(exp?"true":"false")+'" data-bookexp="'+i+'"':'')+'>'+(vols.length?'<span class="bvtoggle">'+(exp?"▾":"▸")+'</span> ':'')+esc(bk[0])+(done?' <span class="complete-badge">complete</span>':'')+'</div><div class="mag-meta">'+esc(bk[1])+' · Perk: '+esc(bk[2])+'</div><div class="stepper"><button data-bd="'+i+'">−</button><span class="mc">'+v+'/7</span><button data-bp="'+i+'">+</button></div><div class="bar"><div class="fillb" style="width:'+pct+'%"></div></div>'+detail+'</div>';
  });
  html+='<section class="mag-section"><div class="mag-section-head"><span class="mag-section-code">B-01</span><b>Perk Book Collections</b><small>19 SERIES × 7 VOLUMES</small></div><div class="mag-grid">'+bookEntries+'</div></section>';
  document.getElementById("mags").innerHTML=html;
@@ -877,16 +965,16 @@ function rMags(){if(!S.books)S.books={};
  document.querySelectorAll("#mags [data-md]").forEach(function(b){b.onclick=function(){var i=b.dataset.md;S.mag[i]=Math.max(0,(S.mag[i]||0)-1);save();rMags();};});
  document.querySelectorAll("#mags [data-bp]").forEach(function(b){b.onclick=function(){var i=b.dataset.bp;S.books[i]=Math.min(7,(S.books[i]||0)+1);save();rMags();};});
  document.querySelectorAll("#mags [data-bd]").forEach(function(b){b.onclick=function(){var i=b.dataset.bd;S.books[i]=Math.max(0,(S.books[i]||0)-1);save();rMags();};});
- document.querySelectorAll("#mags [data-bookexp]").forEach(function(el){el.onclick=function(){var i=+el.dataset.bookexp;if(!S.bookexp)S.bookexp={};S.bookexp[i]=!S.bookexp[i];save();rMags();};});
- document.querySelectorAll("#mags [data-craftexp]").forEach(function(el){el.onclick=function(){var i=+el.dataset.craftexp;if(!S.craftexp)S.craftexp={};S.craftexp[i]=!S.craftexp[i];save();rMags();};});
+ document.querySelectorAll("#mags [data-bookexp]").forEach(function(el){el.onclick=function(){var i=+el.dataset.bookexp;if(!S.bookexp)S.bookexp={};S.bookexp[i]=!S.bookexp[i];save();rMags();};el.onkeydown=activateOnKey;});
+ document.querySelectorAll("#mags [data-craftexp]").forEach(function(el){el.onclick=function(){var i=+el.dataset.craftexp;if(!S.craftexp)S.craftexp={};S.craftexp[i]=!S.craftexp[i];save();rMags();};el.onkeydown=activateOnKey;});
  var mq=document.getElementById("magq");if(mq)mq.oninput=function(){S.magq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#mags .mag-section").forEach(function(sec){var any=false;sec.querySelectorAll(".magrow").forEach(function(r){var on=!q||(r.dataset.txt||"").indexOf(q)>=0;r.style.display=on?"":"none";if(on)any=true;});sec.style.display=any?"":"none";});};
 }
 // ---- WIKI ----
 function rWiki(){
  var el=document.getElementById("wiki");
  var q=S.wikiq||"";
- el.innerHTML=hero("7DtD Wiki","Fandom search","Search the official 7 Days to Die Fandom wiki and open any page in a new browser tab.","tab_wiki")+
-  '<div class="card"><div class="ops-code">FANDOM / SEARCH</div>'+
+  el.innerHTML=hero("7DtD Wiki","Fandom search","Search the official 7 Days to Die Fandom wiki and open any page in a new browser tab.","tab_wiki")+
+   '<div class="card wiki-card"><div class="ops-code">FANDOM / SEARCH</div>'+
    '<div class="wiki-searchrow"><input id="wikiq" class="searchbar" placeholder="Search the 7DtD Fandom wiki: sledgehammer, blood moon, forge…" value="'+esc(q)+'" style="margin:0"><button class="btn" id="wikigo">Search</button></div>'+
    '<div id="wikiresults" class="wiki-results"></div></div>';
  var inp=document.getElementById("wikiq"),btn=document.getElementById("wikigo"),res=document.getElementById("wikiresults");
@@ -930,15 +1018,16 @@ function rRef(){
    opsStat("WORLD / MODE",S.world?"LINKED":"LOCAL",S.world?esc(S.world.world):"No active world",true)+
    opsStat("BUILD / ACTIVE","SLEDGE",esc(BUILDS[S.cur].name),true)+
    opsStat("NOTES / CHARS",(S.notes||"").length,"Locally stored field notes")+'</div>'+
-  '<div class="ref-console"><input class="searchbar" id="refq" placeholder="Search the field reference…" value="'+esc(S.refq||"")+'"><div class="ref-count" id="refcount">'+REF.length+' MODULES VISIBLE</div></div>'+
-  '<div class="module-title">New here? Start with the basics <span>BEGINNER PRIMER</span></div><div class="ref-grid">'+PRIMER.map(function(p){return '<div class="card"><h3>'+esc(p[0])+'</h3><p style="color:#b7b0a8;font-size:12.5px;line-height:1.55;margin:6px 0 0">'+esc(p[1])+'</p></div>';}).join("")+'</div>'+
+   (S.importedPlayer?'<div class="ref-import-strip"><div class="ref-import-copy">Reference context loaded from <b>'+esc(S.importedPlayer.name)+'</b> · Level '+esc(S.importedPlayer.level)+'</div><span class="ref-import-badge">Survivor loaded</span></div>':'')+
+   '<div class="ref-console"><input class="searchbar" id="refq" placeholder="Search the field reference…" value="'+esc(S.refq||"")+'"><div class="ref-count" id="refcount">'+REF.length+' MODULES VISIBLE</div></div>'+
+   '<div class="module-title">New here? Start with the basics <span>BEGINNER PRIMER</span></div><div class="ref-grid primer-grid">'+PRIMER.map(function(p){return '<div class="card primer-card"><h3>'+esc(p[0])+'</h3><p class="primer-copy">'+esc(p[1])+'</p></div>';}).join("")+'</div>'+
   '<div class="module-title">Expert doctrine <span>FIELD MANUAL · SEARCHABLE</span></div><div class="ref-grid">';
- REF.forEach(function(r,i){var rows=r[1].map(function(kv){return '<div class="kv"><span style="color:var(--muted)">'+esc(kv[0])+'</span><b style="font-family:inherit;font-weight:600;text-align:right;max-width:62%">'+esc(kv[1])+'</b></div>';}).join("");
-  html+='<div class="card refcard'+(S.refcol[i]?" compact":"")+'" data-ri="'+i+'" data-txt="'+esc((r[0]+" "+r[1].map(function(k){return k[0]+" "+k[1];}).join(" ")).toLowerCase())+'"><h3 data-code="R-'+String(i+1).padStart(2,"0")+'">'+r[0]+'</h3>'+rows+'</div>';});
+  REF.forEach(function(r,i){var rows=r[1].map(function(kv){return '<div class="kv"><span style="color:var(--muted)">'+esc(kv[0])+'</span><b style="font-family:inherit;font-weight:600;text-align:right;max-width:62%">'+esc(kv[1])+'</b></div>';}).join("");
+   html+='<div class="card refcard'+(S.refcol[i]?" compact":"")+'" role="button" tabindex="0" aria-expanded="'+(S.refcol[i]?"false":"true")+'" data-ri="'+i+'" data-txt="'+esc((r[0]+" "+r[1].map(function(k){return k[0]+" "+k[1];}).join(" ")).toLowerCase())+'"><h3 data-code="R-'+String(i+1).padStart(2,"0")+'">'+r[0]+'</h3>'+rows+'</div>';});
  html+='</div><div class="module-title">Personal Field Log <span>AUTO-SAVED LOCALLY</span></div><div class="card"><h3>Field Notes</h3><textarea id="nt" placeholder="Base coordinates, objectives, supply reminders…">'+esc(S.notes||"")+'</textarea></div>';
  document.getElementById("ref").innerHTML=html;
  document.getElementById("nt").oninput=function(){S.notes=this.value;save();};
- document.querySelectorAll("#ref [data-ri]").forEach(function(c){c.onclick=function(){var i=c.dataset.ri;S.refcol[i]=!S.refcol[i];c.classList.toggle("compact");save();};});
+ document.querySelectorAll("#ref [data-ri]").forEach(function(c){c.onclick=function(){var i=c.dataset.ri;S.refcol[i]=!S.refcol[i];c.classList.toggle("compact");c.setAttribute("aria-expanded",c.classList.contains("compact")?"false":"true");save();};c.onkeydown=activateOnKey;});
  var rq=document.getElementById("refq");if(rq)rq.oninput=function(){S.refq=this.value;var q=this.value.toLowerCase(),n=0;document.querySelectorAll("#ref .refcard").forEach(function(c){var on=!q||(c.dataset.txt||"").indexOf(q)>=0;c.style.display=on?"":"none";if(on)n++;});document.getElementById("refcount").textContent=n+" MODULES VISIBLE";};
 }
 
@@ -985,7 +1074,7 @@ function renderWorldGate(){
    choices+='<div class="gate-choice" data-gsave="'+i+'"><div class="gate-choice-mark">'+(v3?"3.0":"2.x")+'</div><div><b>'+esc(s.save)+'</b><small>'+pls.length+' survivor'+(pls.length===1?"":"s")+' · '+(v3?"Dead Hot Summer":"Legacy world")+'</small></div><span class="gate-choice-go">Select ›</span></div>';
   });
  });
- if(!choices)choices='<div class="banner warn" style="grid-column:1/-1;margin:0"><b>No saves found.</b> The scan looked in <code>%AppData%\\Roaming\\7DaysToDie\\Saves</code>. If your saves live elsewhere (a custom Steam library, or Documents redirected to OneDrive), click <b>Continue without World</b> below, then open the <b>World</b> tab → <b>Link a World Manually</b> and point it at your <code>7DaysToDie</code> folder. Make sure you have launched the game at least once so the save folder exists.</div>';
+ if(!choices)choices='<div class="empty-state"><div><b>No saves found.</b><br>The scan looked in <code>%AppData%\\Roaming\\7DaysToDie\\Saves</code>. If your saves live elsewhere, continue without a world, then use <b>World → Link a World Manually</b> and select the <code>7DaysToDie</code> folder. Launch the game once first so the save folder exists.</div></div>';
  box.innerHTML=gateHeader(1,"Select a World","Choose the save that should power maps, settings, progression and live operation data. The app stays locked until you select a world or explicitly continue without one.")+
   '<div class="gate-summary">'+opsStat("SCAN / SAVES",(W.tree||[]).length,"Local save folders found")+opsStat("SCAN / WORLDS",Object.keys(byW).length,"Unique worlds available")+opsStat("SCAN / SURVIVORS",survivors,"Character profiles detected")+'</div>'+
   '<div class="gate-worlds">'+choices+'</div><div class="gate-actions"><span class="ops-code">Nothing is imported until you select a save.</span><button class="gate-skip" id="gateNoWorld">Continue without World</button></div>';
@@ -996,7 +1085,7 @@ function renderCharacterGate(s){
  var launch=document.getElementById("launcher"),box=launch.querySelector(".launchbox"),pls=s.pl||s.players||[],v3=s.settings&&("SandboxCode" in s.settings),choices="";
  launch.classList.add("wizard");launch.classList.remove("hide");
  pls.forEach(function(p,i){choices+='<div class="gate-choice" data-gplayer="'+i+'"><div class="gate-choice-mark">'+esc((p.name||"?").slice(0,1).toUpperCase())+'</div><div><b>'+esc(p.name||"Survivor")+'</b><small>Level '+(p.level||"?")+' · last login '+esc(p.login||"unknown")+'</small></div><span class="gate-choice-go">Import ›</span></div>';});
- if(!choices)choices='<div class="banner warn" style="grid-column:1/-1;margin:0">This save has no survivor profiles. Continue without a character to import world settings and map data only.</div>';
+ if(!choices)choices='<div class="empty-state"><div><b>No survivor profiles found.</b><br>Continue without a character to import world settings and map data only.</div></div>';
  box.innerHTML=gateHeader(2,"Select a Survivor","Choose the character whose level, perks and crafting progression should be imported. You can also continue with world data only.")+
   '<div class="gate-selected"><div class="ops-code">Selected World</div><b>'+esc(s.world)+' / '+esc(s.save)+'</b><span>'+(v3?"V3.0 Dead Hot Summer":"Legacy world")+' · '+pls.length+' survivor profile'+(pls.length===1?"":"s")+'</span></div>'+
   '<div class="gate-worlds">'+choices+'</div><div class="gate-actions"><button class="gate-back" id="gateBackWorlds">‹ Back to Worlds</button><button class="gate-skip" id="gateNoCharacter">Continue without Character</button></div>';
@@ -1011,8 +1100,7 @@ function unlockApp(){
 function showIntroCoach(){
  if(S.seenIntro||document.getElementById("introCoach"))return;
  var d=document.createElement("div");d.id="introCoach";d.className="banner safe";
- d.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:min(560px,calc(100% - 24px));z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.5)";
- d.innerHTML='<b>Quick start:</b> the tabs across the top switch views — <b>Dashboard</b> (status), <b>Build</b> (perk plan), <b>Horde</b> (blood-moon prep), <b>3D Map</b> (your world), <b>Reference</b> (a beginner primer + doctrine). Only the <b>World</b> tab ever writes to your game; everything else is read-only. <button class="btn" id="introClose" style="margin-left:8px">Got it</button>';
+ d.innerHTML='<div class="coach-copy"><b>Quick start</b>The top tabs switch views: <b>Dashboard</b> for status, <b>Build</b> for perks, <b>Horde</b> for prep, <b>3D Map</b> for recon and <b>Reference</b> for the primer. Only <b>World</b> can write to your game; every other tab is read-only.</div><button class="btn" id="introClose">Got it</button>';
  document.body.appendChild(d);
  document.getElementById("introClose").onclick=function(){S.seenIntro=true;save();d.remove();};
 }
@@ -1155,7 +1243,7 @@ var PRESETS={
  hard:{name:"Hard",icon:"💀",sub:"Sprinters & real stakes",map:{GameDifficulty:"Survivalist",ZombieMove:"Jog",ZombieMoveNight:"Run",ZombieFeralMove:"Sprint",ZombieBMMove:"Sprint",ZombieFeralSense:"Night",BlockDamageAI:"100%",BlockDamageAIBM:"150%",DeathPenalty:"Injured",DropOnDeath:"All",XPMultiplier:"100%",BloodMoonEnemyCount:"32",BloodMoonFrequency:"7",AllowZombieDigging:"Yes",LootRespawnDays:"40",AirDropFrequency:"7"}},
  nightmare:{name:"Nightmare",icon:"☠️",sub:"Insane + everything cranked",map:{GameDifficulty:"Insane",ZombieMove:"Nightmare",ZombieMoveNight:"Nightmare",ZombieFeralMove:"Nightmare",ZombieBMMove:"Nightmare",ZombieFeralSense:"All",BlockDamageAI:"100%",BlockDamageAIBM:"200%",DeathPenalty:"Injured",DropOnDeath:"Delete All",XPMultiplier:"100%",BloodMoonEnemyCount:"64",BloodMoonFrequency:"5",BloodMoonWarning:"Disabled",AllowZombieDigging:"Yes",LootRespawnDays:"50",AirDropFrequency:"Disabled"}}
 };
-function presetBarHTML(){return '<div class="card" style="margin-bottom:10px"><h3>⚙ Difficulty Presets</h3><div class="sub" style="margin-bottom:8px">One click sets a full difficulty profile across many settings (difficulty, zombie speed, block damage, death penalty, Blood Moon, loot…). Review the pending changes, then <b>Write to World</b> — nothing is saved until you confirm.</div><div class="presetbar">'+Object.keys(PRESETS).map(function(k){var p=PRESETS[k];return '<button type="button" class="btn presetbtn" data-preset="'+k+'"><span class="pi">'+p.icon+'</span><span class="pn">'+esc(p.name)+'</span><small>'+esc(p.sub)+'</small></button>';}).join('')+'</div></div>';}
+function presetBarHTML(){return '<div class="card preset-card"><h3>⚙ Difficulty Presets</h3><div class="sub" style="margin-bottom:8px">One click sets a full difficulty profile across many settings (difficulty, zombie speed, block damage, death penalty, Blood Moon, loot…). Review the pending changes, then <b>Write to World</b> — nothing is saved until you confirm.</div><div class="presetbar">'+Object.keys(PRESETS).map(function(k){var p=PRESETS[k];return '<button type="button" class="btn presetbtn" data-preset="'+k+'"><span class="pi">'+p.icon+'</span><span class="pn">'+esc(p.name)+'</span><small>'+esc(p.sub)+'</small></button>';}).join('')+'</div></div>';}
 function applyPreset(key){
  var p=PRESETS[key];if(!p)return;
  Object.keys(p.map).forEach(function(nm){
@@ -1202,25 +1290,25 @@ function settingsEditor(world,save,st){
  (RD.categories||[]).forEach(function(c){
   var items=byCat[c[0]]; if(!items||!items.length)return;
   var rows='';
-  items.forEach(function(pair){
-   var o=pair[0],sstate=pair[1];
+   items.forEach(function(pair){
+    var o=pair[0],sstate=pair[1],label=o.label||humanKey(o.name);
    var editable=o.control!=="display"&&(o.options&&o.options.length||o.control==="number"||o.control==="bool");
    if(editable)editableCount++; totalShown++;
-   rows+='<div class="setrow'+(editable?"":" ro")+'" data-name="'+esc(o.name)+'" data-label="'+esc(humanKey(o.name))+'" data-help="'+esc(o.desc||"Detailed reference text can be added in refdata.json.")+'" data-source="'+(sstate.target==="sandbox"?"SandboxCode":"Plain setting")+'" data-risk="'+(o.risk||0)+'" data-editable="'+(editable?1:0)+'">'+
-     '<div class="setmeta"><div class="setlbl">'+esc(humanKey(o.name))+riskBadge(o.risk||0)+(sstate.target==="sandbox"?'<span class="srcb" title="V3 SandboxCode value">⟳</span>':'')+'<button type="button" class="sethelpq" aria-label="Explain '+esc(humanKey(o.name))+'">?</button></div>'+
+    rows+='<div class="setrow'+(editable?"":" ro")+'" data-name="'+esc(o.name)+'" data-label="'+esc(label)+'" data-help="'+esc(o.desc||"Detailed reference text can be added in refdata.json.")+'" data-source="'+(sstate.target==="sandbox"?"SandboxCode":"Plain setting")+'" data-risk="'+(o.risk||0)+'" data-editable="'+(editable?1:0)+'">'+
+      '<div class="setmeta"><div class="setlbl">'+esc(label)+riskBadge(o.risk||0)+(sstate.target==="sandbox"?'<span class="srcb" title="V3 SandboxCode value">⟳</span>':'')+'<button type="button" class="sethelpq" aria-label="Explain '+esc(label)+'">?</button></div>'+
      '<div class="setdesc">Configuration key: <span class="srcb">'+esc(o.name)+'</span></div></div>'+
      '<div class="setctl">'+ctlHTML(o,sstate)+'</div></div>';
   });
   var open=!S.setcol||!S.setcol[c[0]];
-  body+='<div class="acc'+(open?"":" col")+'" data-acc="'+c[0]+'"><div class="acch"><span class="ttl">'+(CAT_EN[c[0]]||humanKey(c[0]))+'</span><span class="pc">'+items.length+'</span><span class="chev">▼</span></div><div class="accb">'+rows+'</div></div>';
+   body+='<div class="acc'+(open?"":" col")+'" data-acc="'+c[0]+'"><div class="acch" role="button" tabindex="0" aria-expanded="'+(open?"true":"false")+'"><span class="ttl">'+(CAT_EN[c[0]]||humanKey(c[0]))+'</span><span class="pc">'+items.length+'</span><span class="chev">▼</span></div><div class="accb">'+rows+'</div></div>';
  });
- if(!body)body='<div class="wstep">No matching settings.</div>';
+ if(!body)body='<div class="empty-state"><div><b>No matching settings.</b><br>Clear the search or disable “changed only” to show the full catalog.</div></div>';
  var verLine=v3?'<span class="vbadge v3">3.0+</span> Editable SandboxCode · '+Object.keys(sbIdx).length+' active overrides':'<span class="vbadge v2">≤2.6</span> Editable plain-text keys';
- var head='<div class="card" style="margin-bottom:10px"><h3>World Settings · '+esc(world)+' / '+esc(save)+'</h3>'+
+ var head='<div class="card settings-head"><h3>World Settings · '+esc(world)+' / '+esc(save)+'</h3>'+
    '<div class="sub" style="margin-bottom:8px">'+verLine+' · '+editableCount+' of '+totalShown+' displayed options are directly editable.</div>'+
    '<div class="banner warn" style="margin:0 0 4px"><b>Close the game before saving.</b> 7DtD can overwrite this file on exit. A timestamped backup is created automatically.</div></div>';
  var presets=presetBarHTML();
- var ctrls='<div class="card" style="margin-bottom:10px"><div class="ctrls">'+
+ var ctrls='<div class="card settings-tools"><div class="ctrls">'+
    '<input id="setq" placeholder="Search settings…" value="'+esc(S.setq||"")+'" style="flex:2;min-width:180px">'+
    '<button class="btn" id="setexpand">Expand All</button><button class="btn" id="setcollapse">Collapse All</button>'+
    '<label class="chk"><input type="checkbox" id="setonlych"'+(onlyCh?" checked":"")+'> changed only</label>'+
@@ -1248,10 +1336,10 @@ function showSettingHelp(row){
 }
 function wireSettingsEditor(){
  var root=document.getElementById("world"); if(!root||!RD)return;
- root.querySelectorAll("[data-acc] .acch").forEach(function(h){h.onclick=function(){var id=h.parentNode.dataset.acc;if(!S.setcol)S.setcol={};S.setcol[id]=!h.parentNode.classList.contains("col")?1:0;h.parentNode.classList.toggle("col");save();};});
+ root.querySelectorAll("[data-acc] .acch").forEach(function(h){h.onclick=function(){var id=h.parentNode.dataset.acc;if(!S.setcol)S.setcol={};S.setcol[id]=!h.parentNode.classList.contains("col")?1:0;h.parentNode.classList.toggle("col");h.setAttribute("aria-expanded",h.parentNode.classList.contains("col")?"false":"true");save();};h.onkeydown=activateOnKey;});
  var q=document.getElementById("setq");if(q)q.oninput=function(){S.setq=this.value;applySettingSearch();};
- var ea=document.getElementById("setexpand");if(ea)ea.onclick=function(){S.setcol={};save();root.querySelectorAll("[data-acc]").forEach(function(a){a.classList.remove("col");});};
- var ca=document.getElementById("setcollapse");if(ca)ca.onclick=function(){S.setcol={};root.querySelectorAll("[data-acc]").forEach(function(a){S.setcol[a.dataset.acc]=1;a.classList.add("col");});save();};
+ var ea=document.getElementById("setexpand");if(ea)ea.onclick=function(){S.setcol={};save();root.querySelectorAll("[data-acc]").forEach(function(a){a.classList.remove("col");var h=a.querySelector(".acch");if(h)h.setAttribute("aria-expanded","true");});};
+ var ca=document.getElementById("setcollapse");if(ca)ca.onclick=function(){S.setcol={};root.querySelectorAll("[data-acc]").forEach(function(a){S.setcol[a.dataset.acc]=1;a.classList.add("col");var h=a.querySelector(".acch");if(h)h.setAttribute("aria-expanded","false");});save();};
  var oc=document.getElementById("setonlych");if(oc)oc.onchange=function(){S.setchanged=this.checked;save();applyOnlyChangedFilter();};
  applySettingSearch();
  root.querySelectorAll(".setinput").forEach(function(inp){inp.onchange=function(){onSettingChange(inp);};inp.oninput=function(){onSettingChange(inp);};});
@@ -1479,12 +1567,12 @@ function charImportCard(pls){
  var curId=charIdentity(S.importedPlayer);
  var rows=(pls||[]).map(function(p,i){
    var active=!!(curId&&charIdentity(p)===curId);
-   return '<div class="wi'+(active?' active':'')+'" data-pl="'+i+'"><div class="wn">'+esc(p.name||("Survivor "+(i+1)))+(active?' <span class="rb rb2" style="background:rgba(92,196,122,.2);color:#5cc47a;border-color:rgba(92,196,122,.5)">✓ imported</span>':'')+'</div><div class="wmeta">Level '+(p.level||"?")+(p.login?' · '+esc(p.login):'')+'</div><div style="color:var(--acc2);font-weight:700;font-size:18px">'+(active?'↻':'›')+'</div></div>';
- }).join("");
- return '<div class="card" style="margin:12px 0 10px"><h3>Import a Survivor</h3>'+
-  '<div class="wstep">Importing reads a character’s level and perks to auto-fill the build planner. Re-importing the same survivor keeps your manual edits.</div>'+
-  (rows||'<div class="wstep" style="color:var(--dim)">No survivor profiles found in this save.</div>')+
-  '<div class="wi" data-pl="-1"><div class="wn">Continue without a character</div><div class="wmeta">Load the world / map only</div><div style="color:var(--acc2);font-weight:700;font-size:18px">›</div></div></div>';
+   return '<div class="wi'+(active?' active':'')+'" data-pl="'+i+'"><div class="wn">'+esc(p.name||("Survivor "+(i+1)))+(active?' <span class="status-badge ok import-badge">✓ imported</span>':'')+'</div><div class="wmeta">Level '+(p.level||"?")+(p.login?' · '+esc(p.login):'')+'</div><div class="wi-arrow">'+(active?'↻':'›')+'</div></div>';
+  }).join("");
+ return '<div class="card survivor-import-card"><div class="survivor-card-head"><h3>Import a Survivor</h3><button type="button" class="survivor-info-btn" aria-label="About survivor import" data-tip="Import is read-only. It loads level, perks, crafting progress and perk-book volumes from the selected profile. Re-importing preserves manual planner edits.">i</button></div>'+
+   '<div class="wstep">Importing reads a character’s level and perks to auto-fill the build planner. Re-importing the same survivor keeps your manual edits.</div>'+
+   (rows||'<div class="empty-state"><div><b>No survivor profiles found.</b><br>Load the world and map without character progression.</div></div>')+
+   '<div class="wi" data-pl="-1"><div class="wn">Continue without a character</div><div class="wmeta">Load the world / map only</div><div class="wi-arrow">›</div></div></div>';
 }
 function worldSummaryCard(w){
  return '<div class="card" style="margin:12px 0 10px"><h3>Current World</h3>'+
@@ -1646,7 +1734,7 @@ function r3D(){
   }
   if(!S.d3v||S.d3v>4)S.d3v=1;
   var d3cnt={};(S.map.pois||[]).forEach(function(p){d3cnt[p[3]]=(d3cnt[p[3]]||0)+1;});
-  var d3legend="";["1","2","3","4","5","0","-1"].forEach(function(t){if(!d3cnt[t])return;d3legend+='<span class="tierchip'+(mapFilterOn(t)?"":" off")+'" data-tf="'+t+'"><span class="tdot" style="background:'+TIERCOL[t]+'"></span>'+TIERLBL[t]+' ('+d3cnt[t]+')</span>';});
+  var d3legend="";["1","2","3","4","5","0","-1"].forEach(function(t){if(!d3cnt[t])return;d3legend+='<button type="button" class="tierchip'+(mapFilterOn(t)?"":" off")+'" data-tf="'+t+'"><span class="tdot" style="background:'+TIERCOL[t]+'"></span>'+TIERLBL[t]+' ('+d3cnt[t]+')</button>';});
   el.innerHTML=hero("3D Recon","WebGL terrain flight","Fly the optimized terrain mesh with biome texture, road and water layers, and projected POI labels.","tab_3d")+
    '<div class="ops-strip">'+
     opsLead("TERRAIN / MESH",100,S.map.hm.n+"²","3D World Online",esc(S.map.world)+" terrain and POI volume data are ready.","#68b8c2")+
@@ -1654,9 +1742,9 @@ function r3D(){
     opsStat("BUILDINGS / POI",(S.map.pois||[]).length,"Projected structures")+
     opsStat("HEIGHT / SCALE",S.d3v.toFixed(1)+"×","Current vertical exaggeration")+
     opsStat("RENDER / API","WEBGL","Hardware-accelerated local view",true)+'</div>'+
-   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…" style="width:100%;margin-bottom:6px"><div id="poiResults" class="poi-results"></div><div class="wstep" style="margin:4px 0 3px">Show buildings by tier — click to toggle:</div><div class="legend" id="d3legend">'+d3legend+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.2" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
+   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" class="map-search" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…"><div id="poiResults" class="poi-results"></div><div class="map-filter-label">Show buildings by tier — click to toggle</div><div class="legend" id="d3legend">'+d3legend+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.2" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
    '<div class="card"><h3>Control Deck</h3><div class="key-grid"><span></span><span class="keycap">W</span><span></span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="keycap">R / F</span><span class="keycap wide">SHIFT · BOOST</span></div></div></div>'+
-   '<div class="mapwrap"><button id="d3fs" class="mapfsbtn" title="Fullscreen (Esc to exit)">⛶</button><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div id="poiInfo" class="poiInfo" style="display:none"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
+   '<div class="mapwrap"><button id="d3fs" class="mapfsbtn" aria-label="Toggle fullscreen map" title="Fullscreen (Esc to exit)">⛶</button><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div id="poiInfo" class="poiInfo" style="display:none"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
   W3.q="";  // reset map search on (re)entering the tab so the first terrain build shows all POIs
   try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D error: '+esc(e.message)+'</div>';W3.dead=true;return;}
   document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
@@ -1671,7 +1759,7 @@ function r3D(){
    applyMapSearch(q);            // filter the buildings ON the map, not just the dropdown
    if(!q){pres.innerHTML="";return;}
    var hits=(S.map.pois||[]).map(function(p,i){return [p,i];}).filter(function(o){return poiText(o[0]).indexOf(q)>=0;}).slice(0,12);
-   pres.innerHTML=hits.length?hits.map(function(o){var sub=o[0][13]?esc(o[0][0]):TIERLBL[o[0][3]];return '<div class="poi-hit" data-pi="'+o[1]+'"><span class="tdot" style="background:'+TIERCOL[o[0][3]]+'"></span><span class="poi-hit-name">'+esc(poiLabel(o[0]))+'</span><small>'+sub+'</small></div>';}).join(""):'<div class="poi-hit muted">No match — try a brand: Crack-A-Book, Shamway, Trader…</div>';
+   pres.innerHTML=hits.length?hits.map(function(o){var sub=o[0][13]?esc(o[0][0]):TIERLBL[o[0][3]];return '<button type="button" class="poi-hit" data-pi="'+o[1]+'"><span class="tdot" style="background:'+TIERCOL[o[0][3]]+'"></span><span class="poi-hit-name">'+esc(poiLabel(o[0]))+'</span><small>'+sub+'</small></button>';}).join(""):'<div class="poi-hit muted">No match — try a brand: Crack-A-Book, Shamway, Trader…</div>';
    pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(!mapFilterOn(p[3])){S.mapFilter[p[3]]=1;save();var ch=document.querySelector('#d3legend [data-tf="'+p[3]+'"]');if(ch)ch.classList.remove("off");}psi.value=poiLabel(p);applyMapSearch(psi.value.toLowerCase());if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=poiLabel(p);W3.flyTo(t);}openPoiInfo(+r.dataset.pi);var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";};});
   };
   el.querySelectorAll("#d3legend [data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();c.classList.toggle("off",!mapFilterOn(t));if(W3.buildTerrain)W3.buildTerrain();};});
@@ -1851,9 +1939,9 @@ function openPoiInfo(pi){
  if(quests)rows+=kv("Quest types",esc(quests));
  if(theme)rows+=kv("Theme",esc(prettyPoi(theme)));
  if(dist!=null)rows+=kv("Distance to base",dist.toLocaleString()+" m");
- el.innerHTML='<button type="button" class="pi-close" aria-label="Close">×</button>'+img+
+ el.innerHTML='<button type="button" class="pi-close" aria-label="Close POI details">×</button>'+img+
   '<h4>'+esc(p[13]||prettyPoi(p[0]))+'</h4><div class="pi-sub">'+esc(p[0])+'</div>'+
-  '<div style="margin-top:10px">'+rows+'</div>';
+  '<div class="pi-details">'+rows+'</div>';
  el.querySelector(".pi-close").onclick=closePoiInfo;
  el.style.display="block";
 }
