@@ -673,7 +673,29 @@ var BOOKS=[
  ["Wasteland Treasures","Treasure and salvage","Salvage Operations","wastetreasures"]
 ];
 function booksReadFromProgression(prog,stem){if(!stem||!prog)return 0;var pre="perk"+stem,c=0;for(var k in prog){if(k.indexOf(pre)===0&&k!==pre&&k.slice(-8)!=="complete"&&prog[k]>=1)c++;}return Math.min(7,c);}
-var READY=[["Base fully repaired; steel combat lane","",2],["Sledge at full durability + one spare","",2],["Carry at least 3 Repair Kits","",1],["10+ First Aid Bandages or Kits","",2],["Honey + Vitamins for infection","",1],["Food and water above 70% + reserves","",1],["Grandpa's Moonshine opener + Mega Crush panic button","",1],["Forge OFF to avoid Screamers","",1],["Roof secured against Vultures","",1],["Escape route and bail hatch clear","",2]];
+var READY=[["Base repaired — steel kill-lane + load-bearing blocks","",2],["Primary weapon at full durability + spare","",2],["Ammo / repair supply stocked for the fight","",1],["10+ First Aid Bandages or Kits on the belt","",2],["Infection cure + prevention (Antibiotics/Honey + Vitamins)","",1],["Food & water 70%+ with reserves","",1],["Combat stims ready (Moonshine + Mega Crush)","",1],["All heat sources OFF (forge/campfire/generator)","",1],["Roof sealed against Vultures","",1],["Escape route + bail hatch tested","",2]];
+// Build-specific Combat Loadout: maps the active build to its weapon / ammo-supply / stim lines on the Horde board. [weaponName, weaponNote, supplyName, supplyNote, comboName, comboNote]
+var BUILD_LOADOUT={
+ sledge:["Sledgehammer at full durability + spare","Steel sledge online; one spare in reach. Heavy hits stagger sprinters and destroy blocks.","3+ Repair Kits + forged iron/steel","Melee eats durability — kits restore the weapon between waves, ore for field forging.","Moonshine + Mega Crush","Grandpa's Moonshine for stamina regen, Mega Crush to extract — melee gasses out fast on Nightmare."],
+ shotgun:["Auto / Pump Shotgun + spare","Shotgun is your Insane horde answer from elevation. Keep a backup gun within reach.","300+ shells (slug + buckshot)","Slug for Demolishers/specials, buckshot for trash. Bring ~2× expected — a single horde can eat 400+.","Moonshine + Mega Crush","Stamina regen + panic extract. Reload behind cover; never center-mass a Demolisher."],
+ sniper:["Sniper / Marksman Rifle + .44 sidearm","Back-platform rifle for headshots; .44 sidearm for anything that reaches the platform.","200+ 7.62 incl. AP rounds","AP for Demolishers (halves their armor) and Radiated. Stockpile — specials soak rounds.","Stay on the platform + .44 panic","Hold the high ground; the .44 is your last-resort if a sprinter climbs to you."],
+ mg:["AK / M60 Machine Gun + drum/spare mags","Magazine-fed full-auto holds the funnel. M60 + drum = endgame horde king.","500+ 7.62 — pre-loaded mags","Auto burns ammo fast (one horde ate 400+). Pre-load mags; reload behind blocks.","Moonshine + Mega Crush","Stamina + extract. Fire from cover, short bursts on specials to save ammo."],
+ stealth:["Pistol / SMG + .44 Magnum + spare mags","Burst sidearm for the flank-and-reposition. Never anchor — you are the roamer, not the wall.","9mm / .44 stockpile (AP for armor)","Carry light but enough; AP for armored. Loot bodies between flanks.","Mega Crush for reposition","Burst, break contact, relocate. Mega Crush refills stamina for the next flank."],
+ club:["Steel Club + spare","Stun-club staggers single targets. Keep a spare and good mods on the swing.","3+ Repair Kits + spare club","Melee eats durability; kits restore the lane weapon between pushes.","Moonshine + Mega Crush","Stun-lock then reposition; Moonshine for stamina, Mega Crush to bail."],
+ spear:["Spear + spare","Reach lets you poke sprinters from outside their swing arc. Keep spares.","3+ Repair Kits + AP-tip spares","Repair the spear between waves; armor-piercing tips for tougher specials.","Moonshine + Mega Crush","Poke and step back; never get surrounded. Stamina + extract on hand."],
+ bow:["Compound Bow / Crossbow + sidearm","Silent shots don't spike heat — but a 64-horde will still swarm. Keep a gun backup.","200+ iron/steel arrows or bolts","Recover what you can between waves; carry plenty — no reload speed on Nightmare.","Stealth opener + Mega Crush","Open from stealth, then it's a fight. Mega Crush to disengage and re-stealth."],
+ brawler:["Steel Knuckles + spare","Fists + Siphoning lifesteal let you out-sustain the trade. Spare in reach.","3+ Repair Kits","Lifesteal keeps you topped, but kits restore the knuckles' durability.","Moonshine + Mega Crush","Lifesteal sustains HP; watch stamina — Moonshine regen, Mega Crush to bail."],
+ robotics:["Robotic Turrets / Drone + Stun Baton","Deploy turrets at the funnel to thin the 64-horde; baton anything that reaches you.","Turret ammo + spare battery banks","Feed the turrets (10mm/shotgun) and keep batteries charged — dead turret = dead build.","Deploy early + baton self-defense","Place turrets before contact; you are squishy — let the robots do the damage."],
+ pistol:["Pistol / .44 Magnum + spare mags","Run-and-gun handgun DPS. .44 Desert Vulture hits hardest; reload while moving.","9mm / .44 stockpile","Carry deep — run-and-gun burns through mags. AP for armored specials.","Mega Crush for run-and-gun","Keep moving and firing; Mega Crush refills the stamina you spend kiting."],
+ blade:["Machete / Steel Knife + sidearm","Bleed stacks do the work — hit and move, don't stand and trade. Gun backup.","3+ Repair Kits + spare blade","Blades dull fast; kits + a spare keep the bleed online between waves.","Moonshine + Mega Crush","Apply bleed, reposition, let it tick. Stamina + extract ready."],
+ demolition:["Rocket Launcher / Pipe Bombs + rifle backup","Explosives clear packs — but the rifle handles specials and anything near your base.","Rockets/explosives + 100+ rifle rounds","Mind the self-damage radius; never fire near your own wall. Rifle for precise kills.","NEVER explode near base or Demolisher","One rocket near the wall or a Demolisher's chest = a hole in your defense. Rifle those."],
+ baton:["Stun Baton + spare + SMG sidearm","Chain-stun the funnel; the baton suppresses Cop explosions. Gun backup for range.","Spare battery + 3 Repair Kits + SMG ammo","Keep the baton charged and repaired; SMG ammo for anything you can't reach.","Chain-stun the funnel","Electrify locks down the lane; baton-suppress Cops before they fold and blow."],
+ miner:["Auger (HEAT!) + Sledge backup for the horde","The Auger is for mining only — fight Blood Moon with the sledge. Keep it sharp.","3+ Repair Kits + ore for forging","Repair the sledge between waves; you have the mats — use them.","Auger OFF before 22:00","The Auger spikes heat → Screamers. Shut it down before contact and fight with the sledge."],
+ trader:["SMG / Pistol + Stun Baton","You fund the squad, not the front line — but carry real self-defense. Baton backup.","Ammo stockpile (you can afford it)","Trader cash means deep ammo + a charged baton. Don't show up broke to the horde.","Lean on the squad to anchor","Buff the team and hold a flank; let the anchors take the 64-front."],
+ medic:["Stun Baton + Robotic Turret","Self-defense only — your job is healing and the Charismatic aura. Turret covers you.","Max meds: First Aid Kits, Antibiotics, Splints","Carry the TEAM's medicine, not just your own. You are force-multiplier #1.","Heal + buff allies (Charismatic aura)","Stay near the squad; the aura + heals keep the anchors alive. Baton/turret for self-defense."],
+ jack:["Machine Gun + melee backup","MG for range, melee for the funnel — carry enough of both, you do a bit of everything.","Mixed 7.62 + Repair Kits","Ammo for the gun, kits for the melee. Jack-of-all-trades means double the supply.","MG range, melee funnel","Range them as they come, melee what reaches the lane. Flexible but never under-supplied."],
+ vulture:["Bow / Pistol + melee backup","Light load to stay mobile — kite Nightmare sprinters, never get cornered. Melee backup.","Arrows / 9mm + 1 Repair Kit","Travel light; you win by movement, not by carrying a fortress of ammo.","Kite + Parkour the base","Parkour the base, reposition constantly, fire while moving — never anchor in one spot."]
+};
 var REF=[
 ["⚙️ Active Settings",[["Difficulty","Insane — you deal 50%, enemies deal 250%"],["Headshot Multiplier","125% — aim sledge attacks at the head"],["XP","125%"],["Zombie Speed","Nightmare by day and night"],["Feral Sense","Night"],["Block Damage","Enemies 85%, Blood Moon 65%"],["Blood Moon","Every 10 days · 64 enemies"],["Skill Points","2 per level"]]],
 ["🔨 Sledge Rules",[["Power Attack","2.24× damage, 2× stamina"],["Normal Zombies","Hit the head for the 125% multiplier"],["Demolisher","Body or legs; never chest, never shotgun"],["Stamina","Cardio + Skull Crusher + Sledge Saga completion"],["Mutants","Hard head target; highest melee threat"]]],
@@ -1069,35 +1091,39 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  var status=rs.p>=90?"COMBAT READY":rs.p>=75?"FINAL CHECKS":rs.p>=55?"PREPARATION ACTIVE":rs.p>=35?"EXPOSED":"NOT READY";
  var ringCol=rs.p>=75?"#75b47e":rs.p>=45?"#ef9b45":"#d84a3f";
  var prepNotes=[
-  "Repair the steel lane and every load-bearing block.",
-  "Full durability, plus a second weapon within reach.",
-  "Carry enough kits to restore the lane between waves.",
-  "Fast healing stays on the belt, not in storage.",
-  "Infection prevention and treatment are both covered.",
-  "Enter the fight fed, hydrated and with reserves.",
-  "Moonshine opens; Mega Crush is the extraction switch.",
-  "Reduce heat before contact to limit Screamer pressure.",
-  "Seal the roof and preserve a clear firing angle.",
-  "A tested exit matters more than a heroic last stand."
+  "Cobblestone the trap-lane cheap, concrete/steel everything the AI targets. ~13 blocks high defeats block-targeting.",
+  "Full durability plus a backup weapon within reach.",
+  "Enough ammo/kits to last every wave — bring ~2× what you expect.",
+  "First Aid stops bleed and heals fast — hot-key them, don't bury them in a box.",
+  "Honey (early) or Antibiotics cure infection; Vitamins lower the chance. Drop-on-Death = don't get bit.",
+  "Nightmare sprint + the full horde drains stamina — arrive fed, hydrated, with backups.",
+  "Moonshine opens stamina regen; Mega Crush is the panic / extract switch.",
+  "Heat draws Screamers mid-horde — kill every forge, campfire and generator before 22:00.",
+  "Vultures dive from above — roof the fighting position and keep a clear firing angle.",
+  "A tested exit beats a heroic last stand — Drop-on-Death=Everything means a death costs all your gear."
  ];
  var prepGroups=[
   {name:"Fortification",code:"BASE / 01",items:[0,7,8,9]},
   {name:"Combat Loadout",code:"GEAR / 02",items:[1,2,6]},
   {name:"Medical & Sustainment",code:"SUPPLY / 03",items:[3,4,5]}
  ];
+ var lo=BUILD_LOADOUT[S.cur]||BUILD_LOADOUT.sledge,LMAP={1:0,2:2,6:4}; // build-specific weapon/supply/stim lines
  function groupHTML(g,gi){
   var done=0;
   g.items.forEach(function(i){if(S.ready[i])done++;});
   var all=done===g.items.length;
   var items=g.items.map(function(i){
    var r=READY[i],on=!!S.ready[i],critical=r[2]>=2;
+   var nm=r[0],note=prepNotes[i];
+   if(i in LMAP){nm=esc(lo[LMAP[i]]);note=esc(lo[LMAP[i]+1]);}
    return '<div class="prep-item'+(on?" done":"")+(critical?" critical":"")+'" data-r="'+i+'">'+
     '<div class="prep-check">'+(on?"&#10003;":"")+'</div>'+
-    '<div><div class="prep-name">'+r[0]+'</div><div class="prep-note">'+prepNotes[i]+'</div></div>'+
+    '<div><div class="prep-name">'+nm+'</div><div class="prep-note">'+note+'</div></div>'+
     '<div class="prep-state">'+(on?"READY":critical?"CRITICAL":"PENDING")+'</div></div>';
   }).join("");
+  var sub=g.code+' &middot; '+done+'/'+g.items.length+' online'+(g.name==="Combat Loadout"?' &middot; '+esc(BUILDS[S.cur]?BUILDS[S.cur].name:"Sledge"):"");
   return '<section class="prep-group'+(all?" ready":"")+'"><div class="prep-head">'+
-   '<div class="prep-index">0'+(gi+1)+'</div><div class="prep-title"><b>'+g.name+'</b><small>'+g.code+' &middot; '+done+'/'+g.items.length+' online</small></div>'+
+   '<div class="prep-index">0'+(gi+1)+'</div><div class="prep-title"><b>'+g.name+'</b><small>'+sub+'</small></div>'+
    '<button class="prep-arm" data-rg="'+gi+'">'+(all?"RESET":"ARM ALL")+'</button></div><div class="prep-list">'+items+'</div></section>';
  }
  var html=hero("Horde Command","Blood Moon battle station","Turn preparation into a live combat board: arm each system, clear critical failures and track threats before the first wave.","tab_horde")+ban+
@@ -1109,27 +1135,28 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
    '<div class="card horde-stat"><span class="code">WAVE / CAP</span><div><div class="value">'+bmc+'</div><div class="unit">configured enemies</div></div><div class="signal"></div></div>'+
   '</div><div class="horde-groups">'+prepGroups.map(groupHTML).join("")+'</div>';
  var threats=[
-  ["Feral",37,"Fast, durable; prioritize headshots"],
-  ["Wight",120,"Extremely fast and tough; priority target"],
-  ["Cop",80,"Acid and death explosion; keep distance"],
-  ["Demolisher",147,"Never hit the chest charge"],
-  ["Vulture",0,"Roof threat; protect the fighting position"],
-  ["Spider",0,"Leaping flank threat"],
-  ["Zombie Dog",0,"Fast low target; breaks open movement"],
-  ["Screamer",0,"Heat response; shut down forge and fire"]
+  ["Feral",37,"Orange-eyed, sprints day+night on Nightmare. Headshots only — never melee-trade on Insane."],
+  ["Wight",120,"Permanent feral, 1200-2200 HP, tears walls like a Bear. Drop it ranged/from elevation before it reaches blocks."],
+  ["Cop",80,"Acid spit wrecks blocks; folds and suicide-explodes below 40% HP (~5s). Snipe 10m+, back off before the kill shot — stun suppresses it."],
+  ["Demolisher",147,"1200 HP; chest charge detonates if hit (800 dmg / 5000 block, 5-block radius) and stomps spikes. HEAD + AP only — never shotgun/explosive/center-mass."],
+  ["Vulture",0,"Flying, faster than you on foot, high infection chance. Roof the base; shotgun on the dive or bow while it circles."],
+  ["Spider",0,"Leaps huge gaps (no longer climbs), fast at night. Day headshots; corner it for melee — overhangs won't stop the jump."],
+  ["Zombie Dog",0,"Fast low pack, infection + bleed. Funnel it; sweep with AoE/melee and never let the pack flank you."],
+  ["Screamer",0,"Heat-seeker — her 2nd scream summons a horde every ~20s. Kill at range before she screams; cut every heat source."]
  ];
  var tr=threats.map(function(t){var active=gs>=t[1];return '<div class="enemy-card '+(active?"active":"locked")+'"><div class="cap">'+t[0]+(t[1]?' &middot; GS '+t[1]:'')+'<div class="meta">'+t[2]+'</div><span class="threat-status">'+(active?"IN THREAT POOL":"BELOW THRESHOLD")+'</span></div></div>';}).join("");
  html+='<div class="card" style="margin-top:14px"><h3>Threat Identification &middot; Game Stage '+gs+'</h3><div class="horde-threats">'+tr+'</div></div>';
  html+='<div class="grid g2" style="margin-top:12px"><div class="card"><h3>Blood Moon Sequence</h3><div class="protocol-list">'+
-   '<div class="protocol-step"><div class="protocol-time">21:30</div><div class="protocol-copy"><b>Lockdown</b>Close the route, shut down heat sources and verify the escape hatch.</div></div>'+
-   '<div class="protocol-step"><div class="protocol-time">22:00</div><div class="protocol-copy"><b>First Contact</b>Take the funnel, establish rhythm and protect stamina.</div></div>'+
-   '<div class="protocol-step"><div class="protocol-time">WAVES</div><div class="protocol-copy"><b>Repair Cycle</b>Restore the lane between pushes without leaving hard cover.</div></div>'+
-   '<div class="protocol-step"><div class="protocol-time">04:00</div><div class="protocol-copy"><b>Clearance</b>Confirm the final targets before leaving the combat lane.</div></div></div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">21:30</div><div class="protocol-copy"><b>Lockdown</b>Seal the route and kill ALL heat (forge, campfire, generator) — heat draws Screamers mid-horde. Verify the bail hatch.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">22:00</div><div class="protocol-copy"><b>First Contact</b>The horde spawns at night-set. Hold the funnel, headshot, ration stamina — Nightmare sprinters never stop.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">WAVES</div><div class="protocol-copy"><b>Repair Cycle</b>Repair the kill-lane from cover between pushes. Specials (Cop, Demolisher) spawn mid-horde — handle them FIRST.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">04:00</div><div class="protocol-copy"><b>Clearance</b>The horde despawns at dawn (~04:00). AP-headshot any standing Demolisher before you leave hard cover.</div></div></div></div>'+
    '<div class="card"><h3>Combat Doctrine</h3><div class="protocol-list">'+
-   '<div class="protocol-step"><div class="protocol-time">TARGET</div><div class="protocol-copy"><b>Demolisher</b>Body or legs only. Never strike the chest charge.</div></div>'+
-   '<div class="protocol-step"><div class="protocol-time">LANE</div><div class="protocol-copy"><b>Single Funnel</b>Never meet '+bmc+' configured enemies in open ground.</div></div>'+
-   '<div class="protocol-step"><div class="protocol-time">OPEN</div><div class="protocol-copy"><b>Moonshine</b>Use the opener before pressure destroys the attack rhythm.</div></div>'+
-   '<div class="protocol-step"><div class="protocol-time">BAIL</div><div class="protocol-copy"><b>Mega Crush</b>Extract through the prepared route before the lane collapses.</div></div></div></div></div>';
+   '<div class="protocol-step"><div class="protocol-time">DEMO</div><div class="protocol-copy"><b>Demolisher</b>HEAD + AP only. The chest charge is an instant base hole (800 dmg / 5000 block) — never shotgun, explosive or center-mass.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">REGEN</div><div class="protocol-copy"><b>Radiated</b>Green glow = regenerates ~2.5 HP/s. Burst it down (sniper headshot / rocket); chip damage loses to the regen.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">LANE</div><div class="protocol-copy"><b>Single Funnel</b>Never meet '+bmc+' sprinters in the open. Force a vertical climb — sprinters slow to a crawl while climbing.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">HEAT</div><div class="protocol-copy"><b>Screamers</b>Every shot adds heat. If a Screamer spawns mid-horde, drop her before the 2nd scream doubles the wave.</div></div>'+
+   '<div class="protocol-step"><div class="protocol-time">BAIL</div><div class="protocol-copy"><b>Mega Crush</b>Refills stamina to extract. Drop-on-Death=Everything — bail before the lane collapses; gear beats glory.</div></div></div></div></div>';
  document.getElementById("horde").innerHTML=html;
  document.querySelectorAll("#horde [data-r]").forEach(function(r){r.onclick=function(){var i=r.dataset.r;S.ready[i]=!S.ready[i];save();rHorde();};});
  document.querySelectorAll("#horde [data-rg]").forEach(function(btn){btn.onclick=function(){var g=prepGroups[+btn.dataset.rg],all=g.items.every(function(i){return !!S.ready[i];});g.items.forEach(function(i){S.ready[i]=!all;});save();rHorde();};});
