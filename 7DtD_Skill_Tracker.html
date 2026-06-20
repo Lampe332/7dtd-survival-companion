@@ -577,6 +577,29 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 @media(max-width:760px){#introCoach{grid-template-columns:36px 1fr}#introCoach::before{width:34px;height:34px}#introCoach #introClose{grid-column:1/-1;width:100%}#d3 .flight-deck{grid-template-columns:1fr}#d3 .flight-status.fs-overlay{max-width:calc(100vw - 24px)}#mags .qladder{grid-template-columns:repeat(3,1fr)}#ref .ref-import-strip{align-items:flex-start;flex-direction:column}}
 @media(max-width:620px){#world .presetbar{grid-template-columns:1fr 1fr}#mags .mag-entry{padding:54px 12px 12px}#mags .bookvol{grid-template-columns:46px 82px 1fr}#mags .qladder{grid-template-columns:repeat(2,1fr)}#wiki .wiki-searchrow{flex-direction:column}#wiki #wikigo{width:100%}}
 @media(prefers-reduced-motion:reduce){.launch *,#introCoach *,#world *,#d3 *,#mags *,#ref *,#wiki *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+.gs-overlay{position:fixed;inset:0;z-index:200;background:rgba(8,7,6,.72);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding-top:11vh}
+.gs-panel{width:min(680px,92vw);background:linear-gradient(180deg,#15191d,#0f1316);border:1px solid var(--acc);border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden}
+.gs-head{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line)}
+.gs-mark{color:var(--acc);font-size:18px}
+.gs-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font:500 16px/1.4 inherit}
+.gs-esc{font:600 10px var(--mono);color:var(--dim);border:1px solid var(--line2);border-radius:4px;padding:2px 6px}
+.gs-results{max-height:54vh;overflow:auto}
+.gs-hit{display:flex;align-items:center;gap:11px;padding:10px 15px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03)}
+.gs-hit:hover,.gs-hit.gs-on{background:rgba(239,122,53,.12)}
+.gs-cat{font:600 9px var(--mono);letter-spacing:1px;text-transform:uppercase;color:#0c0b09;background:var(--acc2);border-radius:3px;padding:3px 6px;flex:none;min-width:66px;text-align:center}
+.gs-cat.c-poi{background:#5aa6ff}.gs-cat.c-perk{background:#5cc47a}.gs-cat.c-mag{background:#f5b73c}.gs-cat.c-build{background:#ef7a35}.gs-cat.c-set{background:#d83b32;color:#fff}.gs-cat.c-ref{background:#cfc7b6;color:#111}.gs-cat.c-tab{background:#6f6a5c;color:#fff}
+.gs-txt{flex:1;min-width:0}.gs-txt b{display:block;font-size:14px;color:var(--text)}.gs-txt span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs-empty{padding:22px 15px;color:var(--muted);font-size:13px;text-align:center}
+.icon.notify-on{color:var(--done);border-color:var(--done)}.icon.notify-on:hover{color:var(--done)}
+.wiki-cachebadge{display:inline-block;margin-left:8px;font:600 10px var(--mono);color:var(--acc2);border:1px solid var(--line2);border-radius:3px;padding:1px 6px}
+.biomebar{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.biomechip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid var(--line2);background:var(--card2);color:var(--text)}
+.biomechip .bdot{width:11px;height:11px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.25)}
+.biomechip small{color:var(--muted);font-weight:600;margin-left:1px}
+.baserow{display:flex;align-items:center;gap:10px;padding:8px 11px;border:1px solid var(--line);border-radius:6px;margin-top:7px;cursor:pointer;background:var(--card)}
+.baserow:hover{border-color:var(--acc)}
+.basescore{font:800 15px var(--mono);min-width:48px;text-align:center;border-radius:5px;padding:5px 0;flex:none;color:#0c0b09}
+.baserow .bmeta{flex:1;min-width:0}.baserow .bmeta b{display:block;font-size:13px;color:var(--text)}.baserow .bmeta span{font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -595,11 +618,14 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <div class="top">
   <div class="logo"><span class="brand-mark">7D</span><span class="brand-copy"><b>Survival Companion</b><small>Wasteland Operations Console</small></span></div>
   <div class="dayctl"><button id="dm">−</button><div><div class="dl">Day</div><input class="dv" id="dayv" type="text" inputmode="numeric" value="1" title="Type a day number or use −/+" style="width:52px;background:transparent;border:none;color:inherit;font:inherit;text-align:center;padding:0"></div><button id="dp">+</button></div>
+  <span class="icon" id="gsbtn" title="Global search (Ctrl+K) — find any perk, build, magazine, POI, setting or reference across every tab" role="button" tabindex="0">⌕</span>
+  <span class="icon" id="notifybtn" title="Blood Moon desktop alerts — notify me when a horde night is near" role="button" tabindex="0">🔔</span>
   <span class="icon" id="refreshbtn" title="Refresh from save — re-read level, day and progression without leaving the app" role="button" tabindex="0">↻</span>
   <span class="icon" id="backstart" title="Change world / character — back to the start screen" role="button" tabindex="0">⌂</span>
   <span class="icon" id="exp" title="Export/Import">⇅</span>
 </div>
 <div class="tabs" id="tabs"></div>
+<div id="gsoverlay" class="gs-overlay" role="dialog" aria-label="Global search" style="display:none"><div class="gs-panel"><div class="gs-head"><span class="gs-mark">⌕</span><input id="gsinput" class="gs-input" placeholder="Search everything — perks, builds, magazines, POIs, settings, reference…" autocomplete="off"><kbd class="gs-esc">ESC</kbd></div><div id="gsresults" class="gs-results"></div></div></div>
 <div id="world" class="sec"></div>
 <div id="map" class="sec"></div>
 <div id="d3" class="sec"></div>
@@ -825,10 +851,18 @@ function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor
 function lootTier(ls2){return ls2<40?"T0 (Primitive)":ls2<80?"T1 (Iron)":ls2<118?"T2 (Steel begins)":ls2<262?"T3 (Q5 / T4 weapons)":"T4 (Q6 / T5-T6 endgame)";}
 // Skill points the whole route costs: each perk rank = 1 point, each attribute level = its real cost (1 pt lvl 2-5, 2 pt 6-8, 3 pt 9-10).
 function routePoints(bid){var pts=0;buildAtomicSteps(bid).forEach(function(s){var m=/^→ (Strength|Perception|Fortitude|Agility|Intellect) (\d+)$/.exec(s.name);pts+=m?attrPointCost(+m[2]):1;});return pts;}
-// Skill points earned per character level — read from the world's SkillPointsPerLevel sandbox option (decode the SandboxCode for V3.0 worlds), default to the game default of 1.
+// Skill points earned per character level. Vanilla V1.0-V3.0 = 1/level (verified June 2026: xGamingServer/BisectHosting
+// perks guides; the "5" on the progression-xml doc site is a stale alpha figure). It is NOT a sandbox option and is
+// absent from SandboxCode/serverconfig — it lives only in progression.xml — so a real save never overrides it. We still
+// honour an explicit SkillPointsPerLevel override if a modded world ever exposes one, else fall back to the game default 1.
 function pointsPerLevel(){var s=S.world&&S.world.settings,v;if(s){v=s.SkillPointsPerLevel;if(v==null&&s.SandboxCode&&typeof decodeSandbox==="function"){try{v=decodeSandbox(s.SandboxCode).SkillPointsPerLevel;}catch(_){}}v=parseInt(v,10);if(v>0)return v;}return 1;}
-// Character level the full route is affordable at, accounting for the level-1 starting skill points.
-function routeLevel(bid){var ppl=pointsPerLevel(),rp=routePoints(bid);return Math.max(1,Math.ceil((rp-ppl)/ppl)+1);}
+// Early bonus skill points granted by the tutorial quest chain (the 8th tutorial quest, before the first trader) = 4.
+// Confirmed against a real save: a level-24 survivor had spent 27 points = 23 level-ups (1 each) + 4 tutorial. The
+// old formula ignored these and over-stated the required level by ~3-4. Sources: 7daystodieguide.com (299 level +
+// 4 starting = 303 total), official wiki Tutorial_Quests.
+var TUTORIAL_SKILL_POINTS=4;
+// Character level at which the full route is affordable: available(L) = TUTORIAL_SKILL_POINTS + (L-1)*pointsPerLevel.
+function routeLevel(bid){var ppl=pointsPerLevel(),rp=routePoints(bid);return Math.max(1,Math.ceil((rp-TUTORIAL_SKILL_POINTS)/ppl)+1);}
 // Export the active build as shareable Markdown (for the squad's Discord etc.).
 function buildToMarkdown(bid){var b=BUILDS[bid];if(!b)return"";var atomic=buildAtomicSteps(bid),md="# "+b.name+"\n_"+(b.sub||"")+"_\n\nFull route ≈ "+routePoints(bid)+" skill points.\n\n";
  b.phases.forEach(function(ph,pi){md+="### "+ph[0]+" "+ph[1]+" · "+ph[2]+"\n";atomic.filter(function(s){return s.phase===pi;}).forEach(function(s){md+="- "+s.name+(s.desc?" — "+s.desc:"")+"\n";});md+="\n";});
@@ -1409,7 +1443,7 @@ function rWiki(){
  var el=document.getElementById("wiki");
  var q=S.wikiq||"";
   el.innerHTML=hero("7DtD Wiki","Fandom search","Search the official 7 Days to Die Fandom wiki and open any page in a new browser tab.","tab_wiki")+
-   '<div class="card wiki-card"><div class="ops-code">FANDOM / SEARCH</div>'+
+   '<div class="card wiki-card"><div class="ops-code">FANDOM / SEARCH'+(wikiCacheCount()?' · <span style="color:var(--acc2)">'+wikiCacheCount()+' cached offline</span>':'')+'</div>'+
    '<div class="wiki-searchrow"><input id="wikiq" class="searchbar" placeholder="Search the 7DtD Fandom wiki: sledgehammer, blood moon, forge…" value="'+esc(q)+'" style="margin:0"><button class="btn" id="wikigo">Search</button></div>'+
    '<div id="wikiresults" class="wiki-results"></div></div>';
  var inp=document.getElementById("wikiq"),btn=document.getElementById("wikigo"),res=document.getElementById("wikiresults");
@@ -1421,22 +1455,33 @@ function rWiki(){
  inp.focus();
  if(q)wikiSearch(q,res); // re-run last query when the tab is reopened
 }
+function wikiCacheGet(term){try{var c=JSON.parse(lg("7dtd-wikicache")||"{}");return c[(term||"").toLowerCase()]||null;}catch(e){return null;}}
+function wikiCachePut(term,hits){try{var c=JSON.parse(lg("7dtd-wikicache")||"{}");c[(term||"").toLowerCase()]={hits:hits,ts:Date.now()};var ks=Object.keys(c);if(ks.length>60){ks.sort(function(a,b){return c[a].ts-c[b].ts;});delete c[ks[0]];}ls("7dtd-wikicache",JSON.stringify(c));}catch(e){}}
+function wikiCacheCount(){try{return Object.keys(JSON.parse(lg("7dtd-wikicache")||"{}")).length;}catch(e){return 0;}}
+function wikiRenderHits(res,term,hits,cached){
+ if(!hits.length){res.innerHTML='<div class="wiki-empty">No wiki page matched “'+esc(term)+'”. <a class="wlink" href="'+fandomUrl({name:term})+'" target="_blank" rel="noopener noreferrer">Open Fandom search ›</a></div>';return;}
+ var badge=cached?'<span class="wiki-cachebadge">CACHED · OFFLINE</span>':"";
+ res.innerHTML='<div class="wiki-count">'+hits.length+' result'+(hits.length===1?"":"s")+' · click to open on Fandom'+badge+'</div>'+hits.map(function(h){
+   var snip=(h.snippet||"").replace(/<[^>]+>/g,"").replace(/&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);/g," ").trim();
+   var u=fandomUrl({w:h.title});
+   var sub=snip?esc(snip):esc(u.replace(/^https:\/\//,""));
+   return '<a class="wiki-hit" href="'+u+'" target="_blank" rel="noopener noreferrer"><div class="wiki-hit-title">'+esc(h.title)+'</div><div class="wiki-hit-sub">'+sub+'</div></a>';
+ }).join("");
+}
 function wikiSearch(term,res){
  if(!term){res.innerHTML='<div class="wiki-empty">Type a term and press Enter to search the Fandom wiki.</div>';return;}
  res.innerHTML='<div class="wiki-empty">Searching “'+esc(term)+'” on the Fandom wiki…</div>';
  var url="https://7daystodie.fandom.com/api.php?action=query&list=search&srsearch="+encodeURIComponent(term)+"&srlimit=20&srprop=snippet&format=json&origin=*";
  fetch(url).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}).then(function(j){
-   var hits=(j.query&&j.query.search)||[];
-   if(!hits.length){res.innerHTML='<div class="wiki-empty">No wiki page matched “'+esc(term)+'”. <a class="wlink" href="'+fandomUrl({name:term})+'" target="_blank" rel="noopener noreferrer">Open Fandom search ›</a></div>';return;}
-   res.innerHTML='<div class="wiki-count">'+hits.length+' result'+(hits.length===1?"":"s")+' · click to open on Fandom</div>'+hits.map(function(h){
-     var snip=(h.snippet||"").replace(/<[^>]+>/g,"").replace(/&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);/g," ").trim();
-     var u=fandomUrl({w:h.title});
-     var sub=snip?esc(snip):esc(u.replace(/^https:\/\//,""));
-     return '<a class="wiki-hit" href="'+u+'" target="_blank" rel="noopener noreferrer"><div class="wiki-hit-title">'+esc(h.title)+'</div><div class="wiki-hit-sub">'+sub+'</div></a>';
-   }).join("");
+   var raw=(j.query&&j.query.search)||[];
+   var hits=raw.map(function(h){return {title:h.title,snippet:h.snippet};});
+   if(hits.length)wikiCachePut(term,hits); // store for offline reuse
+   wikiRenderHits(res,term,hits,false);
  }).catch(function(e){
-   // API blocked/offline: fall back to a direct Fandom search link (honest degradation).
-   res.innerHTML='<div class="wiki-empty">Wiki API unreachable ('+esc(e.message)+'). <a class="wlink" href="'+fandomUrl({name:term})+'" target="_blank" rel="noopener noreferrer">Open the Fandom search page directly ›</a></div>';
+   // API blocked/offline: serve a cached copy if we have one, else a direct Fandom link.
+   var c=wikiCacheGet(term);
+   if(c&&c.hits&&c.hits.length){wikiRenderHits(res,term,c.hits,true);return;}
+   res.innerHTML='<div class="wiki-empty">Wiki API unreachable ('+esc(e.message)+') and no offline copy of “'+esc(term)+'”. <a class="wlink" href="'+fandomUrl({name:term})+'" target="_blank" rel="noopener noreferrer">Open the Fandom search page directly ›</a></div>';
  });
 }
 // ---- REF ----
@@ -2420,6 +2465,59 @@ function openPoiInfo(pi){
  el.querySelector(".pi-close").onclick=closePoiInfo;
  el.style.display="block";
 }
+/* ===== Transient toast ===== */
+function toast(msg){try{var t=document.createElement("div");t.textContent=msg;t.style.cssText="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:300;background:#15191d;border:1px solid var(--acc);color:var(--text);padding:11px 16px;border-radius:8px;font-size:13px;box-shadow:0 12px 40px rgba(0,0,0,.5);max-width:80vw";document.body.appendChild(t);setTimeout(function(){t.style.transition="opacity .4s";t.style.opacity="0";setTimeout(function(){t.remove();},420);},3200);}catch(e){}}
+/* ===== Global Search (Ctrl+K) ===== */
+function buildSearchIndex(){
+ var ix=[];
+ try{TABS.forEach(function(t){ix.push({cat:"tab",label:t[1],sub:"Open the "+t[1]+" tab",tab:t[0]});});}catch(e){}
+ try{(RD&&RD.perks?RD.perks:[]).forEach(function(p){ix.push({cat:"perk",label:p.name||p.key,sub:(p.attr?("["+p.attr+"] "):"")+String(p.desc||p.short||"").slice(0,90),tab:"perks",q:p.name});});}catch(e){}
+ try{Object.keys(BUILDS||{}).forEach(function(k){var b=BUILDS[k];ix.push({cat:"build",label:b.name,sub:b.sub||"Build route",tab:"build",cur:k});});}catch(e){}
+ try{(typeof MAGCAT!=="undefined"?MAGCAT:[]).forEach(function(m){var nm=m.name||m.title||m[0];if(nm)ix.push({cat:"mag",label:nm,sub:"Crafting magazine / unlock ladder",tab:"mags",q:nm});});}catch(e){}
+ try{(settingsCatalog()||[]).forEach(function(o){ix.push({cat:"set",label:o.label||humanKey(o.name),sub:"World setting · "+String(o.desc||"").slice(0,80),tab:"world",q:o.label||o.name});});}catch(e){}
+ try{(typeof REF!=="undefined"?REF:[]).forEach(function(r){var t=r[0]||r.t,d=r[1]||r.d;if(t)ix.push({cat:"ref",label:t,sub:String(d||"").slice(0,90),tab:"ref",q:t});});}catch(e){}
+ try{PRIMER.forEach(function(p){ix.push({cat:"ref",label:p[0],sub:String(p[1]).slice(0,90),tab:"ref",q:p[0]});});}catch(e){}
+ try{if(S.map&&S.map.pois)S.map.pois.forEach(function(p,pi){var nm=p[13]||prettyPoi(p[0]);ix.push({cat:"poi",label:nm,sub:"POI · "+(TIERLBL[p[3]]||"?")+" · fly to on 3D map",tab:"d3",q:nm});});}catch(e){}
+ return ix;
+}
+function prefillTab(tab,q){try{var inp=tab==="d3"?document.getElementById("poiSearch"):null;if(!inp){var c=document.getElementById(tab);if(c)inp=c.querySelector("input.searchbar")||c.querySelector('input[type=text]')||c.querySelector("input:not([type=range])");}if(inp){inp.value=q;inp.dispatchEvent(new Event("input",{bubbles:true}));}}catch(e){}}
+var GS_HITS=[],GS_SEL=0;
+function openGlobalSearch(){var o=document.getElementById("gsoverlay");if(!o)return;o.style.display="flex";var i=document.getElementById("gsinput");i.value="";renderGS("");setTimeout(function(){i.focus();},10);}
+function closeGlobalSearch(){var o=document.getElementById("gsoverlay");if(o)o.style.display="none";}
+function gsToggle(){var o=document.getElementById("gsoverlay");if(o&&o.style.display==="flex")closeGlobalSearch();else openGlobalSearch();}
+function renderGS(q){
+ var res=document.getElementById("gsresults");if(!res)return;var ix=buildSearchIndex();q=(q||"").toLowerCase().trim();var hits;
+ if(!q){hits=ix.filter(function(x){return x.cat==="tab";});}
+ else{hits=ix.filter(function(x){return String(x.label||"").toLowerCase().indexOf(q)>=0||String(x.sub||"").toLowerCase().indexOf(q)>=0;});
+  hits.sort(function(a,b){var ai=String(a.label||"").toLowerCase().indexOf(q),bi=String(b.label||"").toLowerCase().indexOf(q);ai=ai<0?99:ai;bi=bi<0?99:bi;return ai-bi;});}
+ hits=hits.slice(0,40);GS_HITS=hits;GS_SEL=0;
+ if(!hits.length){res.innerHTML='<div class="gs-empty">No match for &ldquo;'+esc(q)+'&rdquo;.</div>';return;}
+ var CN={poi:"c-poi",perk:"c-perk",mag:"c-mag",build:"c-build",set:"c-set",ref:"c-ref",tab:"c-tab"};
+ res.innerHTML=hits.map(function(h,i){return '<div class="gs-hit'+(i===0?" gs-on":"")+'" data-i="'+i+'"><span class="gs-cat '+(CN[h.cat]||"")+'">'+h.cat+'</span><div class="gs-txt"><b>'+esc(h.label)+'</b><span>'+esc(h.sub||"")+'</span></div></div>';}).join("");
+ [].forEach.call(res.querySelectorAll(".gs-hit"),function(e){e.onclick=function(){gsRun(+e.dataset.i);};});
+}
+function gsRun(i){var h=GS_HITS[i];if(!h)return;closeGlobalSearch();if(h.tab){S.tab=h.tab;}if(h.cur!=null){S.cur=h.cur;}save();show();if(h.q)setTimeout(function(){prefillTab(h.tab,h.q);},70);}
+function gsMove(d){var res=document.getElementById("gsresults");if(!GS_HITS.length||!res)return;GS_SEL=Math.max(0,Math.min(GS_HITS.length-1,GS_SEL+d));[].forEach.call(res.querySelectorAll(".gs-hit"),function(e,i){e.classList.toggle("gs-on",i===GS_SEL);if(i===GS_SEL&&e.scrollIntoView)e.scrollIntoView({block:"nearest"});});}
+(function(){var gb=document.getElementById("gsbtn");if(gb){gb.onclick=openGlobalSearch;gb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();openGlobalSearch();}}}
+ var gi=document.getElementById("gsinput");if(gi){gi.oninput=function(){renderGS(this.value);};gi.onkeydown=function(e){if(e.key==="ArrowDown"){e.preventDefault();gsMove(1);}else if(e.key==="ArrowUp"){e.preventDefault();gsMove(-1);}else if(e.key==="Enter"){e.preventDefault();gsRun(GS_SEL);}else if(e.key==="Escape"){closeGlobalSearch();}};}
+ var ov=document.getElementById("gsoverlay");if(ov)ov.onclick=function(e){if(e.target===ov)closeGlobalSearch();};
+ document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&(e.key==="k"||e.key==="K")){e.preventDefault();gsToggle();}else if(e.key==="Escape"){var o=document.getElementById("gsoverlay");if(o&&o.style.display==="flex")closeGlobalSearch();}});})();
+/* ===== Blood Moon desktop notifications ===== */
+function renderNotifyBtn(){var b=document.getElementById("notifybtn");if(b)b.classList.toggle("notify-on",!!S.notify&&("Notification"in window)&&Notification.permission==="granted");}
+function toggleNotify(){
+ if(!("Notification"in window)){toast("This browser has no desktop notification support.");return;}
+ if(S.notify){S.notify=false;save();renderNotifyBtn();toast("Blood Moon alerts off.");return;}
+ Notification.requestPermission().then(function(p){if(p==="granted"){S.notify=true;save();renderNotifyBtn();toast("Blood Moon alerts on — warns you while the app is open when a horde night is near.");checkBloodMoonNotify(true);}else{toast("Notifications are blocked in your browser settings.");}});
+}
+function checkBloodMoonNotify(force){
+ if(!S.notify||!("Notification"in window)||Notification.permission!=="granted")return;
+ var b=bm();var key=String(S.day);
+ if(b.until<=1){if(S._bmNotified===key&&!force)return;S._bmNotified=key;save();
+  var cnt=(S.world&&S.world.bmCount)?(" · "+S.world.bmCount+" enemies"):"";
+  var msg=b.today?("Blood Moon TONIGHT — Day "+S.day+cnt+". Repairs, ammo, fuel, escape route."):("Blood Moon TOMORROW — Day "+b.next+cnt+". Prep tonight.");
+  try{new Notification("🩸 7DtD Blood Moon",{body:msg});}catch(e){}}
+}
+(function(){var nb=document.getElementById("notifybtn");if(nb){nb.onclick=toggleNotify;nb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleNotify();}}}renderNotifyBtn();setInterval(function(){checkBloodMoonNotify(false);},60000);setTimeout(function(){checkBloodMoonNotify(false);},2500);})();
 renderTop();show();
 loadRef(function(){show();});
 </script>
