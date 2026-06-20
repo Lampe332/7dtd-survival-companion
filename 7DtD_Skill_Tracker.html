@@ -2262,13 +2262,15 @@ function r3D(){
     opsStat("BUILDINGS / POI",(S.map.pois||[]).length,"Projected structures")+
     opsStat("HEIGHT / SCALE",S.d3v.toFixed(1)+"×","Current vertical exaggeration")+
     opsStat("RENDER / API","WEBGL","Hardware-accelerated local view",true)+'</div>'+
-   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" class="map-search" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…"><div id="poiResults" class="poi-results"></div><div class="map-filter-label">Show buildings by tier — click to toggle</div><div class="legend" id="d3legend">'+d3legend+'</div><b>Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.2" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
+   '<div class="flight-deck"><div class="card flight-status"><div class="ops-code">FIND &amp; FILTER / '+esc(S.map.world)+'</div><input id="poiSearch" class="map-search" placeholder="Search '+((S.map.pois||[]).length)+' buildings: trader, bunker, factory…"><div id="poiResults" class="poi-results"></div><div class="map-filter-label">Show buildings by tier — click to toggle</div><div class="legend" id="d3legend">'+d3legend+'</div><div id="biomeBar" class="biomebar"></div><div class="map-filter-label" style="margin-top:12px">Base finder — score the map for safe build sites</div><button class="btn" id="baseFind" style="width:100%">⌂ Find base locations</button><div id="baseResults" class="poi-results"></div><b style="display:block;margin-top:12px">Free-Camera Recon</b><p>Click the terrain, drag to look, use WASD to move, R/F for altitude and Shift for boost.</p><label class="fld">Vertical Exaggeration: <b id="vexv">'+S.d3v.toFixed(1)+'×</b></label><input type="range" id="vex" min="0.2" max="4" step="0.1" value="'+S.d3v+'" style="width:100%"><button class="btn" id="d3reset" style="margin-top:10px">Reset Flight</button></div>'+
    '<div class="card"><h3>Control Deck</h3><div class="key-grid"><span></span><span class="keycap">W</span><span></span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="keycap">R / F</span><span class="keycap wide">SHIFT · BOOST</span></div></div></div>'+
    '<div class="mapwrap"><button id="d3fs" class="mapfsbtn" aria-label="Toggle fullscreen map" title="Fullscreen (Esc to exit)">⛶</button><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div id="poiInfo" class="poiInfo" style="display:none"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
   W3.q="";  // reset map search on (re)entering the tab so the first terrain build shows all POIs
   try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D error: '+esc(e.message)+'</div>';W3.dead=true;return;}
   document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
   document.getElementById("d3reset").onclick=function(){r3D();};
+  ensureMapAnalysis(function(){renderBiomeBar();if(S.baseSpots&&S.baseSpots.length&&W3.buildTerrain){W3.buildTerrain();if(W3.renderScene)W3.renderScene();}});
+  var bfBtn=document.getElementById("baseFind");if(bfBtn)bfBtn.onclick=function(){bfBtn.textContent="Scoring…";ensureMapAnalysis(function(){findBaseSpots();bfBtn.textContent="⌂ Find base locations";});};
   var psi=document.getElementById("poiSearch"),pres=document.getElementById("poiResults");
   // p[13]=in-game/brand name (Crack-A-Book, Trader Bob…) from Localization.csv; p[0]=prefab.
   function poiText(p){return ((p[0]||"")+" "+(p[13]||"")).toLowerCase();}
@@ -2304,6 +2306,71 @@ function r3D(){
   W3._fsResize=function(){if(W3.fs){var c=document.getElementById("cv3");if(c){c.width=window.innerWidth;c.height=window.innerHeight;if(W3.renderScene)W3.renderScene();}}};
   window.addEventListener("resize",W3._fsResize);
  }
+/* ===== Biome classification + Base finder (3D map) ===== */
+/* Anchor colours are the real biomes.png values measured from a live save: pine forest (0,64,0),
+   burnt forest (255,160,0), desert (255,224,128), snow (255,255,255), wasteland (192,0,255).
+   Each terrain pixel is classified to its nearest anchor (robust to antialiasing/shade). */
+var BIOME_ANCHORS=[
+ {b:"forest",c:[0,64,0],col:"#3f8a3a",haz:1,name:"Pine Forest"},
+ {b:"burnt",c:[255,160,0],col:"#cf7e22",haz:3,name:"Burnt Forest"},
+ {b:"desert",c:[255,224,128],col:"#d8c069",haz:2,name:"Desert"},
+ {b:"snow",c:[255,255,255],col:"#d4e3ec",haz:3,name:"Snow"},
+ {b:"wasteland",c:[192,0,255],col:"#a64ddb",haz:5,name:"Wasteland"}
+];
+function classifyBiome(r,g,b){var best=BIOME_ANCHORS[0],bd=1e15;for(var i=0;i<BIOME_ANCHORS.length;i++){var a=BIOME_ANCHORS[i].c,dd=(r-a[0])*(r-a[0])+(g-a[1])*(g-a[1])+(b-a[2])*(b-a[2]);if(dd<bd){bd=dd;best=BIOME_ANCHORS[i];}}return best;}
+function gridFromImage(url,BG,cb){var im=new Image();im.crossOrigin="anonymous";im.onload=function(){try{var cv=document.createElement("canvas");cv.width=BG;cv.height=BG;var cx=cv.getContext("2d");cx.drawImage(im,0,0,BG,BG);cb(cx.getImageData(0,0,BG,BG).data);}catch(e){cb(null);}};im.onerror=function(){cb(null);};im.src=url;}
+function ensureMapAnalysis(cb){
+ if(W3.maKey===S.map.key&&W3.biomeGrid){cb&&cb();return;}
+ var BG=96;W3.maBG=BG;W3.maKey=S.map.key;S.baseSpots=null;W3.waterGrid=null;
+ // Water grid from the backend watermask (server-decoded splat4 blue channel, max-pooled, n×n bytes). We must NOT
+ // read splat4_half in a 2D canvas: its alpha is 0, so getImageData premultiplies the RGB to black and all water
+ // vanishes (the documented premultiply trap). The watermask sidesteps that.
+ var wm=S.map.watermask;
+ if(wm&&wm.d&&wm.n){try{var wd=b64ToU8(wm.d),WN=wm.n,wgr=new Uint8Array(BG*BG),pool=Math.max(1,Math.floor(WN/BG/2));
+  for(var gy=0;gy<BG;gy++)for(var gx=0;gx<BG;gx++){var sx=Math.floor((gx+0.5)/BG*WN),sy=Math.floor((gy+0.5)/BG*WN),on=0;for(var oy=-pool;oy<=pool&&!on;oy++)for(var ox=-pool;ox<=pool&&!on;ox++){var x=sx+ox,y=sy+oy;if(x<0||x>=WN||y<0||y>=WN)continue;if(wd[y*WN+x]>10)on=1;}wgr[gy*BG+gx]=on;}
+  W3.waterGrid=wgr;}catch(e){W3.waterGrid=null;}}
+ gridFromImage(S.map.img,BG,function(biomeData){W3.biomeGrid=null;W3.biomeCnt=null;
+  if(biomeData){var grid=new Array(BG*BG),cnt={};for(var i=0;i<BG*BG;i++){var bb=classifyBiome(biomeData[i*4],biomeData[i*4+1],biomeData[i*4+2]);grid[i]=bb.b;cnt[bb.b]=(cnt[bb.b]||0)+1;}W3.biomeGrid=grid;W3.biomeCnt=cnt;}
+  cb&&cb();});
+}
+function biomeAtWorld(wx,wz){if(!W3.biomeGrid)return null;var BG=W3.maBG,u=(wx/S.map.size+0.5),v=(0.5-wz/S.map.size);var gx=Math.max(0,Math.min(BG-1,Math.floor(u*BG))),gy=Math.max(0,Math.min(BG-1,Math.floor(v*BG)));return W3.biomeGrid[gy*BG+gx];}
+function renderBiomeBar(){var bar=document.getElementById("biomeBar");if(!bar)return;if(!W3.biomeCnt){bar.innerHTML="";return;}var tot=0,k;for(k in W3.biomeCnt)tot+=W3.biomeCnt[k];var HAZ={1:"safe",2:"mild",3:"risky",5:"lethal"};var order=BIOME_ANCHORS.filter(function(a){return W3.biomeCnt[a.b];}).sort(function(a,b){return W3.biomeCnt[b.b]-W3.biomeCnt[a.b];});bar.innerHTML='<div class="map-filter-label" style="margin-top:12px">Biomes — the terrain colour identifies the biome · hazard</div>'+order.map(function(a){var pct=Math.round(W3.biomeCnt[a.b]/tot*100);return '<span class="biomechip"><span class="bdot" style="background:'+a.col+'"></span>'+a.name+' <small>'+pct+'% · '+HAZ[a.haz]+'</small></span>';}).join("");}
+/* Base-location scoring. Weights from base-siting guides (wiki.7d2d.net top-5 base locations, GameRant):
+   trader proximity 0.28, biome safety 0.24, defensibility=flatness+elevation 0.22, water 0.14, POI cluster 0.12. */
+function findBaseSpots(){
+ var res=document.getElementById("baseResults");if(!res)return;
+ if(!W3.biomeGrid){res.innerHTML='<div class="poi-hit muted">Biome data unavailable for this map.</div>';return;}
+ var size=S.map.size,hm=S.map.hm,N=hm.n,hd=b64ToU8(hm.d),BG=W3.maBG,wg=W3.waterGrid;
+ var traders=(S.map.pois||[]).filter(function(p){return /trader/i.test((p[0]||"")+" "+(p[13]||""));});
+ function hAtW(wx,wz){var gj=Math.round((wx/size+0.5)*(N-1)),gi=Math.round((0.5-wz/size)*(N-1));gj=gj<0?0:gj>N-1?N-1:gj;gi=gi<0?0:gi>N-1?N-1:gi;return hd[gi*N+gj];}
+ var G=44,pden=new Float32Array(G*G);
+ (S.map.pois||[]).forEach(function(p){var gx=Math.floor((p[1]/size+0.5)*G),gy=Math.floor((0.5-p[2]/size)*G);if(gx>=0&&gx<G&&gy>=0&&gy<G)pden[gy*G+gx]++;});
+ function waterNear(wx,wz){if(!wg)return {on:false,dist:size};var cx=Math.floor((wx/size+0.5)*BG),cy=Math.floor((0.5-wz/size)*BG);if(cx<0||cx>=BG||cy<0||cy>=BG)return {on:false,dist:size};if(wg[cy*BG+cx])return {on:true,dist:0};var best=99;for(var dy=-10;dy<=10;dy++)for(var dx=-10;dx<=10;dx++){var x=cx+dx,y=cy+dy;if(x<0||x>=BG||y<0||y>=BG)continue;if(wg[y*BG+x]){var dd=Math.hypot(dx,dy);if(dd<best)best=dd;}}return {on:false,dist:best<99?best*(size/BG):size};}
+ var HAZW={forest:1,desert:0.68,burnt:0.42,snow:0.42,wasteland:0.08},spots=[];
+ for(var gy=2;gy<G-2;gy++)for(var gx=2;gx<G-2;gx++){
+  var wx=((gx+0.5)/G-0.5)*size,wz=(0.5-(gy+0.5)/G)*size;
+  var bk=biomeAtWorld(wx,wz);if(!bk)continue;
+  var w=waterNear(wx,wz);if(w.on)continue;
+  var biomeScore=HAZW[bk]||0.4;
+  var td=1e9;traders.forEach(function(p){var d=Math.hypot(p[1]-wx,p[2]-wz);if(d<td)td=d;});if(!traders.length)td=size*0.35;
+  var traderScore=Math.max(0,1-td/(size*0.4));
+  var waterScore=Math.max(0,1-w.dist/(size*0.12));
+  var c=hAtW(wx,wz),sp=size/G,slope=(Math.abs(hAtW(wx+sp,wz)-c)+Math.abs(hAtW(wx-sp,wz)-c)+Math.abs(hAtW(wx,wz+sp)-c)+Math.abs(hAtW(wx,wz-sp)-c))/4;
+  var flatScore=Math.max(0,1-slope/18),elevScore=Math.min(1,Math.max(0,(c-(hm.mn||0))/110));
+  var cluster=0;for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++)cluster+=pden[(gy+dy)*G+(gx+dx)]||0;
+  var clusterScore=Math.min(1,cluster/10);
+  var score=traderScore*0.28+biomeScore*0.24+(flatScore*0.6+elevScore*0.4)*0.22+waterScore*0.14+clusterScore*0.12;
+  spots.push({wx:wx,wz:wz,score:score,biome:bk,td:Math.round(td),water:Math.round(w.dist),cluster:Math.round(cluster)});
+ }
+ spots.sort(function(a,b){return b.score-a.score;});
+ var picks=[],sep=size*0.12;
+ for(var i=0;i<spots.length&&picks.length<5;i++){var s=spots[i],ok=true;for(var j=0;j<picks.length;j++){if(Math.hypot(picks[j].wx-s.wx,picks[j].wz-s.wz)<sep){ok=false;break;}}if(ok)picks.push(s);}
+ S.baseSpots=picks;if(W3.buildTerrain)W3.buildTerrain();if(W3.renderScene)W3.renderScene();
+ var BN={forest:"Pine Forest",desert:"Desert",burnt:"Burnt Forest",snow:"Snow",wasteland:"Wasteland"};
+ if(!picks.length){res.innerHTML='<div class="poi-hit muted">No suitable site found on this map.</div>';return;}
+ res.innerHTML='<div class="map-filter-label" style="margin-top:6px">Top sites — click to fly there (green markers on the map)</div>'+picks.map(function(s){var sc=Math.round(s.score*100),col=sc>=68?"#5cc47a":sc>=50?"#f5b73c":"#ef7a35";return '<div class="baserow" data-bx="'+Math.round(s.wx)+'" data-bz="'+Math.round(s.wz)+'"><span class="basescore" style="background:'+col+'">'+sc+'</span><div class="bmeta"><b>'+BN[s.biome]+' · '+Math.round(s.wx)+", "+Math.round(s.wz)+'</b><span>Trader '+s.td+'m · water '+s.water+'m · '+s.cluster+' POIs near</span></div><span style="color:var(--acc2)">fly &rsaquo;</span></div>';}).join("");
+ [].forEach.call(res.querySelectorAll(".baserow"),function(r){r.onclick=function(){var wx=+r.dataset.bx,wz=+r.dataset.bz;if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D([null,wx,wz]);t.name="Base candidate";W3.flyTo(t);}var c=document.getElementById("cv3");if(c)c.focus();};});
+}
 function init3D(){
  if(W3.raf)cancelAnimationFrame(W3.raf);W3.dead=false;W3.lblPool=null;
  var cv=document.getElementById("cv3");var gl=cv.getContext("webgl")||cv.getContext("experimental-webgl");
@@ -2355,6 +2422,7 @@ function init3D(){
     W3.labelPts.push({x:gj-(N-1)/2,y:base+bh+0.6,z:gi-(N-1)/2,name:(p[13]||p[0]),tier:p[3],pi:pi}); // label every POI; distance-LOD limits what shows
    });
    if(S.map.player){var gj=(S.map.player.x/size+0.5)*(N-1),gi=(0.5-S.map.player.z/size)*(N-1);if(gj>=0&&gj<=N-1&&gi>=0&&gi<=N-1){pp.push(gj-(N-1)/2,terrainY(hAt(Math.round(gi),Math.round(gj)))+2,gi-(N-1)/2);pc.push(0.35,0.65,1);}}
+   (S.baseSpots||[]).forEach(function(bs){var gj=(bs.wx/size+0.5)*(N-1),gi=(0.5-bs.wz/size)*(N-1);if(gj<0||gj>N-1||gi<0||gi>N-1)return;var by=terrainY(hAt(Math.round(gi),Math.round(gj)));pp.push(gj-(N-1)/2,by+3,gi-(N-1)/2);pc.push(0.36,0.80,0.42);W3.labelPts.push({x:gj-(N-1)/2,y:by+5,z:gi-(N-1)/2,name:"⌂ Base "+Math.round(bs.score*100),tier:"0",pi:-1});});
    poiCount=pp.length/3;
    boxCount=bp.length/3;
    gl.bindBuffer(gl.ARRAY_BUFFER,poiPosB);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pp),gl.STATIC_DRAW);
