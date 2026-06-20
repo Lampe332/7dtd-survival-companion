@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://7daystodie.fandom.com; base-uri 'none'; form-action 'none'">
 <link rel="icon" href="data:,">
 <title>7 Days to Die · Survival Companion</title>
 <style>
@@ -706,7 +707,17 @@ function loadRef(cb){
  Promise.all([
   fetch("/api/refdata",{cache:"force-cache"}).then(function(r){return r.json();}),
   fetch("/api/uiassets",{cache:"force-cache"}).then(function(r){return r.json();})
- ]).then(function(d){RD=d[0];UIA=d[1]||{};buildRefIndex();renderTabs();cb&&cb();}).catch(function(){cb&&cb();});
+ ]).then(function(d){RD=d[0];UIA=d[1]||{};buildRefIndex();renderTabs();cb&&cb();}).catch(function(){
+  // Backend unreachable (EXE closed / served from a stale tab): surface it instead of
+  // silently rendering a dataless, broken UI.
+  if(!document.getElementById("backendDown")){
+   var b=document.createElement("div");b.id="backendDown";
+   b.style.cssText="position:fixed;left:0;right:0;top:0;z-index:99999;background:#7a1f1f;color:#fff;padding:10px 14px;font:14px system-ui,sans-serif;text-align:center";
+   b.textContent='⚠ Backend not reachable on 127.0.0.1:17873 — start "7DtD Companion.exe", then reload this page.';
+   document.body.appendChild(b);
+  }
+  cb&&cb();
+ });
 }
 function hero(title,eyebrow,desc,key){
  var code=(key||"ops").replace("tab_","").toUpperCase();
@@ -735,7 +746,15 @@ renderTabs();
 function show(){
  if(S.tab==="map")S.tab="d3";
  document.body.dataset.tab=S.tab;
- if(S.tab!=="d3")document.body.classList.remove("map-fs-active");
+ if(S.tab!=="d3"){
+  document.body.classList.remove("map-fs-active");
+  // leaving the 3D tab: remove its global Esc/resize listeners so they don't linger
+  if(typeof W3!=="undefined"&&W3){
+   if(W3._fsEsc){document.removeEventListener("keydown",W3._fsEsc);W3._fsEsc=null;}
+   if(W3._fsResize){window.removeEventListener("resize",W3._fsResize);W3._fsResize=null;}
+   W3.fs=false;
+  }
+ }
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
  try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
@@ -854,7 +873,15 @@ function rBuild(){var st=bstate();
 // P5 ordering: a perk's first attribute-gate (rank-1 requirement) is when it unlocks,
 // so it slots into the phase that gate falls in. Lower gate = earlier phase.
 function perkFirstGate(p){var g=((p&&p.gates)||"").split(/[^0-9]+/).filter(Boolean);return g.length?+g[0]:1;}
-function perkGates(p){return ((p&&p.gates)||"").split(/[^0-9]+/).filter(Boolean).map(Number);}
+function perkGates(p){
+ var g=((p&&p.gates)||"").split(/[^0-9]+/).filter(Boolean).map(Number);
+ // A few perks (Master Chef, Living off the Land, Lock Picking, the 3 armor perks)
+ // list 5 gates but only have 3-4 real ranks in perkRanks. Clamp to the real rank
+ // count so the BUILD route + progress % don't fabricate non-existent R4/R5 steps.
+ var rk=(p&&RD&&RD.perkRanks&&RD.perkRanks[p.key])||null;
+ if(rk&&rk.length&&rk.length<g.length)g=g.slice(0,rk.length);
+ return g;
+}
 function phaseForGate(g,phaseCount){var ph=g<=1?0:g<=3?1:g<=5?2:g<=7?3:4;return Math.min(ph,(phaseCount||5)-1);}
 function perkPhase(p,phaseCount){return phaseForGate(perkFirstGate(p),phaseCount);}
 // Highest level each attribute reaches in a build's written plan, so off-attribute perks get capped
@@ -971,26 +998,27 @@ function perkCatalogHTML(st,mode){
  attrs.forEach(function(a){var ps=groups[a];if(!ps)return;
   var rows=ps.map(function(p){var on=!!picks[p.key],isRec=!!rec[p.key];
    var rk=(RD.perkRanks&&RD.perkRanks[p.key])||[];
+   var gstr=perkGates(p).join("/"); // clamped gates (matches real rank count)
    if(select){
     if(inBuild[p.key]){
      return '<div class="perkitem inbuild" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'">'+
        '<div class="perkrow disabled" aria-disabled="true" title="Already part of the '+esc(BUILDS[S.cur].name)+' route">'+
          '<div class="cbx inb">✓</div>'+
-         '<div class="txt"><div class="lbl">'+esc(p.name)+' <span class="inbuildbadge">in route</span>'+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
+         '<div class="txt"><div class="lbl">'+esc(p.name)+' <span class="inbuildbadge">in route</span>'+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(gstr||"")+'</span></div>'+
          '<div class="ef">'+esc(a)+' perk · already in this build’s plan</div></div></div></div>';
     }
     return '<div class="perkitem" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'">'+
       '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" role="button" tabindex="0" aria-pressed="'+(on?"true":"false")+'">'+
         '<div class="cbx">'+(on?"✓":"")+'</div>'+
-        '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
-        '<div class="ef">'+esc(a)+' perk · gate '+esc(p.gates||"—")+' · ranks slot into the route by gate</div></div></div></div>';
+        '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(gstr||"")+'</span></div>'+
+        '<div class="ef">'+esc(a)+' perk · gate '+esc(gstr||"—")+' · ranks slot into the route by gate</div></div></div></div>';
    }
    var exp=!!(S.perkexp&&S.perkexp[p.key]);
    var ranksHtml=rk.length?'<div class="perkranks'+(exp?"":" hide")+'">'+rk.map(function(r){return '<div class="prank"><span class="prn">R'+r.n+'</span><div class="prtxt"><b>'+esc(r.t||("Rank "+r.n))+'</b>'+(r.e&&r.e!==r.t?'<span>'+esc(r.e)+'</span>':'')+'</div></div>';}).join("")+'</div>':'';
    return '<div class="perkitem" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")+" "+rk.map(function(r){return r.t+" "+r.e;}).join(" ")).toLowerCase())+'">'+
      '<div class="perkrow ref'+(exp?" exp":"")+'"'+(rk.length?' data-perkexp="'+esc(p.key)+'"':'')+' role="button" tabindex="0" aria-expanded="'+(exp?"true":"false")+'">'+
-       '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
-       '<div class="ef">'+esc(a)+' perk · gate '+esc(p.gates||"—")+(rk.length?' · '+rk.length+' ranks — click to read':'')+'</div></div>'+
+       '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(gstr||"")+'</span></div>'+
+       '<div class="ef">'+esc(a)+' perk · gate '+esc(gstr||"—")+(rk.length?' · '+rk.length+' ranks — click to read':'')+'</div></div>'+
        (rk.length?'<span class="perkexp">'+(exp?"▾":"▸")+'</span>':'')+'</div>'+
      ranksHtml+'</div>';
   }).join("");
@@ -1173,7 +1201,10 @@ function activateOnKey(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();th
 // Make non-native clickable elements (tabs, dashboard tiles, perk rows, biome cards,
 // readiness rows) keyboard-operable: focusable + role=button + Enter/Space activates.
 function a11yClickable(root){
- var sel=".tab,[data-go],#build [data-perk],#loot [data-biome],#horde [data-r]";
+ // NOTE: #build [data-perk] is intentionally NOT here — rBuild() already sets
+ // r.onkeydown=activateOnKey on each perk row, so adding a second keydown listener
+ // here made Enter/Space fire click() twice (toggle on+off = no-op).
+ var sel=".tab,[data-go],#loot [data-biome],#horde [data-r]";
  (root||document).querySelectorAll(sel).forEach(function(el){
   var t=el.tagName;
   if(t==="BUTTON"||t==="A"||t==="INPUT"||t==="SELECT"||t==="TEXTAREA")return;
@@ -1206,7 +1237,10 @@ function rMags(){if(!S.books)S.books={};
   var idxs=groups[cat];if(!idxs)return;
   var entries="";
   idxs.forEach(function(i){var m=MAGS[i],v=S.mag[i]||0,pct=Math.round(v/m[1]*100),exp=!!(S.craftexp&&S.craftexp[i]);
-   var tiers=(RD&&RD.craftingTiers&&RD.craftingTiers[m[4]])||[];
+   // Drop unlocks whose required read-count exceeds this magazine's cap (m[1]) — they
+   // can never be reached (e.g. a lvl:100 entry on a line capped at 75) and would show
+   // as permanently LOCKED with a misleading "(N more to unlock)".
+   var tiers=((RD&&RD.craftingTiers&&RD.craftingTiers[m[4]])||[]).filter(function(t){return t.lvl<=m[1];});
    var detail="";
    if(tiers.length){var hasQ=tiers.some(function(t){return t.q;});
      var legend=hasQ?'<div class="qlegend">Each cell = a craftable quality tier and how many magazines you must read to unlock it. <span class="qk on">unlocked</span> <span class="qk cur">your current max</span> <span class="qk off">still locked</span></div>':'';
@@ -1271,7 +1305,7 @@ function wikiSearch(term,res){
    var hits=(j.query&&j.query.search)||[];
    if(!hits.length){res.innerHTML='<div class="wiki-empty">No wiki page matched “'+esc(term)+'”. <a class="wlink" href="'+fandomUrl({name:term})+'" target="_blank" rel="noopener noreferrer">Open Fandom search ›</a></div>';return;}
    res.innerHTML='<div class="wiki-count">'+hits.length+' result'+(hits.length===1?"":"s")+' · click to open on Fandom</div>'+hits.map(function(h){
-     var snip=(h.snippet||"").replace(/<[^>]+>/g,"").replace(/&[a-z]+;/g," ").trim();
+     var snip=(h.snippet||"").replace(/<[^>]+>/g,"").replace(/&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);/g," ").trim();
      var u=fandomUrl({w:h.title});
      var sub=snip?esc(snip):esc(u.replace(/^https:\/\//,""));
      return '<a class="wiki-hit" href="'+u+'" target="_blank" rel="noopener noreferrer"><div class="wiki-hit-title">'+esc(h.title)+'</div><div class="wiki-hit-sub">'+sub+'</div></a>';
@@ -1406,16 +1440,35 @@ async function scanNow(){
 document.getElementById("scanbtn").onclick=scanNow;
 
 function progressionValue(prog,key){return +(prog&&prog[key]||0);}
+// Score every build by its DISTINGUISHING perk (not a shared one) so an imported
+// survivor maps to the right route. Previously only 5 of the 19 builds were scored,
+// so 14 builds (club, spear, robotics, …) tied at 0 and the stable sort silently
+// forced 'sledge' with the wrong steps auto-checked. On a genuine tie/empty
+// progression, keep the current build instead of forcing one.
 function detectBuild(prog){
+  var pv=function(k){return progressionValue(prog,k);};
   var score={
-    sledge:progressionValue(prog,"perkskullcrusher")*5+progressionValue(prog,"perkstrengthmastery"),
-    shotgun:progressionValue(prog,"perkboomstick")*5,
-    sniper:progressionValue(prog,"perkdeadeye")*5+progressionValue(prog,"perkpenetrator"),
-    mg:progressionValue(prog,"perkmachinegunner")*5,
-    stealth:Math.max(progressionValue(prog,"perkgunslinger"),progressionValue(prog,"perkarchery"))*4+
-      progressionValue(prog,"perkhiddenstrike")+progressionValue(prog,"perkfromtheshadows")
+    sledge:pv("perkskullcrusher")*5+pv("perkstrengthmastery"),
+    shotgun:pv("perkboomstick")*5,
+    sniper:pv("perkdeadeye")*5+pv("perkpenetrator"),
+    mg:pv("perkmachinegunner")*5,
+    stealth:pv("perkhiddenstrike")*4+pv("perkfromtheshadows"),
+    club:pv("perkpummelpete")*5,
+    spear:pv("perkjavelinmaster")*5,
+    bow:pv("perkarchery")*5,
+    brawler:pv("perkbrawler")*5,
+    robotics:pv("perkturrets")*5,
+    pistol:pv("perkgunslinger")*4+pv("perkrunandgun"),
+    blade:pv("perkdeepcuts")*5,
+    demolition:pv("perkdemolitionsexpert")*5,
+    baton:pv("perkelectrocutioner")*4,
+    miner:(pv("perkjunkminer")+pv("perkmotherlode")+pv("perkminer69r"))*3,
+    trader:pv("perkbetterbarter")*5+pv("perkdaringadventurer"),
+    medic:pv("perkphysician")*5,
+    vulture:pv("perkhardtarget")*4+pv("perkparkour")
   };
-  return Object.keys(score).sort(function(a,b){return score[b]-score[a];})[0];
+  var best=Object.keys(score).sort(function(a,b){return score[b]-score[a];})[0];
+  return score[best]>0?best:(S.cur||"sledge");
 }
 function rowImportedDone(name,prog){
   var low=name.toLowerCase(),attr={strength:"attstrength",fortitude:"attfortitude",perception:"attperception",agility:"attagility",intellect:"attintellect"};
@@ -1467,7 +1520,7 @@ function parseSdf(buf){
    var key="";for(var i=0;i<kl;i++)key+=String.fromCharCode(u8[pos++]);
    var v;
    if(t===1){if(pos+4>n)break;v=dv.getInt32(pos,true);pos+=4;}
-   else if(t===2){var sl=u16();pos++;var raw="";for(var j=0;j<sl;j++)raw+=String.fromCharCode(u8[pos++]);try{v=decodeURIComponent(escape(atob(raw)));}catch(e){try{v=atob(raw);}catch(e2){v=raw;}}}
+   else if(t===2){var sl=u16();pos++;if(pos+sl>n)break;var raw="";for(var j=0;j<sl;j++)raw+=String.fromCharCode(u8[pos++]);try{v=decodeURIComponent(escape(atob(raw)));}catch(e){try{v=atob(raw);}catch(e2){v=raw;}}}
    else if(t===3){v=!!u8[pos++];}
    else if(t===4){if(pos+4>n)break;v=dv.getFloat32(pos,true);pos+=4;}
    else break;
@@ -1754,7 +1807,7 @@ function importWorld(s,pl){
  if(!pl){S.importedPlayer=null;delete S.playerProgression;}
  S.world={world:s.world,save:s.save,version:v3?"3.0+ (Dead Hot Summer)":"≤2.6 (Legacy)",preset:st.SandboxPreset||"",player:pl?pl.name:"",steam:pl?pl.steam:"",login:pl?pl.login:"",settings:st};
  if(v3){var dc=decodeSandbox(st.SandboxCode);var bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;S.world.bmCount=parseInt(dc.BloodMoonEnemyCount,10)||null;}
- else{if("BloodMoonFrequency" in st)S.freq=st.BloodMoonFrequency;S.world.bmCount=st.BloodMoonEnemyCount||null;}
+ else{if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>0)S.freq=bf2;}S.world.bmCount=st.BloodMoonEnemyCount||null;}
  if(s.scanned){
   var sm=W.maps&&W.maps[s.world];
   if(sm){S.map=sm;S.map.player=(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null;}else S.map=null;

@@ -149,20 +149,42 @@ fn main() {
         let server = server.clone();
         let paths = paths.clone();
         let cache = cache.clone();
-        workers.push(thread::spawn(move || loop {
-            match server.recv() {
-                Ok(request) => {
-                    if let Err(error) = handle(request, &paths, &cache) {
-                        eprintln!("[7DtD] Request-Fehler: {error}");
-                    }
+        workers.push(thread::spawn(move || {
+            while let Ok(request) = server.recv() {
+                if let Err(error) = handle(request, &paths, &cache) {
+                    eprintln!("[7DtD] Request-Fehler: {error}");
                 }
-                Err(_) => break,
             }
         }));
     }
     for worker in workers {
         let _ = worker.join();
     }
+}
+
+fn req_header<'a>(request: &'a tiny_http::Request, name: &str) -> Option<&'a str> {
+    request
+        .headers()
+        .iter()
+        .find(|h| h.field.as_str().as_str().eq_ignore_ascii_case(name))
+        .map(|h| h.value.as_str())
+}
+
+/// Reject cross-origin / rebinding requests. The server binds 127.0.0.1, but a
+/// website the user visits (or a DNS-rebinding attacker) could otherwise POST to
+/// our write endpoints and corrupt saves. The Host check is the load-bearing
+/// defence against rebinding (the attacker's request carries the attacker host);
+/// the Origin check blocks cross-site fetches. Same-origin navigations omit Origin.
+fn local_request_ok(request: &tiny_http::Request) -> bool {
+    let host_ok = matches!(
+        req_header(request, "Host"),
+        Some(h) if h == ADDRESS || h == "localhost:17873"
+    );
+    let origin_ok = match req_header(request, "Origin") {
+        None => true,
+        Some(o) => o == "http://127.0.0.1:17873" || o == "http://localhost:17873",
+    };
+    host_ok && origin_ok
 }
 
 fn handle(
@@ -172,7 +194,24 @@ fn handle(
 ) -> Result<(), String> {
     let raw_url = request.url().to_string();
     let path = raw_url.split('?').next().unwrap_or("/").to_string();
+    if !local_request_ok(&request) {
+        return respond_status_json(
+            request,
+            StatusCode(403),
+            &json!({"ok": false, "error": "Ungültiger Origin/Host"}),
+        );
+    }
     if request.method() == &Method::Post && path == "/api/write-settings" {
+        if !req_header(&request, "Content-Type")
+            .map(|c| c.starts_with("application/json"))
+            .unwrap_or(false)
+        {
+            return respond_status_json(
+                request,
+                StatusCode(415),
+                &json!({"ok": false, "error": "Content-Type muss application/json sein"}),
+            );
+        }
         let mut body = String::new();
         if let Err(error) = request.as_reader().read_to_string(&mut body) {
             return respond_status_json(
@@ -189,6 +228,16 @@ fn handle(
         };
     }
     if request.method() == &Method::Post && path == "/api/restore-settings" {
+        if !req_header(&request, "Content-Type")
+            .map(|c| c.starts_with("application/json"))
+            .unwrap_or(false)
+        {
+            return respond_status_json(
+                request,
+                StatusCode(415),
+                &json!({"ok": false, "error": "Content-Type muss application/json sein"}),
+            );
+        }
         let mut body = String::new();
         if let Err(error) = request.as_reader().read_to_string(&mut body) {
             return respond_status_json(
@@ -308,7 +357,7 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
             });
         }
     }
-    saves.sort_by(|a, b| a.id.to_lowercase().cmp(&b.id.to_lowercase()));
+    saves.sort_by_key(|a| a.id.to_lowercase());
 
     let mut maps = BTreeMap::new();
     for world in world_names {
@@ -525,7 +574,14 @@ fn read_world_day(save_dir: &Path) -> Option<i32> {
     pos += 4; // int32 seed
     let raw = bytes.get(pos..pos + 8)?;
     let world_time = u64::from_le_bytes(raw.try_into().unwrap());
-    Some((world_time / 24000) as i32 + 1)
+    // Bounds guard: a future header change would land worldTime on arbitrary bytes
+    // and yield an absurd day that the UI trusts over the user's input. Drop it
+    // instead (None -> UI keeps its own day value).
+    let day = (world_time / 24000) as i64 + 1;
+    if !(1..=100000).contains(&day) {
+        return None;
+    }
+    Some(day as i32)
 }
 
 fn parse_players(save_dir: &Path) -> Vec<Player> {
@@ -577,20 +633,29 @@ fn parse_ttp_progression(path: &Path) -> BTreeMap<String, i32> {
         }
         if let Some((end, values)) = parse_progression_block(&bytes, start) {
             let declared = i32::from_le_bytes(bytes[start - 4..start].try_into().unwrap_or([0; 4]));
-            let valid_names = values.contains_key("attstrength")
-                && values.contains_key("attperception")
-                && values.contains_key("perkdeadeye")
-                && values.contains_key("craftingmedical");
-            if declared == (end - start) as i32 && valid_names {
+            // N-of-M sentinel match: tolerate one game-side rename instead of zeroing
+            // the whole save if a single hardcoded key disappears.
+            let sentinels = [
+                "attstrength",
+                "attperception",
+                "attfortitude",
+                "perkdeadeye",
+                "craftingmedical",
+                "perkpummelpete",
+            ];
+            let matched = sentinels
+                .iter()
+                .filter(|key| values.contains_key(**key))
+                .count();
+            if declared == (end - start) as i32 && matched >= 3 {
                 hits.push(values);
             }
         }
     }
-    if hits.len() == 1 {
-        hits.remove(0)
-    } else {
-        BTreeMap::new()
-    }
+    // 0 hits -> empty (format change); on the rare >1 (e.g. an extra historical
+    // block) keep the last/newest valid one instead of discarding everything,
+    // which previously blanked progression on such saves.
+    hits.pop().unwrap_or_default()
 }
 
 fn parse_progression_block(bytes: &[u8], start: usize) -> Option<(usize, BTreeMap<String, i32>)> {
@@ -910,7 +975,7 @@ fn sample_heightmap(path: &Path, size: usize) -> Result<HeightMap, String> {
     // Guard against a bogus HeightMapSize: < N would read past the row buffer (OOB panic),
     // a huge value would trigger a giant allocation/abort. Caller uses .ok() → drops the
     // heightmap instead of crashing the scan thread.
-    if size < HEIGHTMAP_N || size > 32768 {
+    if !(HEIGHTMAP_N..=32768).contains(&size) {
         return Err(format!("Unplausible HeightMapSize: {size}"));
     }
     let mut file = fs::File::open(path).map_err(|e| e.to_string())?;
@@ -1026,10 +1091,12 @@ fn serve_world_asset(request: tiny_http::Request, paths: &Paths, url: &str) -> R
     }
     let root = paths.appdata.join("GeneratedWorlds");
     let path = root.join(&world).join(file);
-    // defence in depth: a resolved path must stay under the worlds root
-    if let (Ok(rp), Ok(rr)) = (path.canonicalize(), root.canonicalize()) {
-        if !rp.starts_with(&rr) {
-            return respond_status_json(request, StatusCode(403), &json!({"error":"Pfad gesperrt"}));
+    // defence in depth: a resolved path must stay under the worlds root. Fail CLOSED
+    // — if canonicalize errors (missing file/permission), reject instead of serving.
+    match (path.canonicalize(), root.canonicalize()) {
+        (Ok(rp), Ok(rr)) if rp.starts_with(&rr) => {}
+        _ => {
+            return respond_status_json(request, StatusCode(403), &json!({"error":"Pfad gesperrt"}))
         }
     }
     serve_file(request, &path, "image/png")
@@ -1047,9 +1114,15 @@ fn serve_poi_asset(request: tiny_http::Request, paths: &Paths, url: &str) -> Res
     if decoded.is_empty() || safe_segment(&decoded).is_err() {
         return respond_status_json(request, StatusCode(403), &json!({"error":"Ungültiger Name"}));
     }
-    let path = install
-        .join("Data/Prefabs/POIs")
-        .join(format!("{decoded}.jpg"));
+    let root = install.join("Data/Prefabs/POIs");
+    let path = root.join(format!("{decoded}.jpg"));
+    // same fail-closed containment guard as serve_world_asset
+    match (path.canonicalize(), root.canonicalize()) {
+        (Ok(rp), Ok(rr)) if rp.starts_with(&rr) => {}
+        _ => {
+            return respond_status_json(request, StatusCode(403), &json!({"error":"Pfad gesperrt"}))
+        }
+    }
     serve_file(request, &path, "image/jpeg")
 }
 
@@ -1161,6 +1234,11 @@ fn parse_sdf_entries(bytes: &[u8]) -> Result<Vec<SdfEntry>, String> {
     Ok(out)
 }
 
+/// Length prefix layout mirrors the game's: u16 little-endian (low, high) followed
+/// by a redundant copy of the low byte — the parser reads the u16 and skips byte 3.
+/// Only the low 16 bits are used, so a single field >= 65536 bytes would truncate;
+/// in practice keys and the base64 SandboxCode are far below that. The write_settings
+/// round-trip guard (serialize == original) fails closed if this ever mis-encodes.
 fn write_len(out: &mut Vec<u8>, len: usize) {
     out.push((len & 0xff) as u8);
     out.push(((len >> 8) & 0xff) as u8);
@@ -1205,7 +1283,7 @@ fn patch_sandbox(code: &str, name: &str, idx: i32) -> Result<String, String> {
     }
     let header = bytes[0];
     let body = &bytes[1..];
-    if body.len() % 3 != 0 {
+    if !body.len().is_multiple_of(3) {
         return Err("SandboxCode-Länge nicht durch 3 teilbar".into());
     }
     let mut out: Vec<u8> = vec![header];
@@ -1276,6 +1354,46 @@ fn safe_segment(value: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// Plain-number (min,max) bounds from the baked refdata, for write-time validation.
+/// The UI clamps too, but the HTTP endpoint can be hit directly, so the writer
+/// enforces the same ranges as defence in depth.
+fn refdata_plain_bounds() -> HashMap<String, (Option<i64>, Option<i64>)> {
+    let mut map = HashMap::new();
+    if let Ok(v) = serde_json::from_str::<Value>(REFDATA) {
+        if let Some(arr) = v.get("plain").and_then(|p| p.as_array()) {
+            for o in arr {
+                if let Some(name) = o.get("name").and_then(|n| n.as_str()) {
+                    let mn = o.get("min").and_then(|x| x.as_i64());
+                    let mx = o.get("max").and_then(|x| x.as_i64());
+                    if mn.is_some() || mx.is_some() {
+                        map.insert(name.to_string(), (mn, mx));
+                    }
+                }
+            }
+        }
+    }
+    map
+}
+
+/// Valid value-count per sandbox option from the baked refdata. A SandboxCode value
+/// index must be < this count; the UI selects already enforce it, the writer mirrors it.
+fn refdata_sandbox_counts() -> HashMap<String, usize> {
+    let mut map = HashMap::new();
+    if let Ok(v) = serde_json::from_str::<Value>(REFDATA) {
+        if let Some(arr) = v.get("sandbox").and_then(|p| p.as_array()) {
+            for o in arr {
+                if let (Some(name), Some(opts)) = (
+                    o.get("name").and_then(|n| n.as_str()),
+                    o.get("options").and_then(|x| x.as_array()),
+                ) {
+                    map.insert(name.to_string(), opts.len());
+                }
+            }
+        }
+    }
+    map
+}
+
 fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
     let req: Value = serde_json::from_str(body).map_err(|e| format!("JSON-Fehler: {e}"))?;
     let world = req["world"].as_str().ok_or("'world' fehlt")?;
@@ -1304,10 +1422,16 @@ fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
     let mut changed = 0usize;
     let mut details: Vec<String> = Vec::new();
 
+    let plain_bounds = refdata_plain_bounds();
     if let Some(plain) = req.get("plain").and_then(|v| v.as_object()) {
         for (key, value) in plain {
             match entries.iter_mut().find(|e| &e.key == key) {
                 Some(entry) => {
+                    if let (Some((mn, mx)), Some(n)) = (plain_bounds.get(key), value.as_i64()) {
+                        if mn.is_some_and(|lo| n < lo) || mx.is_some_and(|hi| n > hi) {
+                            return Err(format!("{key}: Wert {n} außerhalb des erlaubten Bereichs"));
+                        }
+                    }
                     apply_plain(entry, value)?;
                     changed += 1;
                     details.push(key.clone());
@@ -1317,6 +1441,7 @@ fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
         }
     }
 
+    let sandbox_counts = refdata_sandbox_counts();
     if let Some(sandbox) = req.get("sandbox").and_then(|v| v.as_object()) {
         if !sandbox.is_empty() {
             let entry = entries
@@ -1327,6 +1452,14 @@ fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
                 let mut code = decoded.clone();
                 for (name, idx_val) in sandbox {
                     let idx = idx_val.as_i64().ok_or_else(|| format!("{name}: Index keine Zahl"))? as i32;
+                    if let Some(cnt) = sandbox_counts.get(name) {
+                        if idx < 0 || (idx as usize) >= *cnt {
+                            return Err(format!(
+                                "{name}: Index {idx} außerhalb 0..{}",
+                                cnt.saturating_sub(1)
+                            ));
+                        }
+                    }
                     code = patch_sandbox(&code, name, idx)?;
                     changed += 1;
                     details.push(format!("{name}=#{idx}"));
@@ -1391,6 +1524,19 @@ fn restore_settings(paths: &Paths, body: &str) -> Result<Value, String> {
     let Some((_, newest)) = backups.pop() else {
         return Err("Kein Backup gefunden — es wurde noch nichts geschrieben.".into());
     };
+    // Validate the backup actually parses before trusting it over the live file.
+    let backup_bytes = fs::read(&newest).map_err(|e| format!("Backup nicht lesbar: {e}"))?;
+    parse_sdf_entries(&backup_bytes)
+        .map_err(|e| format!("Backup beschädigt, Restore abgebrochen: {e}"))?;
+    // Snapshot the current live file first, so the restore is itself undoable
+    // (a subsequent restore picks up this newest snapshot).
+    if sdf.is_file() {
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        let _ = fs::copy(&sdf, dir.join(format!("gameOptions.sdf.bak.{stamp}")));
+    }
     fs::copy(&newest, &sdf).map_err(|e| format!("Restore fehlgeschlagen: {e}"))?;
     Ok(json!({
         "ok": true,
@@ -1520,5 +1666,25 @@ mod tests {
             }
         }
         eprintln!("real_save_roundtrips_if_present: {tested} save(s) verified");
+    }
+
+    // Guardrail against silent save corruption: the SandboxCode wire format encodes
+    // each option by its INDEX, so SANDORDER (the writer) and refdata.json sandbox[]
+    // (the UI) must agree on order and length. Any drift here would write the wrong
+    // setting into a real gameOptions.sdf with no error.
+    #[test]
+    fn sandorder_matches_refdata() {
+        let v: Value = serde_json::from_str(REFDATA).expect("refdata.json parses");
+        let arr = v["sandbox"].as_array().expect("refdata sandbox[] is an array");
+        assert_eq!(arr.len(), SANDORDER.len(), "sandbox count drift");
+        for entry in arr {
+            let idx = entry["idx"].as_u64().expect("sandbox entry has idx") as usize;
+            let name = entry["name"].as_str().expect("sandbox entry has name");
+            assert_eq!(
+                SANDORDER.get(idx),
+                Some(&name),
+                "SANDORDER drift at idx {idx}: refdata says {name}"
+            );
+        }
     }
 }
