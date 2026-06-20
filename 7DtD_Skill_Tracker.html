@@ -197,6 +197,38 @@ body.map-fs-active{overflow:hidden}
 .perkrow.picked .cbx{background:var(--acc2);border-color:var(--acc2);color:#0c0b09}
 .perkrow .gate{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:4px}
 .recb{font-size:10px;font-weight:700;color:#0c0b09;background:var(--star);padding:2px 7px;border-radius:999px;margin-left:4px}
+/* P3: larger, more readable catalog rows (bigger click targets, legible gates) */
+#build .perkrow,#perks .perkrow{padding:14px 16px;gap:14px;align-items:center;min-height:60px;border-radius:8px;border:1px solid transparent}
+#build .perkrow+.perkrow,#perks .perkrow+.perkrow{margin-top:6px}
+#build .perkrow .cbx,#perks .perkrow .cbx{width:24px;height:24px;flex:0 0 24px;font-size:15px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+#build .perkrow .lbl,#perks .perkrow .lbl{font-size:15.5px;font-weight:680;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap;line-height:1.3}
+#build .perkrow .gate,#perks .perkrow .gate{font-size:12.5px;font-family:var(--mono);color:var(--text-soft);background:rgba(255,255,255,.06);padding:3px 9px;border-radius:6px;margin-left:0;letter-spacing:.04em}
+#build .perkrow .ef,#perks .perkrow .ef{margin-top:6px;font-size:12.5px;color:var(--text-muted);line-height:1.5}
+#build .perkrow.picked .gate,#perks .perkrow.picked .gate{background:rgba(246,178,74,.16);color:var(--acc2)}
+#perks .recb,#build .recb{font-size:10.5px;padding:3px 10px}
+/* P2a: custom dropdown (replaces the native select) */
+.dropdown{position:relative;margin-top:9px}
+.dd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2);color:var(--text);font:600 14px/1.2 var(--display);cursor:pointer;transition:border-color var(--motion),background var(--motion)}
+.dd-btn:hover,.dropdown.open .dd-btn{border-color:var(--accent)}
+.dd-caret{color:var(--text-muted);transition:transform var(--motion)}
+.dropdown.open .dd-caret{transform:rotate(180deg)}
+.dd-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:50;max-height:340px;overflow:auto;padding:6px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.dd-opt{padding:11px 12px;border-radius:6px;color:var(--text-soft);font:550 13.5px/1.25 var(--display);cursor:pointer;transition:background var(--motion),color var(--motion)}
+.dd-opt:hover,.dd-opt:focus-visible{background:rgba(var(--tab-rgb),.18);color:var(--text);outline:none}
+.dd-opt.sel{background:rgba(var(--tab-rgb),.24);color:var(--tab-cold);font-weight:700}
+.dd-opt.sel::after{content:"✓";float:right;color:var(--tab-cold)}
+/* P5: custom-pick rows slotted into the build phases */
+.pickrow{display:flex;gap:11px;align-items:center;padding:11px 12px;border-radius:6px;border:1px dashed rgba(var(--tab-rgb),.5);background:rgba(var(--tab-rgb),.07);cursor:pointer;margin-top:5px;transition:background var(--motion),border-color var(--motion)}
+.pickrow:hover{background:rgba(216,74,63,.10);border-color:rgba(216,74,63,.5)}
+.pickrow .pickx{display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 22px;border-radius:5px;background:rgba(var(--tab-rgb),.22);color:var(--tab-cold);font-size:11px}
+.pickrow:hover .pickx{background:rgba(216,74,63,.22);color:#ff8a7a}
+.pickrow .lbl{font-size:14px;font-weight:650;color:var(--text);display:flex;align-items:center}
+.pickrow .ef{font-size:11.5px;color:var(--text-muted);margin-top:2px}
+.custombadge{font:700 9px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--tab-cold);background:rgba(var(--tab-rgb),.2);padding:3px 7px;border-radius:999px;margin-left:7px}
+.perk-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:10px;cursor:pointer;transition:border-color var(--motion),transform var(--motion)}
+.perk-nav:hover{border-color:rgba(var(--tab-rgb),.55);transform:translateY(-1px)}
+.perk-nav .sub{display:block;margin-top:5px;color:var(--text-muted);font-size:12.5px}
+.perk-nav-go{font:700 26px/1 var(--display);color:var(--tab-cold)}
 /* ---- loot / magazine ---- */
 .lcard{border:1px solid var(--line);border-radius:13px;padding:12px 14px;margin-bottom:8px;background:var(--card)}
 .lcard h4{font-size:14px;margin-bottom:3px;display:flex;gap:7px;align-items:center}
@@ -237,6 +269,7 @@ body[data-tab="world"]{--tab-rgb:235,118,45;--tab-hot:#ed762e;--tab-cold:#f5b84e
 body[data-tab="map"],body[data-tab="d3"]{--tab-rgb:61,158,174;--tab-hot:#3d9eae;--tab-cold:#70d3c7}
 body[data-tab="dash"]{--tab-rgb:239,151,57;--tab-hot:#ef9739;--tab-cold:#f3c45f}
 body[data-tab="build"]{--tab-rgb:98,165,199;--tab-hot:#62a5c7;--tab-cold:#8ed0dc}
+body[data-tab="perks"]{--tab-rgb:140,150,235;--tab-hot:#8c96eb;--tab-cold:#b3bdf5}
 body[data-tab="horde"]{--tab-rgb:211,54,43;--tab-hot:#d3362b;--tab-cold:#ff8a54}
 body[data-tab="loot"]{--tab-rgb:202,145,48;--tab-hot:#ca9130;--tab-cold:#edc860}
 body[data-tab="mags"]{--tab-rgb:157,121,196;--tab-hot:#9d79c4;--tab-cold:#c5a0e5}
@@ -473,8 +506,8 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 
 /* Reference primer, import badge and animated field-manual accordion */
 #ref .ref-import-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 14px;border:1px solid rgba(79,180,119,.24);border-radius:var(--radius);background:rgba(79,180,119,.045)}#ref .ref-import-copy{color:var(--text-muted);font-size:12px}#ref .ref-import-copy b{color:var(--text)}
-#ref .primer-grid{counter-reset:primer}#ref .primer-card{counter-increment:primer;position:relative;min-height:190px;padding-top:56px}#ref .primer-card::before{content:"P-0" counter(primer);position:absolute;left:16px;top:16px;color:var(--accent);font:700 10px/1 var(--mono);letter-spacing:.08em}#ref .primer-card h3{margin:0 0 12px;padding:0;border:0;background:none;font-size:12px}#ref .primer-copy{margin:0;color:var(--text-soft);font-size:13px;line-height:1.6}
-#ref .refcard{position:relative;min-height:0;overflow:hidden;cursor:pointer;transition:background var(--motion),border-color var(--motion),transform var(--motion)}#ref .refcard h3{padding-right:28px}#ref .refcard h3::after{content:"−";position:absolute;right:16px;top:15px;color:var(--accent);font:700 16px/1 var(--mono);transition:transform var(--motion)}#ref .refcard.compact h3::after{content:"+"}#ref .refcard .kv{max-height:72px;overflow:hidden;opacity:1;transition:max-height var(--motion),opacity var(--motion),padding var(--motion),border-color var(--motion)}#ref .refcard.compact .kv{display:flex;max-height:0;padding-top:0;padding-bottom:0;border-color:transparent;opacity:0}
+#ref .primer-grid{counter-reset:primer}#ref .primer-card{counter-increment:primer;position:relative;min-height:190px;padding-top:56px}#ref .primer-card::before{content:"P-0" counter(primer);position:absolute;left:16px;top:16px;color:var(--tab-cold);font:700 10px/1 var(--mono);letter-spacing:.08em}#ref .primer-card h3{margin:0 0 12px;padding:0;border:0;background:none;font-size:12px}#ref .primer-copy{margin:0;color:var(--text-soft);font-size:13px;line-height:1.6}
+#ref .refcard{position:relative;min-height:0;overflow:hidden;cursor:pointer;transition:background var(--motion),border-color var(--motion),transform var(--motion)}#ref .refcard h3{padding-right:28px}#ref .refcard h3::after{content:"−";position:absolute;right:16px;top:15px;color:var(--tab-cold);font:700 16px/1 var(--mono);transition:transform var(--motion)}#ref .refcard.compact h3::after{content:"+"}#ref .refcard .kv{max-height:72px;overflow:hidden;opacity:1;transition:max-height var(--motion),opacity var(--motion),padding var(--motion),border-color var(--motion)}#ref .refcard.compact .kv{display:flex;max-height:0;padding-top:0;padding-bottom:0;border-color:transparent;opacity:0}
 #ref .refcard:hover{border-color:rgba(232,114,42,.28);background:var(--surface-2);transform:translateY(-1px)}
 
 /* Wiki search and results */
@@ -511,6 +544,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <div id="d3" class="sec"></div>
 <div id="dash" class="sec"></div>
 <div id="build" class="sec"></div>
+<div id="perks" class="sec"></div>
 <div id="horde" class="sec"></div>
 <div id="loot" class="sec"></div>
 <div id="mags" class="sec"></div>
@@ -532,7 +566,12 @@ var BUILDS={
 "shotgun":{name:"Shotgun Bruiser (Strength)",sub:"Template · Strength · Boomstick",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Boomstick R1-3","Shotgun damage",0],["→ Strength 5","",0],["Pain Tolerance R1","",0],["Pack Mule R1","",0],["Miner 69'er R1","",0]]],["🛡️","Survival","Lvl 13-30","p1",[["→ Fortitude 5","",0],["Pain Tolerance R2-3","",0],["Cardio R1-2","",0],["LOTL + Master Chef R1","",1],["→ Strength 7","",0],["Boomstick R4","",0]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Strength 10","",0],["Boomstick R5","",1],["Strength Mastery R4-5","",1],["Mother Lode","",0]]],["❤️","Health","Lvl 49+","p3",[["Fortitude → 10","",0],["Fortitude Mastery","+100 health",1],["Pain Tolerance R5","",1]]],["🧰","Comfort","Lvl 70+","p4",[["LOTL / Chef","",0],["Light Armor","",0]]]]},
 "sniper":{name:"Sniper (Perception)",sub:"Template · Dead Eye + Penetrator",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Dead Eye R1-3","",0],["→ Perception 5","",0],["The Penetrator R1","",0],["Pain Tolerance R1","",0]]],["🛡️","Mobility","Lvl 13-30","p1",[["→ Perception 7","",0],["Dead Eye R4","",0],["Run and Gun R1-3","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Perception 10","",0],["Dead Eye R5","",1],["Penetrator R5","",1]]],["❤️","Health","Lvl 49+","p3",[["Fortitude Mastery","+100 health",1],["Pain Tolerance R4-5","",1],["Parkour","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Salvage Operations","",0],["Light Armor","",0]]]]},
 "mg":{name:"Machine Gun Tank (Fortitude)",sub:"Template · Machine Gunner",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Machine Gunner R1-3","",0],["→ Fortitude 5","",0],["Pain Tolerance R1-2","",0],["Healing Factor R1","",0]]],["🛡️","Tank","Lvl 13-30","p1",[["→ Fortitude 7","",0],["Machine Gunner R4","",0],["Pain Tolerance R3-4","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Fortitude 10","",0],["Machine Gunner R5","",1],["Fortitude Mastery","+100 health",1]]],["❤️","Splash","Lvl 49+","p3",[["Strength → 5 + Pack Mule","",0],["Parkour","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Mother Lode","",0],["Light Armor","",0]]]]},
-"stealth":{name:"Assassin (Agility)",sub:"Template · Stealth + Handgun",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Gunslinger R1-3","",0],["→ Agility 5","",0],["Hidden Strike R1","",0],["Parkour R1","",0]]],["🛡️","Stealth","Lvl 13-30","p1",[["→ Agility 7","",0],["Gunslinger R4","",0],["Hidden Strike R2-3","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Agility 10","",0],["Gunslinger R5","",1],["Parkour R5","",1]]],["❤️","Health","Lvl 49+","p3",[["Fortitude Mastery","",1],["Pain Tolerance R3-5","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Light Armor","",0],["LOTL / Chef","",0]]]]}
+"stealth":{name:"Assassin (Agility)",sub:"Template · Stealth + Handgun",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Gunslinger R1-3","",0],["→ Agility 5","",0],["Hidden Strike R1","",0],["Parkour R1","",0]]],["🛡️","Stealth","Lvl 13-30","p1",[["→ Agility 7","",0],["Gunslinger R4","",0],["Hidden Strike R2-3","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Agility 10","",0],["Gunslinger R5","",1],["Parkour R5","",1]]],["❤️","Health","Lvl 49+","p3",[["Fortitude Mastery","",1],["Pain Tolerance R3-5","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Light Armor","",0],["LOTL / Chef","",0]]]]},
+"club":{name:"Club Crusher (Strength)",sub:"Template · Strength · Pummel Pete",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Pummel Pete R1-3","Club damage + stun",0],["→ Strength 5","",0],["Pain Tolerance R1","",0],["Pack Mule R1","",0]]],["🛡️","Survival","Lvl 13-30","p1",[["→ Fortitude 5","",0],["Pain Tolerance R2-3","",0],["Cardio R1-2","",0],["LOTL + Master Chef R1","",1],["→ Strength 7","",0],["Pummel Pete R4","",0]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Strength 10","",0],["Pummel Pete R5","",1],["Strength Mastery R4-5","",1],["Big and Fast","Faster swings",0]]],["❤️","Health","Lvl 49+","p3",[["Fortitude → 10","",0],["Fortitude Mastery","+100 health",1],["Pain Tolerance R5","",1]]],["🧰","Comfort","Lvl 70+","p4",[["LOTL / Chef","",0],["Light Armor","",0]]]]},
+"spear":{name:"Spear Hunter (Perception)",sub:"Template · Perception · Spear Master",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Spear Master R1-3","Spear damage + reach",0],["→ Perception 5","",0],["Pain Tolerance R1","",0],["Pack Mule R1","",0]]],["🛡️","Survival","Lvl 13-30","p1",[["→ Fortitude 5","",0],["Pain Tolerance R2-3","",0],["Cardio R1-2","",0],["The Penetrator R1-2","Armor pierce",0],["LOTL + Chef R1","",1],["→ Perception 7","",0]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Perception 10","",0],["Spear Master R5","",1],["Penetrator R5","",1],["Perception Mastery","",1]]],["❤️","Health","Lvl 49+","p3",[["Fortitude Mastery","+100 health",1],["Pain Tolerance R4-5","",1],["Parkour","",0]]],["🧰","Comfort","Lvl 70+","p4",[["Salvage Operations","",0],["Light Armor","",0]]]]},
+"bow":{name:"Bow Hunter (Agility)",sub:"Template · Agility · Archery + Stealth",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["Archery R1-3","Bow damage",0],["→ Agility 5","",0],["Hidden Strike R1","Sneak crit",0],["Parkour R1","",0]]],["🛡️","Stealth","Lvl 13-30","p1",[["→ Agility 7","",0],["Archery R4","",0],["Hidden Strike R2-3","",0],["From The Shadows R1-2","Quieter sneak",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Agility 10","",0],["Archery R5","",1],["Agility Mastery","",1],["Parkour R5","",1]]],["❤️","Health","Lvl 49+","p3",[["Fortitude Mastery","+100 health",1],["Pain Tolerance R3-5","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Light Armor","",0],["Salvage Operations","",0]]]]},
+"brawler":{name:"Brawler (Fortitude)",sub:"Template · Fortitude · Knuckles",done:0,phases:[["⚡","Damage","Lvl 1-12","p0",[["The Brawler R1-3","Fist/knuckle damage",0],["→ Fortitude 5","",0],["Pain Tolerance R1-2","",0],["Healing Factor R1","",0]]],["🛡️","Sustain","Lvl 13-30","p1",[["→ Fortitude 7","",0],["The Brawler R4","",0],["Siphoning Strikes R1-3","Lifesteal",0],["Cardio R1-2","",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Fortitude 10","",0],["The Brawler R5","",1],["Fortitude Mastery","+100 health",1],["Pain Tolerance R4-5","",1]]],["❤️","Splash","Lvl 49+","p3",[["Strength → 5 + Pack Mule","",0],["Parkour","",0]]],["🧰","Comfort","Lvl 70+","p4",[["Mother Lode","",0],["Light Armor","",0]]]]},
+"robotics":{name:"Robotics Engineer (Intellect)",sub:"Template · Intellect · Turrets + Stun Baton",done:0,phases:[["⚡","Tech Online","Lvl 1-12","p0",[["Electrocutioner R1-2","Stun baton self-defense",0],["→ Intellect 4","",0],["Robotics Inventor R1","Junk turret/drone",0],["Pain Tolerance R1","",0]]],["🛡️","Support","Lvl 13-30","p1",[["→ Intellect 6","",0],["Robotics Inventor R2-3","",0],["Advanced Engineering R1-2","Faster crafting",0],["Better Barter R1","Trader prices",0],["LOTL + Chef R1","",1]]],["🔥","Capstone","Lvl 31-48","p2",[["→ Intellect 10","",0],["Robotics Inventor R5","",1],["Electrocutioner R5","",1],["Intellect Mastery","",1],["Physician R1-3","Medic",0]]],["❤️","Health","Lvl 49+","p3",[["Fortitude Mastery","+100 health",1],["Pain Tolerance R4-5","",1]]],["🧰","Comfort","Lvl 70+","p4",[["Charismatic Nature","Party aura (co-op)",0],["Light Armor","",0]]]]}
 };
 var EXTRAS=[["Lucky Looter","+25% loot, +80% faster looting","General",0],["Salvage Operations","Money and steel from salvage","Perception",0],["Treasure Hunter","Buried treasure","Perception",0],["From The Shadows","Quieter and faster sneaking","Agility",0],["Better Barter","Better trader prices","Intellect",0],["Advanced Engineering","Faster crafting","Intellect",0],["Physician","Stronger medical items","Intellect",0],["The Huntsman","+100% meat and leather","Fortitude",0],["Iron Gut","−25% food and water use","Fortitude",1],["Junk Miner","+100% junk resources","Strength",0],["Grand Slam","50% ragdoll on sprint attack","Strength",1],["Hard Target R2-5","−25% only while moving; weak in a funnel","Agility",1]];
 var EXTRA_PHASE={"The Huntsman":1,"Iron Gut":1,"Hard Target R2-5":1,"From The Shadows":2,"Grand Slam":2,"Physician":3,"Lucky Looter":4,"Salvage Operations":4,"Treasure Hunter":4,"Better Barter":4,"Advanced Engineering":4,"Junk Miner":4};
@@ -609,7 +648,7 @@ var TIERCOL={"-1":"#6f6a5c","0":"#8a8478","1":"#5cc47a","2":"#9bd14a","3":"#f5b7
 var TIERLBL={"-1":"?","0":"T0","1":"T1","2":"T2","3":"T3","4":"T4","5":"T5"};
 var SANDORDER=["RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","HeadshotMultiplier","CrouchSpeed","WalkSpeed","RunSpeed","JumpStrength","StaminaUsage","StaminaRegen","PlayerLevelBonusApplied","JarRefund","ShowHealthBars","ShowEnemyDamage","NewbieCoat","HeadshotMode","IncomingDamage","XPMultiplier","ShowXP","EncumbranceModifier","ItemDegradation","LoseItemsOnDeathType","LoseItemsOnDeathCount","DegradeItemsOnDeath","DegradeAmountOnDeath","DeathPenalty","DropOnDeath","DropOnQuit","InfectionRate","EnemySpawnMode","EntityDamage","BlockDamageAI","BlockDamageAIBM","ZombieMove","ZombieMoveNight","ZombieFeralMove","ZombieBMMove","ZombieFeralSense","AISmellMode","AllowZombieDigging","ZombieRageChance","EntityIncomingDamage","MaxEnemyTier","BiomeZombieRespawn","BiomeAnimalRespawn","BiomeEnemyDensity","ZombiesEatAnimals","BloodMoonFrequency","BloodMoonRange","BloodMoonWarning","BloodMoonEnemyCount","AirDropFrequency","AirDropMarker","AirDropRandomTime","BiomeProgression","TemperatureSurvival","StormFreq","StormWarning","HeatMapSensitivity","GlobalGSModifier","BiomeGSModifier","GlobalLSModifier","BiomeLSModifier","POITierLSModifier","GlobalTSModifier","DayNightLength","DayLightLength","AllowMap","AllowCompass","AllowScreenMarkers","ShowLocationInfo","ShowDayTime","WorkstationsInTheWild","MaxTechType","LootRespawnDays","LootTimer","LootMaxTier","GlobalLootCount","FoodLootCount","DrinkLootCount","MedicalLootCount","AmmoLootCount","ResourceLootCount","ArmorLootCount","MeleeLootCount","RangedLootCount","DukesLootCount","CraftingMagazinesLootCount","TreasureMapChance","LootBagChance","CropOutput","SeedDropOutput","CropGrowthSpeed","BackpackCrafting","WorkstationCrafting","CraftingProgression","CraftingTime","CraftingInput","CraftingOutput","CraftingMaxTier","MiningOutput","HarvestingOutput","ScrappingOutput","SmeltingType","DewCollectorTime","DewCollectorOutput","DewCollectorInput","ApiaryTime","ApiaryOutput","ApiaryInput","RepairTypes","MaxDegradationAmount","PointsPerMagazine","SkillGainRate","SkillPointsPerLevel","QuestsEnabled","IntroQuestEnabled","TraderToTraderQuestsEnabled","StarterSkillPoints","QuestsPerTier","QuestProgressionDailyLimit","BuriedQuestsEnabled","POIQuestsEnabled","TraderDialog","TraderHours","TradersEnabled","VendingEnabled","TraderSellPrices","TraderBuyPrices","TraderProtection","TraderResetInterval","TraderItemAbundance","TraderBuyLimit","TraderMaxTier","VendingResetInterval","VendingItemAbundance","ChallengesEnabled","IntroChallengesEnabled","VehicleFuelUsage","VehicleEntityDamage","VehicleBlockDamage","VehicleSelfDamage","ElectricalOutput","SillyCelebrate","SillyBigHeads","SillyTinyZombies","SillySounds","SillyLowGravity","SillyBlackandWhite"];
 var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XP Only","Injured","Permadeath"]},"DropOnDeath":{"d":["Nothing","Everything","Toolbelt","Backpack","Delete Everything"]},"DropOnQuit":{"d":["Nothing","Everything","Toolbelt","Backpack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Off","Day","Night","All"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morning","Evening"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unlimited"]}};
-var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["horde","Horde"],["loot","Loot"],["mags","Magazines"],["ref","Reference"],["wiki","Wiki"]];
+var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["perks","Perks"],["horde","Horde"],["loot","Loot"],["mags","Magazines"],["ref","Reference"],["wiki","Wiki"]];
 function loadState(){var raw=lg("7dtd-companion");if(!raw)return {};try{return JSON.parse(raw)||{};}catch(e){try{ls("7dtd-companion.bak",raw);}catch(_){}return {};}}
 function normalizeState(s){s=(s&&typeof s==="object")?s:{};var d={tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},col:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,world:null};s=Object.assign({},d,s);if(!BUILDS[s.cur])s.cur="sledge";if(!BIOMES[s.biome])s.biome="Forest";["builds","mag","ready","col"].forEach(function(k){if(typeof s[k]!=="object"||!s[k])s[k]={};});if(typeof s.day!=="number"||s.day<1)s.day=1;if(typeof s.lvl!=="number"||s.lvl<1)s.lvl=22;return s;}
 var S=normalizeState(loadState());
@@ -654,7 +693,7 @@ function show(){
  if(S.tab!=="d3")document.body.classList.remove("map-fs-active");
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
- try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
+ try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
  catch(e){showRenderError(e);}
  a11yClickable(); // keyboard-enable tabs + freshly rendered clickable elements
 }
@@ -709,7 +748,8 @@ function opsStat(code,value,label,small,tip){return '<div class="ops-stat"'+(tip
 function opsLead(code,pct,value,title,desc,col){return '<div class="ops-stat ops-lead"><div class="ring">'+ringSVG(pct,col||"var(--tab-hot)",94)+'<div class="rt"><span class="big">'+value+'</span></div></div><div class="ops-lead-copy"><div class="ops-code">'+code+'</div><b>'+title+'</b><p>'+desc+'</p></div></div>';}
 // ---- BUILD ----
 function rBuild(){var st=bstate();
- var sel='<select id="bsel">';Object.keys(BUILDS).forEach(function(k){sel+='<option value="'+k+'"'+(k===S.cur?" selected":"")+'>'+BUILDS[k].name+'</option>';});sel+='</select>';
+ var ddopts=Object.keys(BUILDS).map(function(k){return '<div class="dd-opt'+(k===S.cur?" sel":"")+'" role="option" tabindex="0" data-build="'+k+'" aria-selected="'+(k===S.cur?"true":"false")+'">'+esc(BUILDS[k].name)+'</div>';}).join("");
+ var sel='<div class="dropdown" id="builddd"><button type="button" class="dd-btn" id="builddd-btn" aria-haspopup="listbox" aria-expanded="false"><span class="dd-cur">'+esc(BUILDS[S.cur].name)+'</span><span class="dd-caret">▾</span></button><div class="dd-menu" role="listbox" hidden>'+ddopts+'</div></div>';
  var pct=buildPct();
  var picked=Object.keys(st.picks||{}).length,phaseCount=BUILDS[S.cur].phases.length,level=S.importedPlayer?S.importedPlayer.level:(S.lvl||1);
  var imported="";
@@ -729,45 +769,75 @@ function rBuild(){var st=bstate();
   ph[4].forEach(function(it){gi++;var id="c"+gi;var on=(id in st.chk)?st.chk[id]:(gi<=def);if(on)d++;
    body+=rowHTML(id,it[0],it[1],it[2],on);});
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
+  // P5: custom catalog picks slot into the phase their first attribute-gate unlocks (sorted by gate).
+  (RD&&RD.perks?RD.perks:[]).filter(function(p){return st.picks&&st.picks[p.key]&&perkPhase(p,BUILDS[S.cur].phases.length)===pi;}).sort(function(a,b){return perkFirstGate(a)-perkFirstGate(b)||a.name.localeCompare(b.name);}).forEach(function(p){body+=pickRowHTML(p);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
- html+=rBuildCatalog(st);
+ var nPick=Object.keys(st.picks||{}).length;
+ html+='<div class="module-title">Custom Perks <span>SLOTTED INTO THE PHASES ABOVE</span></div>'+
+  '<div class="card perk-nav" data-go="perks" role="button" tabindex="0"><div><div class="ops-code">CATALOG / 57 PERKS'+(nPick?' · '+nPick+' SELECTED':'')+'</div><b style="display:block;margin-top:7px;font-size:16px;color:var(--text)">Open the Perk Catalog</b><span class="sub">Pick any perk — it slots into the phase its attribute-gate unlocks. Click a custom row above to remove it.</span></div><span class="perk-nav-go">›</span></div>';
  document.getElementById("build").innerHTML=html;
- document.getElementById("bsel").onchange=function(){S.cur=this.value;save();rBuild();};
+ wireDropdown("builddd",function(k){S.cur=k;save();rBuild();});
  document.querySelectorAll("#build [data-col]").forEach(function(h){h.onclick=function(){var pi=h.dataset.col;S.col[S.cur+pi]=!h.parentNode.classList.contains("col")?1:0;save();rBuild();};});
  document.querySelectorAll("#build [data-id]").forEach(function(r){r.onclick=function(){var id=r.dataset.id;st.chk[id]=!st.chk[id];save();rBuild();};});
- document.querySelectorAll("#build [data-perk]").forEach(function(r){r.onclick=function(){var k=r.dataset.perk;st.picks=st.picks||{};if(st.picks[k])delete st.picks[k];else st.picks[k]=1;save();r.classList.toggle("picked");r.querySelector(".cbx").textContent=st.picks[k]?"✓":"";updatePickCount();};});
- var pq=document.getElementById("perkq");if(pq)pq.oninput=function(){S.perkq=this.value;applyPerkFilter();};
- document.querySelectorAll("#build [data-pa]").forEach(function(c){c.onclick=function(){S.perkAttr=c.dataset.pa;document.querySelectorAll("#build [data-pa]").forEach(function(x){x.classList.toggle("on",x===c);});applyPerkFilter();};});
- applyPerkFilter();
+ document.querySelectorAll("#build [data-pick]").forEach(function(r){r.onclick=function(){var k=r.dataset.pick;if(st.picks)delete st.picks[k];save();rBuild();};r.onkeydown=activateOnKey;});
+ document.querySelectorAll("#build .perk-nav").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};x.onkeydown=activateOnKey;});
  markNext("build");
 }
-function rBuildCatalog(st){
- if(!RD||!RD.perks){return '<div class="card" style="margin-top:14px"><div class="wstep">Loading perk catalog…</div></div>';}
+// P5 ordering: a perk's first attribute-gate (rank-1 requirement) is when it unlocks,
+// so it slots into the phase that gate falls in. Lower gate = earlier phase.
+function perkFirstGate(p){var g=((p&&p.gates)||"").split(/[^0-9]+/).filter(Boolean);return g.length?+g[0]:1;}
+function perkPhase(p,phaseCount){var fg=perkFirstGate(p),ph=fg<=1?0:fg<=3?1:fg<=5?2:fg<=7?3:4;return Math.min(ph,(phaseCount||5)-1);}
+function pickRowHTML(p){return '<div class="pickrow" data-pick="'+esc(p.key)+'" role="button" tabindex="0" title="Custom pick — click to remove"><div class="cbx pickx">✕</div><div class="txt"><div class="lbl">'+esc(p.name)+' <span class="custombadge">custom</span></div><div class="ef">'+esc(p.attribute)+' perk · gate '+esc(p.gates||"—")+'</div></div></div>';}
+function wireDropdown(id,onPick){
+ var dd=document.getElementById(id);if(!dd)return;
+ var btn=dd.querySelector(".dd-btn"),menu=dd.querySelector(".dd-menu");
+ function open(o){menu.hidden=!o;btn.setAttribute("aria-expanded",o?"true":"false");dd.classList.toggle("open",o);}
+ btn.onclick=function(e){e.stopPropagation();open(menu.hidden);};
+ btn.onkeydown=function(e){if(e.key==="Escape")open(false);else if(e.key==="Enter"||e.key===" "){e.preventDefault();open(menu.hidden);}};
+ dd.querySelectorAll(".dd-opt").forEach(function(o){function pick(){open(false);onPick(o.dataset.build);}o.onclick=pick;o.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}};});
+ if(!window._ddGlobal){window._ddGlobal=1;document.addEventListener("click",function(ev){document.querySelectorAll(".dropdown.open").forEach(function(d){if(!d.contains(ev.target)){d.classList.remove("open");var m=d.querySelector(".dd-menu");if(m)m.hidden=true;var b=d.querySelector(".dd-btn");if(b)b.setAttribute("aria-expanded","false");}});});}
+}
+function perkCatalogHTML(st){
  var picks=st.picks=st.picks||{};
  var rec={};(RD.perks||[]).forEach(function(p){if((p.recommended||[]).indexOf(S.cur)>=0)rec[p.key]=1;});
  var attrs=["Strength","Perception","Fortitude","Agility","Intellect","General"];
  var groups={};(RD.perks||[]).forEach(function(p){(groups[p.attribute]=groups[p.attribute]||[]).push(p);});
- var af=S.perkAttr||"all", nPick=Object.keys(picks).length;
- var chips='<div class="filterchips"><span class="fchip'+(af==="all"?" on":"")+'" data-pa="all">All</span><span class="fchip'+(af==="rec"?" on":"")+'" data-pa="rec">★ Recommended</span><span class="fchip'+(af==="picked"?" on":"")+'" data-pa="picked">✓ Selected ('+nPick+')</span>'+attrs.map(function(a){return '<span class="fchip'+(af===a?" on":"")+'" data-pa="'+a+'">'+a+'</span>';}).join("")+'</div>';
+ var af=S.perkAttr||"all", nPick=Object.keys(picks).length, pc=BUILDS[S.cur].phases.length;
+ var chips='<div class="filterchips"><span class="fchip'+(af==="all"?" on":"")+'" data-pa="all" role="button" tabindex="0">All</span><span class="fchip'+(af==="rec"?" on":"")+'" data-pa="rec" role="button" tabindex="0">★ Recommended</span><span class="fchip'+(af==="picked"?" on":"")+'" data-pa="picked" role="button" tabindex="0">✓ Selected ('+nPick+')</span>'+attrs.map(function(a){return '<span class="fchip'+(af===a?" on":"")+'" data-pa="'+a+'" role="button" tabindex="0">'+a+'</span>';}).join("")+'</div>';
  var bodyHtml='';
  attrs.forEach(function(a){var ps=groups[a];if(!ps)return;
   var rows=ps.map(function(p){var on=!!picks[p.key],isRec=!!rec[p.key];
-   return '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'">'+
+   return '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'" role="button" tabindex="0" aria-pressed="'+(on?"true":"false")+'">'+
      '<div class="cbx">'+(on?"✓":"")+'</div>'+
      '<div class="txt"><div class="lbl">'+esc(p.name)+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
-     '<div class="ef">'+esc(a)+' perk · attribute gates '+esc(p.gates||"not listed")+'</div></div></div>';
+     '<div class="ef">'+esc(a)+' perk · gate '+esc(p.gates||"—")+' · slots into Phase '+(perkPhase(p,pc)+1)+'</div></div></div>';
   }).join("");
   bodyHtml+='<div class="perkgrp" data-grp="'+a+'"><div class="perkgrph">'+a+'</div>'+rows+'</div>';
  });
  return '<div class="card" style="margin-top:14px"><h3>Complete Perk Catalog</h3>'+
-  '<div class="sub" style="margin-bottom:8px">★ marks recommendations for <b>'+esc(BUILDS[S.cur].name)+'</b>. Every perk remains selectable for custom hybrid builds.</div>'+
+  '<div class="sub" style="margin-bottom:8px">★ marks recommendations for <b>'+esc(BUILDS[S.cur].name)+'</b>. Pick any perk — it slots into the phase its first attribute-gate unlocks.</div>'+
   '<input class="searchbar" id="perkq" placeholder="Search perks by name…" value="'+esc(S.perkq||"")+'">'+chips+
   '<div id="perkcat">'+bodyHtml+'</div></div>';
 }
+function rPerks(){
+ var st=bstate();
+ if(!RD||!RD.perks){document.getElementById("perks").innerHTML=hero("Perk Catalog","All 57 perks","Loading the perk catalog…","tab_perks")+'<div class="card"><div class="wstep">Loading…</div></div>';return;}
+ var nPick=Object.keys(st.picks||{}).length;
+ var html=hero("Perk Catalog","All 57 perks","Pick any perk for the active doctrine — it slots into the phase its attribute-gate unlocks. Filter by attribute, recommendation or selection.","tab_perks")+
+  '<div class="ops-strip">'+opsStat("DOCTRINE / ACTIVE",esc(BUILDS[S.cur].name),"Custom picks apply to this build",true)+opsStat("PERKS / SELECTED",nPick,"Slotted into the phases")+opsStat("CATALOG / SIZE",(RD.perks||[]).length,"Total perks")+'</div>'+
+  '<div class="card perk-nav" data-go="build" role="button" tabindex="0"><div><div class="ops-code">BACK / DOCTRINE</div><b style="display:block;margin-top:7px;font-size:15px;color:var(--text)">View the build phases</b><span class="sub">See your picks slotted into the ordered route.</span></div><span class="perk-nav-go">‹</span></div>'+
+  perkCatalogHTML(st);
+ document.getElementById("perks").innerHTML=html;
+ document.querySelectorAll("#perks [data-perk]").forEach(function(r){r.onclick=function(){var k=r.dataset.perk;st.picks=st.picks||{};if(st.picks[k])delete st.picks[k];else st.picks[k]=1;save();rPerks();};r.onkeydown=activateOnKey;});
+ var pq=document.getElementById("perkq");if(pq)pq.oninput=function(){S.perkq=this.value;applyPerkFilter();};
+ document.querySelectorAll("#perks [data-pa]").forEach(function(c){c.onclick=function(){S.perkAttr=c.dataset.pa;document.querySelectorAll("#perks [data-pa]").forEach(function(x){x.classList.toggle("on",x===c);});applyPerkFilter();};c.onkeydown=activateOnKey;});
+ document.querySelectorAll("#perks .perk-nav").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};x.onkeydown=activateOnKey;});
+ applyPerkFilter();
+}
 function applyPerkFilter(){
  var q=(S.perkq||"").toLowerCase(), af=S.perkAttr||"all";
- document.querySelectorAll("#build .perkgrp").forEach(function(g){
+ document.querySelectorAll("#perks .perkgrp").forEach(function(g){
   var any=false;
   g.querySelectorAll(".perkrow").forEach(function(r){
    var okA=af==="all"||(af==="rec"&&r.dataset.rec==="1")||(af==="picked"&&r.classList.contains("picked"))||(r.dataset.attr===af);
