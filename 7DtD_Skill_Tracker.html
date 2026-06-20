@@ -736,7 +736,7 @@ function showRenderError(e){
 // ---- calc ----
 function bm(){var f=S.freq||10;var next=S.day%f===0?S.day:Math.ceil(S.day/f)*f;return {next:next,until:next-S.day,today:S.day%f===0&&S.day>0};}
 function ringSVG(pct,col,size){size=size||90;var r=(size/2)-6;var c=2*Math.PI*r;return '<svg width="'+size+'" height="'+size+'"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+(c-c*pct/100)+'"/></svg>';}
-function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var st=BUILDS[S.cur];var gi=0,n=0,t=0,def=BUILDS[S.cur].done||0;st.phases.forEach(function(p){p[4].forEach(function(){gi++;t++;var id="c"+gi;var on=(id in b.chk)?b.chk[id]:(gi<=def);if(on)n++;});});(b.ext||[]).forEach(function(nm){t++;if(b.chk["x"+nm])n++;});return t?Math.round(n/t*100):0;}
+function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var st=BUILDS[S.cur];var gi=0,n=0,t=0,def=BUILDS[S.cur].done||0;st.phases.forEach(function(p){p[4].forEach(function(){gi++;t++;var id="c"+gi;var on=(id in b.chk)?b.chk[id]:(gi<=def);if(on)n++;});});(b.ext||[]).forEach(function(nm){t++;if(b.chk["x"+nm])n++;});pickRankEntries(b).forEach(function(e){t++;if(b.chk[pickRowId(e)])n++;});return t?Math.round(n/t*100):0;}
 function readyScore(){var got=0,max=0;READY.forEach(function(r,i){max+=r[2];if(S.ready[i])got+=r[2];});var p=max?Math.round(got/max*100):0;var g=p>=90?"A":p>=75?"B":p>=55?"C":p>=35?"D":"F";return {p:p,g:g};}
 function gamestage(){var L=S.lvl||1,d=S.day||1;var adj=Math.min(d,L);return Math.floor((L+adj)*1.2);}
 function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor(L*bm2*(1+(S.ll||0)/100));}
@@ -802,12 +802,16 @@ function rBuild(){var st=bstate();
   ph[4].forEach(function(it){gi++;var id="c"+gi;var on=(id in st.chk)?st.chk[id]:(gi<=def);if(on)d++;
    body+=rowHTML(id,it[0],it[1],it[2],on);});
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
-  // Each selected perk's ranks are distributed into the phase each rank's attribute-gate unlocks; ranks the route can't reach are capped out.
+  // Selected perks + their attribute raise-steps render as normal route rows (same style as native steps), sorted by gate so each raise-step sits right before the rank it unlocks.
   rankEntries.filter(function(e){return e.phase===pi;}).sort(function(a,b){
     if((a.gate||0)!==(b.gate||0))return (a.gate||0)-(b.gate||0);
     if(a.attrStep&&!b.attrStep)return -1;if(b.attrStep&&!a.attrStep)return 1;
     if(a.attrStep&&b.attrStep)return a.attr.localeCompare(b.attr);
-    return (a.name||"").localeCompare(b.name||"")||a.n-b.n;}).forEach(function(e){body+=pickRowHTML(e);});
+    return (a.name||"").localeCompare(b.name||"")||a.n-b.n;}).forEach(function(e){
+    var id=pickRowId(e),on=!!st.chk[id],nm,ef;
+    if(e.attrStep){nm="→ "+esc(e.attr)+" "+e.level;ef=esc(e.attr)+" "+e.prev+" → "+e.level+" · for your custom "+esc(e.attr)+" perks";}
+    else{nm=esc(e.name)+" R"+e.n;ef=(e.title?esc(e.title)+" · ":"")+(e.attr==="General"?"general perk":"needs "+esc(e.attr)+" "+e.gate);}
+    t++;if(on)d++;body+=rowHTML(id,nm,ef,0,on);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
  html+='<div class="module-title">Perk Reference <span>READ-ONLY · WHAT EVERY PERK DOES</span></div>'+
@@ -873,13 +877,8 @@ function buildPerkKeys(bid){
  });
  return set;
 }
-function pickRowHTML(e){
- if(e.attrStep){
-  return '<div class="pickrow attrstep" title="Attribute investment your custom perks require"><div class="cbx attrx">▲</div><div class="txt"><div class="lbl">Raise '+esc(e.attr)+' to '+e.level+' <span class="custombadge">step</span></div><div class="ef">'+esc(e.attr)+' '+e.prev+' → '+e.level+' · unlocks the next rank of your custom '+esc(e.attr)+' perks</div></div></div>';
- }
- var req=e.attr==="General"?"general perk":"needs "+e.attr+" "+e.gate;
- return '<div class="pickrow" data-pick="'+esc(e.key)+'" role="button" tabindex="0" title="Custom pick — click to remove the whole perk"><div class="cbx pickx">✕</div><div class="txt"><div class="lbl">'+esc(e.name)+' <span class="rtag">R'+e.n+'</span> <span class="custombadge">custom</span></div><div class="ef">'+(e.title?esc(e.title)+' · ':'')+req+'</div></div></div>';
-}
+// Stable check-id for a custom entry so it tracks like a native route step (same id in rBuild + buildPct).
+function pickRowId(e){return e.attrStep?("ai_"+e.attr+"_"+e.level):("pr_"+e.key+"_"+e.n);}
 function wireDropdown(id,onPick){
  var dd=document.getElementById(id);if(!dd)return;
  var btn=dd.querySelector(".dd-btn"),menu=dd.querySelector(".dd-menu");
