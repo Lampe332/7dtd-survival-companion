@@ -858,12 +858,16 @@ function buildAttrCaps(bid){
 // Flatten selected perks into per-rank entries, each placed in the phase its gate unlocks; cap ranks the route can't reach.
 // Skill-point cost to reach an attribute level (seven-days-to-die SKILL.md §2: lvl 2-5 = 1pt, 6-8 = 2pt, 9-10 = 3pt).
 function attrPointCost(L){return L<=5?1:L<=8?2:3;}
-// What an attribute LEVEL actually does for the build: the perk ranks it makes buyable (gate == level), from the researched perk gates (SKILL.md §2 gating + §3 per-perk gates). Distinct per level — not the generic per-level headshot/dismember passive.
-function attrLevelEffect(attr,L){if(attr==="General")return"";
- var h=[];(RD.perks||[]).forEach(function(p){if(p.attribute!==attr)return;perkGates(p).forEach(function(g,i){if(g===L)h.push(p.name+" R"+(i+1));});});
- if(!h.length)return "No new perk ranks at "+attr+" "+L;
- var show=h.slice(0,5),extra=h.length-show.length;
- return "Unlocks "+show.join(", ")+(extra>0?" +"+extra+" more":"");}
+// The real per-level attribute passive: raises headshot damage + dismember chance for THAT attribute's weapons.
+// This is the only direct attribute buff in 7DtD V1.0+ (no +melee/+stamina per level — that was pre-1.0). Same scaling
+// for all 5 attributes, different governed weapons. Source: game attribute desc (Localization.csv) + progression.xml
+// passive_effect (HeadshotDamageModifier +10%/lvl, +15% at 9-10 on a 200% base; DismemberChance +5%/lvl).
+function attrLevelEffect(attr,L){
+ var w={Perception:"spears, rifles, explosives & tools",Strength:"shotguns, clubs, sledgehammers & tools",Fortitude:"fists & machine guns",Agility:"bows, handguns & knives",Intellect:"stun batons & robotic turrets"}[attr];
+ if(!w)return"";
+ var hs=L<=8?200+(L-1)*10:(L===9?285:300),dm=L*5;
+ if(L<=1)return "Attribute passive: "+hs+"% headshot dmg, "+dm+"% dismember with "+w;
+ return "+"+(L<=8?10:15)+"% headshot dmg & +5% dismember with "+w+" — now "+hs+"% / "+dm+"%";}
 // Short "what it does" line from a perk rank's full description, like the native route steps.
 // Prefer a mechanical-effect sentence (has a %, no leading flavor pronoun); fall back through numeric sentences;
 // if flavor and effect are glued in one sentence ("You can ... do 10% more damage"), drill to the numeric clause and strip the pronoun.
