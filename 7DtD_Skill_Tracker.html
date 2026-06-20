@@ -819,8 +819,10 @@ function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor
 function lootTier(ls2){return ls2<40?"T0 (Primitive)":ls2<80?"T1 (Iron)":ls2<118?"T2 (Steel begins)":ls2<262?"T3 (Q5 / T4 weapons)":"T4 (Q6 / T5-T6 endgame)";}
 // Skill points the whole route costs: each perk rank = 1 point, each attribute level = its real cost (1 pt lvl 2-5, 2 pt 6-8, 3 pt 9-10).
 function routePoints(bid){var pts=0;buildAtomicSteps(bid).forEach(function(s){var m=/^→ (Strength|Perception|Fortitude|Agility|Intellect) (\d+)$/.exec(s.name);pts+=m?attrPointCost(+m[2]):1;});return pts;}
-// Skill points earned per character level (sandbox setting; this world = 2). Used to estimate the level the route is fully affordable at.
-function pointsPerLevel(){var s=S.world&&S.world.settings;var v=parseInt(s&&(s.BaseSkillPoints||s.SkillPointsPerLevel),10);return v>0?v:2;}
+// Skill points earned per character level — read from the world's SkillPointsPerLevel sandbox option (decode the SandboxCode for V3.0 worlds), default to the game default of 1.
+function pointsPerLevel(){var s=S.world&&S.world.settings,v;if(s){v=s.SkillPointsPerLevel;if(v==null&&s.SandboxCode&&typeof decodeSandbox==="function"){try{v=decodeSandbox(s.SandboxCode).SkillPointsPerLevel;}catch(_){}}v=parseInt(v,10);if(v>0)return v;}return 1;}
+// Character level the full route is affordable at, accounting for the level-1 starting skill points.
+function routeLevel(bid){var ppl=pointsPerLevel(),rp=routePoints(bid);return Math.max(1,Math.ceil((rp-ppl)/ppl)+1);}
 // Export the active build as shareable Markdown (for the squad's Discord etc.).
 function buildToMarkdown(bid){var b=BUILDS[bid];if(!b)return"";var atomic=buildAtomicSteps(bid),md="# "+b.name+"\n_"+(b.sub||"")+"_\n\nFull route ≈ "+routePoints(bid)+" skill points.\n\n";
  b.phases.forEach(function(ph,pi){md+="### "+ph[0]+" "+ph[1]+" · "+ph[2]+"\n";atomic.filter(function(s){return s.phase===pi;}).forEach(function(s){md+="- "+s.name+(s.desc?" — "+s.desc:"")+"\n";});md+="\n";});
@@ -877,7 +879,7 @@ function rBuild(){var st=bstate();
  var html=hero("Build Planner","Skill point doctrine","Follow the validated solo route or assemble a custom perk loadout from the complete catalog.","tab_build")+
   '<div class="build-console"><div class="card build-progress"><div class="ring">'+ringSVG(pct,pct>=75?"#70b47c":"var(--tab-hot)",100)+'<div class="rt"><span class="big">'+pct+'%</span></div></div><div><div class="ops-code">ROUTE COMPLETION</div><h3 style="margin:9px 0 5px">'+esc(BUILDS[S.cur].name)+'</h3><div class="sub">Every checked step advances the active doctrine.</div></div></div>'+
   '<div class="card build-controls"><div class="ops-code">ACTIVE DOCTRINE / SELECT ROUTE</div>'+sel+'<div class="bar" style="margin-top:14px"><div class="fillb" style="width:'+pct+'%"></div></div><button class="btn" id="buildCopy" style="margin-top:12px;width:100%">⧉ Copy build as text</button></div></div>'+
-  '<div class="ops-strip">'+opsStat("SURVIVOR / LVL",level,"Current progression level")+opsStat("ROUTE / POINTS",routePoints(S.cur),"Skill points the full route costs — reachable around Lvl "+Math.ceil(routePoints(S.cur)/pointsPerLevel())+" at "+pointsPerLevel()+" pts/level"+(S.importedPlayer?". You are Lvl "+S.importedPlayer.level+" (~"+(S.importedPlayer.level*pointsPerLevel())+" pts).":"."),true)+opsStat("PHASES / PLAN",phaseCount,"Structured advancement stages")+opsStat("PERKS / CUSTOM",picked,"Perks slotted into the route")+opsStat("NEXT / STEP",pct>=100?"DONE":"ACTIVE",pct>=100?"Route completed":"Highlighted inside the current phase",true)+'</div>'+imported+
+  '<div class="ops-strip">'+opsStat("SURVIVOR / LVL",level,"Current progression level")+opsStat("ROUTE / POINTS",routePoints(S.cur),"Skill points the full route costs — affordable around Lvl ≈"+routeLevel(S.cur)+" at "+pointsPerLevel()+" pts/level (estimate)"+(S.importedPlayer?". You are Lvl "+S.importedPlayer.level+" (~"+(S.importedPlayer.level*pointsPerLevel())+" pts).":"."),true)+opsStat("PHASES / PLAN",phaseCount,"Structured advancement stages")+opsStat("PERKS / CUSTOM",picked,"Perks slotted into the route")+opsStat("NEXT / STEP",pct>=100?"DONE":"ACTIVE",pct>=100?"Route completed":"Highlighted inside the current phase",true)+'</div>'+imported+
   '<div class="module-title">Perk Selection <span>TICK A PERK TO SLOT IT INTO THE ROUTE</span></div>'+perkCatalogHTML(st,'select')+
   '<div class="module-title">Doctrine Phases <span>CLICK A PHASE TO COLLAPSE</span></div>';
  var gi=0;
@@ -1193,10 +1195,10 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  a11yClickable(document.getElementById("horde")); // re-wire after self re-render
 }
 // ---- SQUAD (8-player team coverage board) ----
-var SQUAD_ROLE={shotgun:"Anchor",mg:"Anchor",club:"Anchor",sledge:"Anchor",brawler:"Anchor",jack:"Anchor",
+var SQUAD_ROLE={shotgun:"Anchor",mg:"Anchor",club:"Anchor",sledge:"Anchor",brawler:"Anchor",jack:"Anchor",baton:"Anchor",miner:"Anchor",
  sniper:"Ranged",spear:"Ranged",demolition:"Ranged",
  stealth:"Flanker",pistol:"Flanker",blade:"Flanker",bow:"Flanker",vulture:"Flanker",
- robotics:"Support",trader:"Support",medic:"Support",baton:"Support",miner:"Support"};
+ robotics:"Support",trader:"Support",medic:"Support"};
 var SQUAD_ROLE_DESC={Anchor:"Holds the funnel — horde weapon + HP wall",Ranged:"Deletes Demolishers / Radiated at range (headshot + AP)",Flanker:"PvP roam / scout / burst (500m shared kill range)",Support:"Heals, buffs, turrets, trade — keeps the squad alive"};
 function memberGS(L){L=L||1;return Math.floor((L+Math.min(S.day||1,L))*1.2);}
 function partyGS(){var gs=(S.squad||[]).map(function(m){return memberGS(m.level);}).sort(function(a,b){return b-a;});var p=0;gs.forEach(function(g,i){p+=g*Math.pow(0.5,i);});return Math.round(p);}
@@ -1210,7 +1212,8 @@ function rSquad(){
  if(!roles.Ranged)gaps.push("No <b>Ranged specialist</b> — who deletes Demolishers and Radiated at range (headshot + AP)? Add a Sniper, Spear or Demolitionist.");
  if(!roles.Anchor)gaps.push("No <b>horde Anchor</b> — who holds the funnel against 64 sprinters with a horde weapon + HP wall? Add a Shotgun, MG or melee tank.");
  Object.keys(roles).forEach(function(r){if(roles[r]>=3)gaps.push(roles[r]+"× <b>"+r+"</b> — heavy overlap; spread the roles for full coverage.");});
- var pgs=partyGS(),solo=memberGS((S.importedPlayer&&S.importedPlayer.level)||S.lvl||1);
+ var pgs=partyGS(),solo=memberGS((S.importedPlayer&&S.importedPlayer.level)||S.lvl||1),bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
+ var flankNote=roles.Flanker?"":'<div class="banner" style="opacity:.85">Tip: no <b>Flanker</b> — no mobile scout/roamer for the 500m PvP kill range. Optional for horde survival, but this world is 8P Kill-Everyone.</div>';
  var members=S.squad.map(function(m,i){var sel=bopts.replace('value="'+m.build+'"','value="'+m.build+'" selected');
    return '<div class="squad-row" data-si="'+i+'"><div class="squad-slot">P'+(i+1)+'</div>'+
    '<input class="squad-name" data-sf="name" value="'+esc(m.name||"")+'" placeholder="Player name" aria-label="Player name">'+
@@ -1220,8 +1223,8 @@ function rSquad(){
    '<button class="squad-del" data-sdel="'+i+'" title="Remove player" aria-label="Remove">✕</button></div>';
  }).join("");
  var html=hero("Squad Board","8-player team coverage","Assign each teammate a build, spot role gaps, and read the real party Game Stage your group's Blood Moon actually spawns at.","tab_horde")+
-  '<div class="ops-strip">'+opsStat("SQUAD / SIZE",S.squad.length+" / 8","Players on the roster")+opsStat("PARTY / GS",pgs,"Effective group Game Stage — higher than solo, so a tougher Blood Moon and earlier Demolishers/Radiated",true)+opsStat("SOLO / GS",solo,"Your individual Game Stage, for comparison",true)+opsStat("ROLES / COVERED",Object.keys(roles).filter(function(r){return roles[r];}).length+" / 4","Anchor · Ranged · Flanker · Support",true)+'</div>'+
-  (gaps.length?'<div class="card" style="border-color:rgba(216,74,63,.4)"><h3>Coverage Gaps</h3><div>'+gaps.map(function(g){return '<div class="squad-gap">⚠ '+g+'</div>';}).join("")+'</div></div>':'<div class="banner safe">Full role coverage — Anchor, Ranged, Flanker and Support are all present.</div>')+
+  '<div class="ops-strip">'+opsStat("SQUAD / SIZE",S.squad.length+" / 8","Players on the roster")+opsStat("PARTY / GS",pgs,"Effective group Game Stage (estimate, assumes no deaths) — higher than solo, so a tougher Blood Moon and earlier Demolishers/Radiated",true)+opsStat("SOLO / GS",solo,"Your individual Game Stage, for comparison",true)+opsStat("BLOOD MOON / LOAD",bmc+"×"+S.squad.length,bmc+" enemies PER PLAYER — up to ~"+(bmc*S.squad.length)+" total across the squad (capped by the server's max-alive). 8 players is far harsher than the GS number alone implies.",true)+opsStat("ROLES / COVERED",Object.keys(roles).filter(function(r){return roles[r];}).length+" / 4","Anchor · Ranged · Flanker · Support",true)+'</div>'+
+  (gaps.length?'<div class="card" style="border-color:rgba(216,74,63,.4)"><h3>Coverage Gaps</h3><div>'+gaps.map(function(g){return '<div class="squad-gap">⚠ '+g+'</div>';}).join("")+'</div></div>':'<div class="banner safe">Full role coverage — Anchor, Ranged, Flanker and Support are all present.</div>')+flankNote+
   '<div class="card"><h3>Roster</h3><div class="squad-list">'+members+'</div>'+(S.squad.length<8?'<button class="btn" id="squadAdd" style="margin-top:12px">+ Add player</button>':'<div class="sub" style="margin-top:10px">Roster full (8 players).</div>')+'</div>'+
   '<div class="card"><h3>Roles</h3><div>'+Object.keys(SQUAD_ROLE_DESC).map(function(r){return '<div class="squad-roledef"><span class="squad-role role-'+r+'">'+r+' ×'+roles[r]+'</span><span>'+SQUAD_ROLE_DESC[r]+'</span></div>';}).join("")+'</div>'+
    '<p class="sub" style="margin-top:10px">Party GS = highest member GS ×1 + 2nd ×0.5 + 3rd ×0.25… (more players = a tougher Blood Moon). Member GS = (level + days survived) ×1.2. Source: seven-days-to-die skill.</p></div>';
