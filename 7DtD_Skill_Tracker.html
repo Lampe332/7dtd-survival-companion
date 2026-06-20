@@ -589,6 +589,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <div class="top">
   <div class="logo"><span class="brand-mark">7D</span><span class="brand-copy"><b>Survival Companion</b><small>Wasteland Operations Console</small></span></div>
   <div class="dayctl"><button id="dm">−</button><div><div class="dl">Day</div><input class="dv" id="dayv" type="text" inputmode="numeric" value="1" title="Type a day number or use −/+" style="width:52px;background:transparent;border:none;color:inherit;font:inherit;text-align:center;padding:0"></div><button id="dp">+</button></div>
+  <span class="icon" id="refreshbtn" title="Refresh from save — re-read level, day and progression without leaving the app" role="button" tabindex="0">↻</span>
   <span class="icon" id="backstart" title="Change world / character — back to the start screen" role="button" tabindex="0">⌂</span>
   <span class="icon" id="exp" title="Export/Import">⇅</span>
 </div>
@@ -772,7 +773,8 @@ function renderTop(){var d=document.getElementById("dayv");if(!d)return;if(d.tag
 document.getElementById("dp").onclick=function(){S.day++;save();renderTop();show();};
 document.getElementById("dm").onclick=function(){if(S.day>1)S.day--;save();renderTop();show();};
 (function(){var di=document.getElementById("dayv");if(di&&di.tagName==="INPUT")di.onchange=function(){var v=parseInt(this.value,10);if(!(v>=1))v=1;S.day=v;save();renderTop();show();};})();
-(function(){var b=document.getElementById("backstart");if(b){b.onclick=function(){backToLauncher();};b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();backToLauncher();}};}})();
+(function(){var b=document.getElementById("backstart");if(b){b.onclick=function(){backToLauncher();};b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();backToLauncher();}};}
+ var rb=document.getElementById("refreshbtn");if(rb){rb.onclick=function(){refreshSave();};rb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();refreshSave();}};}})();
 document.getElementById("exp").onclick=function(){
  var blob=JSON.stringify(S);var inp=prompt("EXPORT / IMPORT\nCopy this code as a backup, or paste a saved code and press OK to restore it:",blob);
  if(inp&&inp!==blob){var n;try{n=JSON.parse(inp);}catch(e){alert("Invalid companion data.");return;}if(!n||typeof n!=="object"){alert("Invalid companion data.");return;}S=normalizeState(n);save();location.reload();}
@@ -819,6 +821,10 @@ function lootTier(ls2){return ls2<40?"T0 (Primitive)":ls2<80?"T1 (Iron)":ls2<118
 function routePoints(bid){var pts=0;buildAtomicSteps(bid).forEach(function(s){var m=/^→ (Strength|Perception|Fortitude|Agility|Intellect) (\d+)$/.exec(s.name);pts+=m?attrPointCost(+m[2]):1;});return pts;}
 // Skill points earned per character level (sandbox setting; this world = 2). Used to estimate the level the route is fully affordable at.
 function pointsPerLevel(){var s=S.world&&S.world.settings;var v=parseInt(s&&(s.BaseSkillPoints||s.SkillPointsPerLevel),10);return v>0?v:2;}
+// Export the active build as shareable Markdown (for the squad's Discord etc.).
+function buildToMarkdown(bid){var b=BUILDS[bid];if(!b)return"";var atomic=buildAtomicSteps(bid),md="# "+b.name+"\n_"+(b.sub||"")+"_\n\nFull route ≈ "+routePoints(bid)+" skill points.\n\n";
+ b.phases.forEach(function(ph,pi){md+="### "+ph[0]+" "+ph[1]+" · "+ph[2]+"\n";atomic.filter(function(s){return s.phase===pi;}).forEach(function(s){md+="- "+s.name+(s.desc?" — "+s.desc:"")+"\n";});md+="\n";});
+ return md.trim()+"\n\n_— 7DtD Survival Companion_";}
 // ---- DASHBOARD ----
 function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
  var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
@@ -870,7 +876,7 @@ function rBuild(){var st=bstate();
  }
  var html=hero("Build Planner","Skill point doctrine","Follow the validated solo route or assemble a custom perk loadout from the complete catalog.","tab_build")+
   '<div class="build-console"><div class="card build-progress"><div class="ring">'+ringSVG(pct,pct>=75?"#70b47c":"var(--tab-hot)",100)+'<div class="rt"><span class="big">'+pct+'%</span></div></div><div><div class="ops-code">ROUTE COMPLETION</div><h3 style="margin:9px 0 5px">'+esc(BUILDS[S.cur].name)+'</h3><div class="sub">Every checked step advances the active doctrine.</div></div></div>'+
-  '<div class="card build-controls"><div class="ops-code">ACTIVE DOCTRINE / SELECT ROUTE</div>'+sel+'<div class="bar" style="margin-top:14px"><div class="fillb" style="width:'+pct+'%"></div></div></div></div>'+
+  '<div class="card build-controls"><div class="ops-code">ACTIVE DOCTRINE / SELECT ROUTE</div>'+sel+'<div class="bar" style="margin-top:14px"><div class="fillb" style="width:'+pct+'%"></div></div><button class="btn" id="buildCopy" style="margin-top:12px;width:100%">⧉ Copy build as text</button></div></div>'+
   '<div class="ops-strip">'+opsStat("SURVIVOR / LVL",level,"Current progression level")+opsStat("ROUTE / POINTS",routePoints(S.cur),"Skill points the full route costs — reachable around Lvl "+Math.ceil(routePoints(S.cur)/pointsPerLevel())+" at "+pointsPerLevel()+" pts/level"+(S.importedPlayer?". You are Lvl "+S.importedPlayer.level+" (~"+(S.importedPlayer.level*pointsPerLevel())+" pts).":"."),true)+opsStat("PHASES / PLAN",phaseCount,"Structured advancement stages")+opsStat("PERKS / CUSTOM",picked,"Perks slotted into the route")+opsStat("NEXT / STEP",pct>=100?"DONE":"ACTIVE",pct>=100?"Route completed":"Highlighted inside the current phase",true)+'</div>'+imported+
   '<div class="module-title">Perk Selection <span>TICK A PERK TO SLOT IT INTO THE ROUTE</span></div>'+perkCatalogHTML(st,'select')+
   '<div class="module-title">Doctrine Phases <span>CLICK A PHASE TO COLLAPSE</span></div>';
@@ -904,6 +910,7 @@ function rBuild(){var st=bstate();
   '<div class="card perk-nav" data-go="perks" role="button" tabindex="0"><div><div class="ops-code">REFERENCE / 57 PERKS</div><b style="display:block;margin-top:7px;font-size:16px;color:var(--text)">Open the Perk Reference</b><span class="sub">View every perk and what each rank does. Selecting perks for the route is done in the list above.</span></div><span class="perk-nav-go">›</span></div>';
  document.getElementById("build").innerHTML=html;
  wireDropdown("builddd",function(k){S.cur=k;save();rBuild();});
+ var bc=document.getElementById("buildCopy");if(bc)bc.onclick=function(){var md=buildToMarkdown(S.cur);var done=function(){bc.textContent="✓ Copied!";setTimeout(function(){bc.textContent="⧉ Copy build as text";},1500);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(md).then(done,done);}else{var ta=document.createElement("textarea");ta.value=md;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(_){}ta.remove();done();}};
  document.querySelectorAll("#build [data-col]").forEach(function(h){h.onclick=function(){var pi=h.dataset.col;S.col[S.cur+pi]=!h.parentNode.classList.contains("col")?1:0;save();rBuild();};});
  document.querySelectorAll("#build [data-id]").forEach(function(r){r.onclick=function(){var id=r.dataset.id;st.chk[id]=!st.chk[id];save();rBuild();};});
  document.querySelectorAll("#build [data-pick]").forEach(function(r){r.onclick=function(){var k=r.dataset.pick;if(st.picks)delete st.picks[k];save();rBuild();};r.onkeydown=activateOnKey;});
@@ -1504,6 +1511,19 @@ function unlockApp(){
 }
 // Re-open the start screen (world + character selection) without reloading the page. Uses the cached scan; only the app is unlocked post-scan so W.tree is populated.
 function backToLauncher(){if(W.scanned&&W.tree){renderWorldGate();window.scrollTo(0,0);}else location.reload();}
+// Re-read the active save (level, day, progression, books) without leaving the app — re-scans and re-imports the same world+survivor (manual edits are preserved because the identity is unchanged).
+function refreshSave(){
+ if(!S.world){backToLauncher();return;}
+ var btn=document.getElementById("refreshbtn");if(btn)btn.textContent="…";
+ fetch("/api/scan",{cache:"no-store"}).then(function(r){return r.json();}).then(function(data){
+  data=normalizeScan(data);W.tree=data.saves||[];W.maps=data.maps||{};W.scanned=true;
+  var cur=(W.tree||[]).filter(function(s){return s.world===S.world.world&&s.save===S.world.save;})[0];
+  if(cur){var pls=cur.pl||cur.players||[],sid=S.importedPlayer&&S.importedPlayer.steam;
+   var pl=pls.filter(function(p){return p.steam&&p.steam===sid;})[0]||pls.filter(function(p){return p.name===(S.importedPlayer&&S.importedPlayer.name);})[0]||pls[0]||null;
+   importWorld(cur,pl);}
+  if(btn)btn.textContent="↻";
+ }).catch(function(){if(btn)btn.textContent="↻";});
+}
 function showIntroCoach(){
  if(S.seenIntro||document.getElementById("introCoach"))return;
  var d=document.createElement("div");d.id="introCoach";d.className="banner safe";
