@@ -804,9 +804,10 @@ function rBuild(){var st=bstate();
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
   // Each selected perk's ranks are distributed into the phase each rank's attribute-gate unlocks; ranks the route can't reach are capped out.
   rankEntries.filter(function(e){return e.phase===pi;}).sort(function(a,b){
+    if((a.gate||0)!==(b.gate||0))return (a.gate||0)-(b.gate||0);
     if(a.attrStep&&!b.attrStep)return -1;if(b.attrStep&&!a.attrStep)return 1;
     if(a.attrStep&&b.attrStep)return a.attr.localeCompare(b.attr);
-    return a.gate-b.gate||a.name.localeCompare(b.name)||a.n-b.n;}).forEach(function(e){body+=pickRowHTML(e);});
+    return (a.name||"").localeCompare(b.name||"")||a.n-b.n;}).forEach(function(e){body+=pickRowHTML(e);});
   html+='<div class="ph'+(S.col[S.cur+pi]?" col":"")+'" style="--pa:var(--'+ph[3]+')"><div class="phh" data-col="'+pi+'"><span>'+ph[0]+'</span><span class="ttl">'+ph[1]+' <span style="font-size:11.5px;color:var(--dim);font-weight:400">· '+ph[2]+'</span></span><span class="pc">'+d+'/'+t+'</span><span class="chev">▼</span></div><div class="body">'+body+'</div></div>';
  });
  html+='<div class="module-title">Perk Reference <span>READ-ONLY · WHAT EVERY PERK DOES</span></div>'+
@@ -843,7 +844,7 @@ function buildAttrCaps(bid){
 }
 // Flatten selected perks into per-rank entries, each placed in the phase its gate unlocks; cap ranks the route can't reach.
 function pickRankEntries(st){
- var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],attrNeed={};
+ var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],need={};
  (RD&&RD.perks?RD.perks:[]).forEach(function(p){
   if(!(st.picks&&st.picks[p.key]))return;
   var gates=perkGates(p);if(!gates.length)return;
@@ -851,14 +852,14 @@ function pickRankEntries(st){
   // A custom pick is an explicit intent to invest, so ALL ranks slot in (no off-attribute cap); each rank sits in the phase its gate unlocks.
   gates.forEach(function(g,i){var n=i+1;
    out.push({key:p.key,name:p.name,attr:p.attribute,n:n,gate:g,phase:phaseForGate(g,pc),title:(ranks[i]&&ranks[i].t)||""});
+   // Each rank gated above what the written build already plans for needs an explicit "raise <attr> to g" step right before it — you can't jump 1->10.
+   if(p.attribute!=="General"&&g>(caps[p.attribute]||1)){(need[p.attribute]=need[p.attribute]||{})[g]=1;}
   });
-  // Record the attribute investment this pick demands (max gate = level needed for its last rank; first gate = when it starts).
-  if(p.attribute!=="General"){var max=gates[gates.length-1],min=gates[0],cur=attrNeed[p.attribute];
-   if(!cur){attrNeed[p.attribute]={level:max,firstGate:min};}else{if(max>cur.level)cur.level=max;if(min<cur.firstGate)cur.firstGate=min;}}
  });
- // Emit an explicit "raise <attr>" step for attributes the written build plan doesn't already level high enough.
- Object.keys(attrNeed).forEach(function(a){var nd=attrNeed[a],base=caps[a]||1;if(base>=nd.level)return;
-  out.push({attrStep:true,attr:a,level:nd.level,from:base,phase:phaseForGate(nd.firstGate,pc)});});
+ // One raise-step per distinct required level per attribute, interleaved by gate so the route shows the climb (Intellect 3, then 5, then 6 ...).
+ Object.keys(need).forEach(function(a){Object.keys(need[a]).map(Number).sort(function(x,y){return x-y;}).forEach(function(L,i,arr){
+  out.push({attrStep:true,attr:a,level:L,prev:(i>0?arr[i-1]:(caps[a]||1)),gate:L,phase:phaseForGate(L,pc)});
+ });});
  return out;
 }
 // Perks already written into the active build's phase plan (by name), so the selection list can mark them "in route" and disable re-picking.
@@ -874,7 +875,7 @@ function buildPerkKeys(bid){
 }
 function pickRowHTML(e){
  if(e.attrStep){
-  return '<div class="pickrow attrstep" title="Attribute investment your custom perks require"><div class="cbx attrx">▲</div><div class="txt"><div class="lbl">Raise '+esc(e.attr)+' to '+e.level+' <span class="custombadge">required</span></div><div class="ef">Needed for your custom '+esc(e.attr)+' perks ('+e.from+' → '+e.level+')</div></div></div>';
+  return '<div class="pickrow attrstep" title="Attribute investment your custom perks require"><div class="cbx attrx">▲</div><div class="txt"><div class="lbl">Raise '+esc(e.attr)+' to '+e.level+' <span class="custombadge">step</span></div><div class="ef">'+esc(e.attr)+' '+e.prev+' → '+e.level+' · unlocks the next rank of your custom '+esc(e.attr)+' perks</div></div></div>';
  }
  var req=e.attr==="General"?"general perk":"needs "+e.attr+" "+e.gate;
  return '<div class="pickrow" data-pick="'+esc(e.key)+'" role="button" tabindex="0" title="Custom pick — click to remove the whole perk"><div class="cbx pickx">✕</div><div class="txt"><div class="lbl">'+esc(e.name)+' <span class="rtag">R'+e.n+'</span> <span class="custombadge">custom</span></div><div class="ef">'+(e.title?esc(e.title)+' · ':'')+req+'</div></div></div>';
