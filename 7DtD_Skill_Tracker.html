@@ -206,6 +206,12 @@ body.map-fs-active{overflow:hidden}
 #build .perkrow .ef,#perks .perkrow .ef{margin-top:6px;font-size:12.5px;color:var(--text-muted);line-height:1.5}
 #build .perkrow.picked .gate,#perks .perkrow.picked .gate{background:rgba(246,178,74,.16);color:var(--acc2)}
 #perks .recb,#build .recb{font-size:10.5px;padding:3px 10px}
+/* perks already in the active build's plan: shown disabled with an "in route" tag */
+.perkitem.inbuild{opacity:.62}
+.perkrow.disabled{cursor:default}
+.perkrow.disabled:hover{background:transparent}
+.perkrow.disabled .cbx.inb{background:rgba(var(--tab-rgb),.28);color:var(--tab-cold);border:1px solid rgba(var(--tab-rgb),.5)}
+.inbuildbadge{font:700 9px/1 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--tab-cold);background:rgba(var(--tab-rgb),.16);padding:3px 7px;border-radius:999px;margin-left:6px}
 /* P2a: custom dropdown (replaces the native select) */
 .dropdown{position:relative;margin-top:9px}
 .dd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2);color:var(--text);font:600 14px/1.2 var(--display);cursor:pointer;transition:border-color var(--motion),background var(--motion)}
@@ -844,6 +850,17 @@ function pickRankEntries(st){
  });
  return out;
 }
+// Perks already written into the active build's phase plan (by name), so the selection list can mark them "in route" and disable re-picking.
+function buildPerkKeys(bid){
+ var set={},steps=[];
+ (BUILDS[bid]?BUILDS[bid].phases:[]).forEach(function(ph){ph[4].forEach(function(it){steps.push((it[0]||"").toLowerCase());});});
+ (RD&&RD.perks?RD.perks:[]).forEach(function(p){
+  var nm=p.name.toLowerCase(),core=p.name.split(": ").pop().toLowerCase();
+  var names=core!==nm?[nm,core]:[nm];
+  if(steps.some(function(s){return names.some(function(n){return n.length>2&&s.indexOf(n)>=0;});}))set[p.key]=1;
+ });
+ return set;
+}
 function pickRowHTML(e){
  var req=e.attr==="General"?"general perk":"needs "+e.attr+" "+e.gate;
  var cap=e.capped?' <span class="capnote">R'+(e.n+1)+'+ need '+e.attr+' ≥'+e.capGate+' — not in this route</span>':'';
@@ -866,6 +883,7 @@ function perkCatalogHTML(st,mode){
  var attrs=["Strength","Perception","Fortitude","Agility","Intellect","General"];
  var groups={};(RD.perks||[]).forEach(function(p){(groups[p.attribute]=groups[p.attribute]||[]).push(p);});
  var af=select?(S.perkAttr||"all"):(S.perkRefAttr||"all"), nPick=Object.keys(picks).length, pc=BUILDS[S.cur].phases.length;
+ var inBuild=select?buildPerkKeys(S.cur):{};
  var qval=select?(S.perkq||""):(S.perkRefq||""), sid=select?"perkq":"perkqref";
  var selChip=select?'<span class="fchip'+(af==="picked"?" on":"")+'" data-pa="picked" role="button" tabindex="0">✓ Selected ('+nPick+')</span>':'';
  var chips='<div class="filterchips"><span class="fchip'+(af==="all"?" on":"")+'" data-pa="all" role="button" tabindex="0">All</span><span class="fchip'+(af==="rec"?" on":"")+'" data-pa="rec" role="button" tabindex="0">★ Recommended</span>'+selChip+attrs.map(function(a){return '<span class="fchip'+(af===a?" on":"")+'" data-pa="'+a+'" role="button" tabindex="0">'+a+'</span>';}).join("")+'</div>';
@@ -874,6 +892,13 @@ function perkCatalogHTML(st,mode){
   var rows=ps.map(function(p){var on=!!picks[p.key],isRec=!!rec[p.key];
    var rk=(RD.perkRanks&&RD.perkRanks[p.key])||[];
    if(select){
+    if(inBuild[p.key]){
+     return '<div class="perkitem inbuild" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'">'+
+       '<div class="perkrow disabled" aria-disabled="true" title="Already part of the '+esc(BUILDS[S.cur].name)+' route">'+
+         '<div class="cbx inb">✓</div>'+
+         '<div class="txt"><div class="lbl">'+esc(p.name)+' <span class="inbuildbadge">in route</span>'+(isRec?' <span class="recb">★ recommended</span>':'')+' <span class="gate">'+esc(p.gates||"")+'</span></div>'+
+         '<div class="ef">'+esc(a)+' perk · already in this build’s plan</div></div></div></div>';
+    }
     return '<div class="perkitem" data-attr="'+a+'" data-rec="'+(isRec?1:0)+'" data-txt="'+esc((p.name+" "+(p.desc||"")).toLowerCase())+'">'+
       '<div class="perkrow'+(on?" picked":"")+'" data-perk="'+esc(p.key)+'" role="button" tabindex="0" aria-pressed="'+(on?"true":"false")+'">'+
         '<div class="cbx">'+(on?"✓":"")+'</div>'+
