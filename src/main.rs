@@ -135,14 +135,14 @@ struct RemoteConn {
 /// it at a custom/UNC(SMB) path, or at a temp cache populated by a remote download.
 struct Source {
     root: PathBuf,
-    kind: String, // "local" | "smb" | "sftp" | "ftp"
+    kind: String, // "local" | "smb" | "sftp" | "ftp" | "ftps" | "share"
     label: String,
     conn: Option<RemoteConn>,
 }
 
 impl Source {
     fn remote_cache(&self) -> bool {
-        self.kind == "sftp" || self.kind == "ftp" || self.kind == "share"
+        self.kind == "sftp" || self.kind == "ftp" || self.kind == "ftps" || self.kind == "share"
     }
 }
 
@@ -536,7 +536,7 @@ fn parse_conn(body: &Value) -> Result<RemoteConn, String> {
         .unwrap_or("sftp")
         .to_lowercase();
     let host = body.get("host").and_then(|v| v.as_str()).unwrap_or("").trim().to_string();
-    let default_port = if proto == "ftp" { 21 } else { 2022 };
+    let default_port = if proto == "ftp" || proto == "ftps" { 21 } else { 2022 };
     let port = body.get("port").and_then(|v| v.as_u64()).unwrap_or(default_port) as u16;
     let user = body.get("user").and_then(|v| v.as_str()).unwrap_or("").to_string();
     let pass = body.get("pass").and_then(|v| v.as_str()).unwrap_or("").to_string();

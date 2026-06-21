@@ -16,7 +16,8 @@ tiny_http = "0.12"
 russh = { version = "0.61", default-features = false, features = ["ring", "flate2", "rsa"] }
 russh-sftp = "2.3"
 tokio = { version = "1", features = ["rt", "io-util", "fs", "net", "macros"] }
-suppaftp = "9"
+# FTP + FTPS (explicit FTP-over-TLS). native-tls = SChannel on Windows (no OpenSSL/NASM build deps).
+suppaftp = { version = "9", features = ["native-tls"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = ["Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }

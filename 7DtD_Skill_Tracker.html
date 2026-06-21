@@ -160,6 +160,11 @@ body.map-fs-active{overflow:hidden}
 #srcPick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .srcpick{background:rgba(239,122,53,.12);border:1px solid var(--acc);color:var(--text)}
 .srcpick:disabled{opacity:.5;cursor:default}
+#srcRecent{margin:2px 0 6px}.srcrecent-lbl{font:700 10px/1 var(--mono,monospace);letter-spacing:.5px;text-transform:uppercase;color:var(--text2);margin:2px 0 6px}
+.srcrecent-row{display:flex;flex-wrap:wrap;gap:6px}
+.srcchip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--line2);color:var(--text);border-radius:7px;padding:5px 9px;font:600 11.5px var(--mono,monospace);cursor:pointer;transition:.15s}
+.srcchip:hover{border-color:var(--acc);background:rgba(239,122,53,.1)}
+.srcchip-x{color:var(--text2);font-weight:700;padding:0 1px;border-radius:4px}.srcchip-x:hover{color:#e7795f}
 .squad-wpn{font:600 11.5px var(--mono,monospace);color:var(--text2);padding:3px 8px;border:1px solid var(--line2);border-radius:6px;white-space:nowrap}
 .squad-fill{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .squad-fillbtn{background:rgba(239,122,53,.12);border:1px solid var(--acc);color:var(--text);font-size:12.5px}
@@ -611,6 +616,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .gs-empty{padding:22px 15px;color:var(--muted);font-size:13px;text-align:center}
 .icon.notify-on{color:var(--done);border-color:var(--done)}.icon.notify-on:hover{color:var(--done)}
 #livebtn{font:700 10px/1 var(--mono);letter-spacing:.5px;display:inline-flex;align-items:center;gap:4px}
+#updbtn{font:700 10px/1 var(--mono);letter-spacing:.5px;color:var(--done,#7fd18a);border-color:var(--done,#7fd18a);text-decoration:none;align-items:center;gap:3px;animation:livepulse 2.2s ease-in-out infinite}
 #livebtn.live-on{color:var(--done);border-color:var(--done);animation:livepulse 1.7s ease-in-out infinite}
 @keyframes livepulse{0%,100%{box-shadow:inset 0 1px rgba(255,255,255,.04),0 0 0 0 rgba(92,196,122,0)}50%{box-shadow:inset 0 1px rgba(255,255,255,.04),0 0 0 3px rgba(92,196,122,.16)}}
 .wiki-cachebadge{display:inline-block;margin-left:8px;font:600 10px var(--mono);color:var(--acc2);border:1px solid var(--line2);border-radius:3px;padding:1px 6px}
@@ -646,6 +652,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
   <span class="icon" id="refreshbtn" title="Refresh from save — re-read level, day and progression without leaving the app" role="button" tabindex="0">↻</span>
   <span class="icon" id="livebtn" title="Live auto-refresh — keep reading your save every 10s so the day, level and Blood Moon countdown follow the game automatically (the game must write its autosave first)" role="button" tabindex="0">◉ LIVE</span>
   <span class="icon" id="backstart" title="Change world / character — back to the start screen" role="button" tabindex="0">⌂</span>
+  <a class="icon" id="updbtn" target="_blank" rel="noopener" href="https://github.com/Lampe332/7dtd-survival-companion/releases" title="A newer version is available on GitHub — click to download" style="display:none">⬆ Update</a>
   <span class="icon" id="exp" title="Export/Import">⇅</span>
 </div>
 <div class="tabs" id="tabs"></div>
@@ -1672,13 +1679,15 @@ function openSourcePanel(){
  var launch=document.getElementById("launcher"),box=launch.querySelector(".launchbox");
  launch.classList.add("wizard");launch.classList.remove("hide");
  var sv=S.srv||{proto:"sftp",host:"",port:"",user:"",base:""};
+ if(!Array.isArray(S.srvList)){S.srvList=(S.srv&&S.srv.host)?[S.srv]:[];}
  box.innerHTML=
   '<div class="gate-head"><div class="gate-mark">7D</div><div><div class="gate-step">Data source</div><h2>Where are your saves?</h2><p>Use this PC, a mounted network share, or a dedicated server over SFTP/FTP. The app still runs only on your machine — it just reads the files.</p></div></div>'+
   '<div class="src-grid">'+
    '<div class="src-card"><h3>This PC</h3><p>The normal local game folder (default).</p><button class="btn" id="srcLocal">Use local game saves</button></div>'+
    '<div class="src-card"><h3>Custom / network folder</h3><p>Any folder or UNC share that contains <code>Saves</code> + <code>GeneratedWorlds</code>.</p><input id="srcPath" class="srcin" placeholder="C:\\path\\to\\7DaysToDie   or   \\\\host\\share\\7DaysToDie"><button class="btn" id="srcFolder">Use this folder</button></div>'+
-   '<div class="src-card src-remote"><h3>Dedicated server (SFTP / FTP)</h3><p>Read your save while playing on a server. The password stays in memory for this session — it is never written to disk.</p>'+
-    '<div class="srcrow"><select id="srcProto" class="srcin"><option value="sftp">SFTP (default port 2022)</option><option value="ftp">FTP (default port 21)</option></select><input id="srcPort" class="srcin srcsm" placeholder="port"></div>'+
+   '<div class="src-card src-remote"><h3>Dedicated server (SFTP / FTPS / FTP)</h3><p>Read your save while playing on a server. The password stays in memory for this session — it is never written to disk.</p>'+
+    '<div id="srcRecent"></div>'+
+    '<div class="srcrow"><select id="srcProto" class="srcin"><option value="sftp">SFTP (default port 2022)</option><option value="ftps">FTPS — FTP over TLS (port 21)</option><option value="ftp">FTP — plain (port 21)</option></select><input id="srcPort" class="srcin srcsm" placeholder="port"></div>'+
     '<input id="srcHost" class="srcin" placeholder="host  (e.g. 12.34.56.78  or  my.server.com)">'+
     '<div class="srcrow"><input id="srcUser" class="srcin" placeholder="username"><input id="srcPass" type="password" class="srcin" placeholder="password"></div>'+
     '<input id="srcBase" class="srcin" placeholder="remote 7DaysToDie folder  (e.g.  /  or  /home/7dtd  or  .)">'+
@@ -1690,10 +1699,14 @@ function openSourcePanel(){
   '<div class="gate-actions"><button class="gate-back" id="srcBack">‹ Back</button></div>';
  var $=function(id){return document.getElementById(id);};
  $("srcProto").value=sv.proto||"sftp";$("srcHost").value=sv.host||"";$("srcPort").value=sv.port||"";$("srcUser").value=sv.user||"";$("srcBase").value=sv.base||"";
+ renderRecent();
  function setMsg(t,err){var m=$("srcMsg");m.textContent=t||"";m.className="srcmsg"+(err?" err":(t?" ok":""));}
  function connObj(){return {proto:$("srcProto").value,host:$("srcHost").value.trim(),port:(+$("srcPort").value)||undefined,user:$("srcUser").value,pass:$("srcPass").value,base:$("srcBase").value.trim()};}
- function rememberSrv(){S.srv={proto:$("srcProto").value,host:$("srcHost").value.trim(),port:$("srcPort").value,user:$("srcUser").value,base:$("srcBase").value.trim()};save();}
- $("srcProto").onchange=function(){if(!$("srcPort").value)$("srcPort").placeholder=($("srcProto").value==="ftp"?"21":"2022");};
+ function srvKey(e){return (e.proto||"")+"|"+(e.host||"")+"|"+(e.user||"")+"|"+(e.base||"");}
+ function rememberSrv(){var e={proto:$("srcProto").value,host:$("srcHost").value.trim(),port:$("srcPort").value,user:$("srcUser").value,base:$("srcBase").value.trim()};S.srv=e;if(e.host){var k=srvKey(e);S.srvList=[e].concat((S.srvList||[]).filter(function(x){return srvKey(x)!==k;})).slice(0,5);}save();renderRecent();}
+ function fillSrv(e){$("srcProto").value=e.proto||"sftp";$("srcHost").value=e.host||"";$("srcPort").value=e.port||"";$("srcUser").value=e.user||"";$("srcBase").value=e.base||"";$("srcPass").value="";var oc=$("srcProto").onchange;if(oc)oc.call($("srcProto"));$("srcPass").focus();}
+ function renderRecent(){var box=$("srcRecent");if(!box)return;var L=S.srvList||[];if(!L.length){box.innerHTML="";return;}var h='<div class="srcrecent-lbl">Recent servers</div><div class="srcrecent-row">';L.forEach(function(e,i){h+='<span class="srcchip" data-i="'+i+'" title="'+esc((e.proto||"")+"://"+(e.user?e.user+"@":"")+(e.host||"")+(e.base?" "+e.base:""))+'">'+esc((e.proto||"sftp").toUpperCase())+" · "+esc((e.user?e.user+"@":"")+(e.host||"?"))+'<b class="srcchip-x" data-x="'+i+'" title="Remove">×</b></span>';});h+="</div>";box.innerHTML=h;box.querySelectorAll(".srcchip").forEach(function(c){c.onclick=function(ev){if(ev.target&&ev.target.classList.contains("srcchip-x")){S.srvList.splice(+ev.target.dataset.x,1);save();renderRecent();return;}fillSrv(S.srvList[+c.dataset.i]);};});}
+ $("srcProto").onchange=function(){if(!$("srcPort").value)$("srcPort").placeholder=($("srcProto").value==="sftp"?"2022":"21");};
  $("srcBack").onclick=function(){location.reload();};
  var sf=$("srcShareFile");if(sf)sf.onchange=function(){var file=sf.files&&sf.files[0];if(!file)return;var msg=$("srcShareMsg");msg.className="srcmsg";msg.textContent="Loading "+file.name+" …";var fr=new FileReader();fr.onload=function(){fetch("/api/share/import",{method:"POST",headers:{"Content-Type":"application/json"},body:fr.result}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));return j;});}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){msg.className="srcmsg err";msg.textContent=e.message;});};fr.onerror=function(){msg.className="srcmsg err";msg.textContent="Could not read file";};fr.readAsText(file);};
  $("srcLocal").onclick=function(){var b=$("srcLocal");b.disabled=true;srcPost("/api/source/reset",{}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){b.disabled=false;alert(e.message);});};
@@ -2721,6 +2734,22 @@ function setAutoRefresh(on){
  else toast("Live auto-refresh off.");
 }
 (function(){var lb=document.getElementById("livebtn");if(lb){lb.onclick=function(){setAutoRefresh(!S.autoRefresh);};lb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setAutoRefresh(!S.autoRefresh);}}}renderLiveBtn();if(S.autoRefresh&&S.world){_autoTimer=setInterval(autoRefreshTick,AUTO_REFRESH_MS);setTimeout(autoRefreshTick,1500);}})();
+// ---- Update check: compare this build with the latest GitHub release (public API,
+// no token, CORS-enabled). Throttled to once/day; shows a ⬆ Update badge when newer.
+var APP_VERSION="1.39.0";
+var UPD_REPO="Lampe332/7dtd-survival-companion";
+function verCmp(a,b){var f=function(s){return String(s).replace(/^[vV]\s*/,"").split(/[^0-9]+/).filter(function(x){return x!=="";}).map(Number);};var pa=f(a),pb=f(b);for(var i=0;i<Math.max(pa.length,pb.length);i++){var d=(pa[i]||0)-(pb[i]||0);if(d)return d<0?-1:1;}return 0;}
+function showUpdateBadge(tag){var b=document.getElementById("updbtn");if(!b)return;if(tag&&verCmp(tag,APP_VERSION)>0){b.style.display="";b.textContent="⬆ v"+String(tag).replace(/^[vV]/,"");b.title="Version "+tag+" is available (you have v"+APP_VERSION+") — click to download";}else{b.style.display="none";}}
+function checkForUpdate(){
+ var cache=null;try{cache=JSON.parse(localStorage.getItem("7dtd-updcheck")||"null");}catch(e){}
+ if(cache&&cache.latest)showUpdateBadge(cache.latest);
+ if(cache&&cache.ts&&(Date.now()-cache.ts)<864e5)return;
+ fetch("https://api.github.com/repos/"+UPD_REPO+"/releases/latest",{headers:{"Accept":"application/vnd.github+json"}})
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(j){if(!j||!j.tag_name)return;try{localStorage.setItem("7dtd-updcheck",JSON.stringify({ts:Date.now(),latest:j.tag_name}));}catch(e){}showUpdateBadge(j.tag_name);})
+  .catch(function(){/* offline / rate-limited — keep whatever the cache already showed */});
+}
+(function(){setTimeout(checkForUpdate,1800);})();
 renderTop();show();
 loadRef(function(){show();});
 </script>
