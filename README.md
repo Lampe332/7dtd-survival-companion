@@ -35,9 +35,9 @@ No installer. No account. No cloud. No telemetry. Everything it reads and writes
 
 <div align="center">
 
-<video src="https://raw.githubusercontent.com/Lampe332/7dtd-survival-companion/master/assets/demo.mp4" poster="https://raw.githubusercontent.com/Lampe332/7dtd-survival-companion/master/assets/promo_poster.png" controls preload="none" width="900"></video>
+[![Watch the 7DtD Survival Companion demo — 1080p 60fps](assets/promo_poster.png)](https://raw.githubusercontent.com/Lampe332/7dtd-survival-companion/master/assets/demo.mp4)
 
-<sub>1080p · 60 fps · full tab tour — <b><a href="https://github.com/Lampe332/7dtd-survival-companion/blob/master/assets/demo.mp4">▶ open the player</a></b> (play / pause · scrub · volume · fullscreen) &nbsp;·&nbsp; <a href="https://github.com/Lampe332/7dtd-survival-companion/releases/download/v1.38.0/promo.mp4">full-quality download</a></sub>
+<sub><b>▶ Click to play</b> — opens in your browser's video player: play / pause · scrub · volume · fullscreen &nbsp;·&nbsp; 1080p · 60 fps &nbsp;·&nbsp; <a href="https://github.com/Lampe332/7dtd-survival-companion/releases/download/v1.38.0/promo.mp4">full-quality download</a></sub>
 
 </div>
 
