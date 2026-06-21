@@ -15,7 +15,7 @@ tiny_http = "0.12"
 # russh uses the `ring` crypto backend so the single .exe builds on stock MSVC (no NASM/cmake).
 russh = { version = "0.61", default-features = false, features = ["ring", "flate2", "rsa"] }
 russh-sftp = "2.3"
-tokio = { version = "1", features = ["rt", "io-util", "fs", "net", "macros"] }
+tokio = { version = "1", features = ["rt", "io-util", "fs", "net", "macros", "time"] }
 # FTP + FTPS (explicit FTP-over-TLS). native-tls = SChannel on Windows (no OpenSSL/NASM build deps).
 suppaftp = { version = "9", features = ["native-tls"] }
 

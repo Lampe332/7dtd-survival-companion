@@ -901,7 +901,7 @@ function buildToMarkdown(bid){var b=BUILDS[bid];if(!b)return"";var atomic=buildA
  return md.trim()+"\n\n_— 7DtD Survival Companion_";}
 // ---- DASHBOARD ----
 function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
- var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
+ var bmc=(function(v){var n=parseInt(v,10);return n>0?n:64;})(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)));
  var ban=b.today?'<div class="banner danger">BLOOD MOON TONIGHT — '+bmc+' enemies. Hold the funnel.</div>':b.until===1?'<div class="banner warn">Blood Moon tomorrow — finish every preparation today.</div>':'<div class="banner safe">No Blood Moon tonight. '+b.until+' days remain for looting, building and leveling.</div>';
  var ip=S.importedPlayer, world=S.world, loaded=!!world;
  var bp=buildPct(),systems=(loaded?25:0)+(ip?25:0)+(RD?25:0)+(bp>0?25:0);
@@ -1187,11 +1187,14 @@ function filterPerks(scope,q,af){
  });
 }
 function updatePickCount(){var st=bstate();var n=Object.keys(st.picks||{}).length;var c=document.querySelector('#build [data-pa="picked"]');if(c)c.textContent="✓ Selected ("+n+")";}
+// CONTRACT: `ef` may contain trusted HTML (cost/star badges) so it is NOT escaped here,
+// and `nm` is interpolated raw too. Callers MUST esc() any untrusted/save-derived text
+// before passing it in. Every current caller passes app-constant or pre-escaped strings.
 function rowHTML(id,nm,ef,star,on,rightTag){return '<div class="row'+(on?" done":"")+'" data-id="'+id+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+nm+(star?' <span class="star">★</span>':'')+'</div>'+(ef?'<div class="ef">'+ef+'</div>':'')+'</div>'+(rightTag||'')+'</div>';}
 function markNext(sec){var rows=document.querySelectorAll("#"+sec+" .row");for(var i=0;i<rows.length;i++){if(!rows[i].classList.contains("done")){rows[i].classList.add("next");var s=document.createElement("span");s.className="nx";s.innerHTML='<span class="dot"></span>next';rows[i].appendChild(s);break;}}}
 // ---- HORDE ----
 function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
- var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
+ var bmc=(function(v){var n=parseInt(v,10);return n>0?n:64;})(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)));
  var ban=b.today?'<div class="banner danger">BLOOD MOON TONIGHT &middot; '+bmc+' enemies inbound &middot; final checks only</div>':'<div class="banner '+(b.until<=1?"warn":"safe")+'">'+b.until+' days until Blood Moon on day '+b.next+' &middot; '+bmc+' enemies configured</div>';
  var status=rs.p>=90?"COMBAT READY":rs.p>=75?"FINAL CHECKS":rs.p>=55?"PREPARATION ACTIVE":rs.p>=35?"EXPOSED":"NOT READY";
  var ringCol=rs.p>=75?"#75b47e":rs.p>=45?"#ef9b45":"#d84a3f";
@@ -1583,9 +1586,14 @@ var PERK_NAMES={
 var LABEL_TO_PERK={};Object.keys(PERK_NAMES).forEach(function(k){LABEL_TO_PERK[PERK_NAMES[k].toLowerCase()]=k;});
 
 function normalizeScan(data){
+  // Coerce every numeric POI field at the import boundary: POIs can arrive from a
+  // friend's share bundle or a remote save (untrusted), and several are interpolated
+  // RAW into innerHTML downstream — forcing Number() (NaN->0) neutralises HTML/JS
+  // injection there and keeps the distance/footprint math finite.
+  function num(x){var n=+x;return isFinite(n)?n:0;}
   Object.keys(data.maps||{}).forEach(function(w){
     var m=data.maps[w];m.pois=(m.pois||[]).map(function(p){
-      return [p.name,p.x,p.z,p.tier,p.rotation,p.width,p.depth,p.height,p.thumbnail,p.y,p.zombies,p.quests,p.theme,p.ingame||""];
+      return [String(p.name==null?"":p.name),num(p.x),num(p.z),num(p.tier),num(p.rotation),num(p.width),num(p.depth),num(p.height),p.thumbnail,num(p.y),num(p.zombies),p.quests,p.theme,p.ingame||""];
     });
   });
   return data;
@@ -2100,7 +2108,7 @@ function importWorld(s,pl){
  if(!pl){S.importedPlayer=null;delete S.playerProgression;}
  S.world={world:s.world,save:s.save,version:v3?"3.0+ (Dead Hot Summer)":"≤2.6 (Legacy)",preset:st.SandboxPreset||"",player:pl?pl.name:"",steam:pl?pl.steam:"",login:pl?pl.login:"",settings:st};
  if(v3){var dc=decodeSandbox(st.SandboxCode);var bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;S.world.bmCount=parseInt(dc.BloodMoonEnemyCount,10)||null;}
- else{if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>0)S.freq=bf2;}S.world.bmCount=st.BloodMoonEnemyCount||null;}
+ else{if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>0)S.freq=bf2;}S.world.bmCount=parseInt(st.BloodMoonEnemyCount,10)||null;}
  if(s.scanned){
   var sm=W.maps&&W.maps[s.world];
   if(sm){S.map=sm;S.map.player=(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null;}else S.map=null;

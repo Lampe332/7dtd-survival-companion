@@ -26,7 +26,29 @@ fn norm_base(base: &str) -> String {
     b.trim_end_matches('/').to_string()
 }
 
+/// 2 GiB hard ceiling per downloaded file: bounds a malicious/buggy server that
+/// advertises a file as terabytes (would otherwise fill the user's temp disk). Real
+/// 7DtD files (dtm.raw for even a 16k world ≈ 512 MB) stay well under this.
+const MAX_FILE: u64 = 2 * 1024 * 1024 * 1024;
+
+/// A path segment is safe to use as ONE local path component only if it cannot
+/// traverse out of the cache dir. Rejects separators, drive colons, NUL and `..` —
+/// applied to BOTH user-supplied world/save AND server-supplied filenames (a hostile
+/// or compromised server otherwise gets an arbitrary-file-write primitive).
+fn safe_seg(s: &str) -> bool {
+    !s.is_empty()
+        && s != "."
+        && s != ".."
+        && !s.contains('/')
+        && !s.contains('\\')
+        && !s.contains(':')
+        && !s.contains('\0')
+}
+
 fn ensure_dirs(cache: &Path, world: &str, save: &str) -> Result<(PathBuf, PathBuf), String> {
+    if !safe_seg(world) || !safe_seg(save) {
+        return Err("Ungültiger Welt-/Save-Name (Pfad-Trennzeichen nicht erlaubt)".into());
+    }
     let sdir = cache.join("Saves").join(world).join(save);
     let wdir = cache.join("GeneratedWorlds").join(world);
     std::fs::create_dir_all(sdir.join("Player")).map_err(|e| e.to_string())?;
@@ -61,19 +83,73 @@ pub fn fetch(conn: &RemoteConn, world: &str, save: &str, cache: &Path) -> Result
 // ---------------------------------------------------------------- SFTP (russh)
 mod sftp {
     use super::*;
-    use std::sync::Arc;
+    use std::sync::{Arc, Mutex};
 
-    struct Client;
+    /// SFTP client handler with TOFU host-key pinning: the server's key fingerprint is
+    /// recorded on first connect (`known_hosts`) and verified on every later connect.
+    /// A changed key (possible MITM) aborts the handshake BEFORE the password is sent.
+    struct Client {
+        host_label: String,
+        known_hosts: PathBuf,
+        mismatch: Arc<Mutex<Option<String>>>,
+    }
     impl russh::client::Handler for Client {
         type Error = russh::Error;
-        // v1: accept any host key (like FileZilla's first-connect). Host-key pinning
-        // is a documented follow-up — fine for a user-typed server, weak on hostile nets.
         async fn check_server_key(
             &mut self,
-            _key: &russh::keys::ssh_key::PublicKey,
+            key: &russh::keys::ssh_key::PublicKey,
         ) -> Result<bool, Self::Error> {
-            Ok(true)
+            let fp = key
+                .fingerprint(russh::keys::ssh_key::HashAlg::Sha256)
+                .to_string();
+            match known_hosts_lookup(&self.known_hosts, &self.host_label) {
+                Some(stored) if stored == fp => Ok(true),
+                Some(stored) => {
+                    if let Ok(mut g) = self.mismatch.lock() {
+                        *g = Some(format!(
+                            "Host-Key von {} weicht vom gespeicherten Fingerprint ab — mögliches MITM!\n  gespeichert: {}\n  jetzt:       {}\nWenn der Server-Key wirklich legitim neu ist, entferne die Zeile in:\n  {}",
+                            self.host_label, stored, fp, self.known_hosts.display()
+                        ));
+                    }
+                    Ok(false)
+                }
+                None => {
+                    let _ = known_hosts_add(&self.known_hosts, &self.host_label, &fp);
+                    Ok(true)
+                }
+            }
         }
+    }
+
+    fn known_hosts_path() -> PathBuf {
+        std::env::var_os("APPDATA")
+            .map(PathBuf::from)
+            .unwrap_or_else(std::env::temp_dir)
+            .join("7DtD-Companion")
+            .join("known_hosts")
+    }
+    fn known_hosts_lookup(path: &Path, host: &str) -> Option<String> {
+        let txt = std::fs::read_to_string(path).ok()?;
+        for line in txt.lines() {
+            let mut it = line.splitn(2, ' ');
+            if it.next() == Some(host) {
+                if let Some(fp) = it.next() {
+                    return Some(fp.trim().to_string());
+                }
+            }
+        }
+        None
+    }
+    fn known_hosts_add(path: &Path, host: &str, fp: &str) -> std::io::Result<()> {
+        use std::io::Write as _;
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        let mut f = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)?;
+        writeln!(f, "{host} {fp}")
     }
 
     fn rt() -> Result<tokio::runtime::Runtime, String> {
@@ -84,10 +160,39 @@ mod sftp {
     }
 
     async fn connect(conn: &RemoteConn) -> Result<russh_sftp::client::SftpSession, String> {
-        let config = Arc::new(russh::client::Config::default());
-        let mut h = russh::client::connect(config, (conn.host.as_str(), conn.port), Client)
-            .await
-            .map_err(|e| format!("Verbindung zu {}:{} fehlgeschlagen: {e}", conn.host, conn.port))?;
+        let config = Arc::new(russh::client::Config {
+            inactivity_timeout: Some(std::time::Duration::from_secs(30)),
+            ..Default::default()
+        });
+        let mismatch = Arc::new(Mutex::new(None));
+        let client = Client {
+            host_label: format!("{}:{}", conn.host, conn.port),
+            known_hosts: known_hosts_path(),
+            mismatch: mismatch.clone(),
+        };
+        let connect_fut =
+            russh::client::connect(config, (conn.host.as_str(), conn.port), client);
+        let mut h = match tokio::time::timeout(std::time::Duration::from_secs(20), connect_fut).await
+        {
+            Ok(Ok(h)) => h,
+            Ok(Err(e)) => {
+                // A host-key mismatch returns Ok(false) from the handler, which russh
+                // surfaces as a generic handshake error — replace it with the clear reason.
+                if let Some(msg) = mismatch.lock().ok().and_then(|g| g.clone()) {
+                    return Err(msg);
+                }
+                return Err(format!(
+                    "Verbindung zu {}:{} fehlgeschlagen: {e}",
+                    conn.host, conn.port
+                ));
+            }
+            Err(_) => {
+                return Err(format!(
+                    "Zeitüberschreitung beim Verbinden zu {}:{}",
+                    conn.host, conn.port
+                ))
+            }
+        };
         let ok = h
             .authenticate_password(&conn.user, &conn.pass)
             .await
@@ -129,12 +234,13 @@ mod sftp {
         remote: &str,
         local: &Path,
     ) -> Result<(), String> {
-        use tokio::io::AsyncWriteExt;
-        let mut rf = sftp.open(remote).await.map_err(|e| format!("{remote}: {e}"))?;
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        let rf = sftp.open(remote).await.map_err(|e| format!("{remote}: {e}"))?;
+        let mut limited = rf.take(MAX_FILE);
         let mut lf = tokio::fs::File::create(local)
             .await
             .map_err(|e| e.to_string())?;
-        tokio::io::copy(&mut rf, &mut lf)
+        tokio::io::copy(&mut limited, &mut lf)
             .await
             .map_err(|e| format!("Download {remote}: {e}"))?;
         lf.flush().await.ok();
@@ -183,17 +289,27 @@ mod sftp {
             let base = norm_base(&conn.base);
             let (sdir, wdir) = ensure_dirs(cache, world, save)?;
             let mut got = 0;
+            let mut errs: Vec<String> = Vec::new();
             for f in SAVE_FILES {
                 let rp = format!("{base}/Saves/{world}/{save}/{f}");
-                if download(&sftp, &rp, &sdir.join(f)).await.is_ok() {
-                    got += 1;
+                match download(&sftp, &rp, &sdir.join(f)).await {
+                    Ok(()) => got += 1,
+                    Err(e) => errs.push(format!("{f}: {e}")),
                 }
+            }
+            if !errs.is_empty() {
+                // A partial fetch must not masquerade as success — the app would scan a
+                // half-populated cache as a valid save. Fail loud with the per-file errors.
+                return Err(format!(
+                    "Pflicht-Dateien konnten nicht geladen werden (nichts übernommen):\n{}",
+                    errs.join("\n")
+                ));
             }
             let pdir = format!("{base}/Saves/{world}/{save}/Player");
             if let Ok(entries) = sftp.read_dir(pdir.clone()).await {
                 for e in entries {
                     let n = e.file_name();
-                    if n.ends_with(".ttp") || n.ends_with(".ttp.meta") {
+                    if (n.ends_with(".ttp") || n.ends_with(".ttp.meta")) && safe_seg(&n) {
                         let rp = format!("{pdir}/{n}");
                         if download(&sftp, &rp, &sdir.join("Player").join(&n)).await.is_ok() {
                             got += 1;
@@ -223,14 +339,13 @@ mod ftp {
     use suppaftp::types::FileType;
     use suppaftp::{FtpStream, ImplFtpStream, NativeTlsConnector, NativeTlsFtpStream, TlsStream};
 
-    /// TLS context for FTPS. Game servers commonly use self-signed certs (FileZilla
-    /// connects with a "trust this cert?" prompt) — accept them like the SFTP host key
-    /// (TOFU). Fine for a user-typed server, weak on a hostile net; cert pinning is a
-    /// documented follow-up. SChannel on Windows → no OpenSSL.
+    /// TLS context for FTPS with FULL certificate + hostname validation (SChannel on
+    /// Windows → uses the OS trust store, no OpenSSL). Disabling validation would make
+    /// the TLS layer encrypt-but-not-authenticate: any MITM presenting a self-signed
+    /// cert would harvest the FTP password. A server with a self-signed cert should be
+    /// reached over SFTP (host-key TOFU) instead.
     fn tls_connector() -> Result<NativeTlsConnector, String> {
         let c = suppaftp::native_tls::TlsConnector::builder()
-            .danger_accept_invalid_certs(true)
-            .danger_accept_invalid_hostnames(true)
             .build()
             .map_err(|e| format!("TLS-Setup: {e}"))?;
         Ok(NativeTlsConnector::from(c))
@@ -279,9 +394,11 @@ mod ftp {
     }
 
     fn retr_to<T: TlsStream>(s: &mut ImplFtpStream<T>, remote: &str, local: &Path) -> Result<(), String> {
+        use std::io::Read as _;
         s.retr(remote, |stream| {
             let mut f = std::fs::File::create(local).map_err(suppaftp::FtpError::ConnectionError)?;
-            std::io::copy(stream, &mut f).map_err(suppaftp::FtpError::ConnectionError)?;
+            std::io::copy(&mut stream.take(MAX_FILE), &mut f)
+                .map_err(suppaftp::FtpError::ConnectionError)?;
             Ok(())
         })
         .map_err(|e| format!("{remote}: {e}"))
@@ -321,17 +438,26 @@ mod ftp {
         let base = norm_base(&conn.base);
         let (sdir, wdir) = ensure_dirs(cache, world, save)?;
         let mut got = 0;
+        let mut errs: Vec<String> = Vec::new();
         for f in SAVE_FILES {
             let rp = format!("{base}/Saves/{world}/{save}/{f}");
-            if retr_to(s, &rp, &sdir.join(f)).is_ok() {
-                got += 1;
+            match retr_to(s, &rp, &sdir.join(f)) {
+                Ok(()) => got += 1,
+                Err(e) => errs.push(format!("{f}: {e}")),
             }
+        }
+        if !errs.is_empty() {
+            let _ = s.quit();
+            return Err(format!(
+                "Pflicht-Dateien konnten nicht geladen werden (nichts übernommen):\n{}",
+                errs.join("\n")
+            ));
         }
         let pdir = format!("{base}/Saves/{world}/{save}/Player");
         if let Ok(names) = s.nlst(Some(pdir.as_str())) {
             for n in names {
                 let bn = n.rsplit('/').next().unwrap_or(&n).to_string();
-                if bn.ends_with(".ttp") || bn.ends_with(".ttp.meta") {
+                if (bn.ends_with(".ttp") || bn.ends_with(".ttp.meta")) && safe_seg(&bn) {
                     let rp = format!("{pdir}/{bn}");
                     if retr_to(s, &rp, &sdir.join("Player").join(&bn)).is_ok() {
                         got += 1;

@@ -146,6 +146,28 @@ impl Source {
     }
 }
 
+/// On bind failure (port already in use) decide whether the squatter is OUR already-
+/// running instance (then just open the browser to it) or a FOREIGN service (then warn
+/// instead of opening the browser to someone else's local page). Best-effort, short timeout.
+fn port_is_our_instance() -> bool {
+    use std::io::{Read as _, Write as _};
+    let mut stream = match std::net::TcpStream::connect(ADDRESS) {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+    let _ = stream.set_read_timeout(Some(Duration::from_millis(800)));
+    let _ = stream.set_write_timeout(Some(Duration::from_millis(800)));
+    if stream
+        .write_all(b"GET /api/health HTTP/1.1\r\nHost: 127.0.0.1:17873\r\nConnection: close\r\n\r\n")
+        .is_err()
+    {
+        return false;
+    }
+    let mut buf = String::new();
+    let _ = stream.take(4096).read_to_string(&mut buf);
+    buf.contains("\"ok\":true") || buf.contains("\"ok\": true")
+}
+
 fn main() {
     let appdata = env::var_os("APPDATA")
         .map(PathBuf::from)
@@ -159,8 +181,14 @@ fn main() {
     let server = match Server::http(ADDRESS) {
         Ok(server) => server,
         Err(error) => {
-            eprintln!("[7DtD] Serverstart fehlgeschlagen: {error}");
-            open_browser(&launch_url());
+            // Port busy. If it's our own already-running instance, just open the browser
+            // to it; if it's a FOREIGN service (or nothing answers), don't hand the user
+            // someone else's page — warn instead.
+            if port_is_our_instance() {
+                open_browser(&launch_url());
+            } else {
+                eprintln!("[7DtD] Port {ADDRESS} ist belegt oder Start fehlgeschlagen ({error}) — Browser NICHT geöffnet.");
+            }
             return;
         }
     };
@@ -215,13 +243,37 @@ fn req_header<'a>(request: &'a tiny_http::Request, name: &str) -> Option<&'a str
 fn local_request_ok(request: &tiny_http::Request) -> bool {
     let host_ok = matches!(
         req_header(request, "Host"),
-        Some(h) if h == ADDRESS || h == "localhost:17873"
+        Some(h) if h == ADDRESS || h == "localhost:17873" || h == "[::1]:17873"
     );
     let origin_ok = match req_header(request, "Origin") {
         None => true,
-        Some(o) => o == "http://127.0.0.1:17873" || o == "http://localhost:17873",
+        Some(o) => {
+            o == "http://127.0.0.1:17873"
+                || o == "http://localhost:17873"
+                || o == "http://[::1]:17873"
+        }
     };
     host_ok && origin_ok
+}
+
+/// Hard ceiling on any request body (64 MiB). The server is loopback-only, but a
+/// buggy/malicious same-origin tab could otherwise stream an unbounded body and
+/// exhaust memory (8-thread pool). Rejects an oversized declared Content-Length up
+/// front and caps the actual read so a lying/absent length still can't over-allocate.
+const MAX_BODY: u64 = 64 * 1024 * 1024;
+fn read_body_limited(request: &mut tiny_http::Request) -> Result<String, String> {
+    if let Some(len) = req_header(request, "Content-Length").and_then(|v| v.parse::<u64>().ok()) {
+        if len > MAX_BODY {
+            return Err(format!("Body zu groß ({len} Bytes, Limit {MAX_BODY})"));
+        }
+    }
+    let mut body = String::new();
+    request
+        .as_reader()
+        .take(MAX_BODY)
+        .read_to_string(&mut body)
+        .map_err(|e| format!("Body unlesbar: {e}"))?;
+    Ok(body)
 }
 
 /// The active paths: install is always local, but the data root follows the
@@ -255,8 +307,10 @@ fn handle(
     }
     // Source switching (local/SMB path + remote SFTP/FTP). Body = JSON.
     if request.method() == &Method::Post && path.starts_with("/api/source/") {
-        let mut body = String::new();
-        let _ = request.as_reader().read_to_string(&mut body);
+        let body = match read_body_limited(&mut request) {
+            Ok(b) => b,
+            Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e})),
+        };
         let payload: Value = serde_json::from_str(&body).unwrap_or(Value::Null);
         return handle_source(request, paths, cache, source, &path, payload);
     }
@@ -282,8 +336,10 @@ fn handle(
         };
     }
     if request.method() == &Method::Post && path == "/api/share/import" {
-        let mut body = String::new();
-        let _ = request.as_reader().read_to_string(&mut body);
+        let body = match read_body_limited(&mut request) {
+            Ok(b) => b,
+            Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e})),
+        };
         let bundle: Value = match serde_json::from_str(&body) {
             Ok(v) => v,
             Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": format!("JSON ungültig: {e}")})),
@@ -301,14 +357,12 @@ fn handle(
                 &json!({"ok": false, "error": "Content-Type muss application/json sein"}),
             );
         }
-        let mut body = String::new();
-        if let Err(error) = request.as_reader().read_to_string(&mut body) {
-            return respond_status_json(
-                request,
-                StatusCode(400),
-                &json!({"ok": false, "error": format!("Body unlesbar: {error}")}),
-            );
-        }
+        let body = match read_body_limited(&mut request) {
+            Ok(b) => b,
+            Err(e) => {
+                return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e}))
+            }
+        };
         if source.lock().map(|s| s.remote_cache()).unwrap_or(false) {
             return respond_status_json(
                 request,
@@ -334,14 +388,12 @@ fn handle(
                 &json!({"ok": false, "error": "Content-Type muss application/json sein"}),
             );
         }
-        let mut body = String::new();
-        if let Err(error) = request.as_reader().read_to_string(&mut body) {
-            return respond_status_json(
-                request,
-                StatusCode(400),
-                &json!({"ok": false, "error": format!("Body unlesbar: {error}")}),
-            );
-        }
+        let body = match read_body_limited(&mut request) {
+            Ok(b) => b,
+            Err(e) => {
+                return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e}))
+            }
+        };
         if source.lock().map(|s| s.remote_cache()).unwrap_or(false) {
             return respond_status_json(
                 request,
@@ -536,7 +588,7 @@ fn parse_conn(body: &Value) -> Result<RemoteConn, String> {
         .unwrap_or("sftp")
         .to_lowercase();
     let host = body.get("host").and_then(|v| v.as_str()).unwrap_or("").trim().to_string();
-    let default_port = if proto == "ftp" || proto == "ftps" { 21 } else { 2022 };
+    let default_port = if proto == "ftp" || proto == "ftps" { 21 } else { 22 };
     let port = body.get("port").and_then(|v| v.as_u64()).unwrap_or(default_port) as u16;
     let user = body.get("user").and_then(|v| v.as_str()).unwrap_or("").to_string();
     let pass = body.get("pass").and_then(|v| v.as_str()).unwrap_or("").to_string();
@@ -586,15 +638,27 @@ fn handle_remote(
             }
         }
         "/api/source/remote-fetch" => {
-            // serialize concurrent fetches (shared cache dir)
-            let _fetch_g = match fetch_guard().lock() {
+            // serialize concurrent fetches (shared cache dir). try_lock so a second
+            // fetch returns 409 immediately instead of silently pinning a worker thread
+            // for the whole in-flight download.
+            let _fetch_g = match fetch_guard().try_lock() {
                 Ok(g) => g,
-                Err(_) => return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": "fetch lock vergiftet"})),
+                Err(std::sync::TryLockError::WouldBlock) => {
+                    return respond_status_json(request, StatusCode(409), &json!({"ok": false, "error": "Ein Fetch läuft bereits — bitte warten."}))
+                }
+                Err(std::sync::TryLockError::Poisoned(_)) => {
+                    return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": "fetch lock vergiftet"}))
+                }
             };
             let world = body.get("world").and_then(|v| v.as_str()).unwrap_or("").to_string();
             let save = body.get("save").and_then(|v| v.as_str()).unwrap_or("").to_string();
             if world.is_empty() || save.is_empty() {
                 return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "world/save fehlt"}));
+            }
+            // Defence in depth: reject path-traversal in the user-supplied world/save
+            // before they reach the remote-fetch cache write path (remote.rs validates too).
+            if safe_segment(&world).is_err() || safe_segment(&save).is_err() {
+                return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Ungültiger Welt-/Save-Name"}));
             }
             let conn = {
                 let stored = source.lock().ok().and_then(|s| s.conn.clone());
@@ -638,10 +702,20 @@ fn build_share_bundle(paths: &Paths) -> Result<Value, String> {
     let data = scan(paths)?;
     let worlds_root = paths.appdata.join("GeneratedWorlds");
     let mut assets = Map::new();
+    // Cap the in-memory bundle so many/large worlds can't OOM the process (every
+    // texture is read fully and base64-encoded into the JSON before sending).
+    const MAX_BUNDLE: usize = 256 * 1024 * 1024;
+    let mut total = 0usize;
     for world in data.maps.keys() {
         let dir = worlds_root.join(world);
         for f in SHARE_ASSETS {
             if let Ok(bytes) = fs::read(dir.join(f)) {
+                total += bytes.len();
+                if total > MAX_BUNDLE {
+                    return Err(format!(
+                        "Welt-Texturen überschreiten {MAX_BUNDLE} Bytes — Bundle zu groß zum Teilen."
+                    ));
+                }
                 assets.insert(format!("{world}/{f}"), Value::String(STANDARD.encode(bytes)));
             }
         }
@@ -695,8 +769,10 @@ fn import_share(
         for (k, v) in assets {
             let b64 = match v.as_str() { Some(s) => s, None => continue };
             let (w, f) = match k.rsplit_once('/') { Some(x) => x, None => continue };
-            // path-traversal guard
-            if w.is_empty() || f.is_empty() || w.contains("..") || f.contains("..") || f.contains('/') || f.contains('\\') {
+            // path-traversal guard: BOTH the world dir and the file must be a single safe
+            // segment (the world part was previously only checked for "..", letting an
+            // absolute/drive-qualified `w` like `C:\Windows\x` escape the cache root).
+            if safe_segment(w).is_err() || safe_segment(f).is_err() {
                 continue;
             }
             if let Ok(bytes) = STANDARD.decode(b64) {
@@ -1023,9 +1099,15 @@ fn read_world_day(save_dir: &Path) -> Option<i32> {
     if version > 14 {
         pos += 16; // releaseType, major, minor, build (4x int32)
     }
+    if read_u32(pos)? != 0 {
+        return None; // header layout drift — keep the user's own day, not a bogus one
+    }
     pos += 4; // uint32 constant 0
     if version > 6 {
         pos += 4; // int32 activeGameMode
+    }
+    if read_u32(pos)? != 0 {
+        return None; // header layout drift — keep the user's own day, not a bogus one
     }
     pos += 4; // uint32 constant 0
     pos += 4; // float waterLevel
@@ -1086,7 +1168,7 @@ fn parse_level(meta: &Path) -> i32 {
 
 fn parse_ttp_progression(path: &Path) -> BTreeMap<String, i32> {
     let bytes = fs::read(path).unwrap_or_default();
-    let mut hits = Vec::new();
+    let mut hits: Vec<(usize, BTreeMap<String, i32>)> = Vec::new();
     for start in 4..bytes.len().saturating_sub(16) {
         if bytes[start] != 3 {
             continue;
@@ -1108,14 +1190,19 @@ fn parse_ttp_progression(path: &Path) -> BTreeMap<String, i32> {
                 .filter(|key| values.contains_key(**key))
                 .count();
             if declared == (end - start) as i32 && matched >= 3 {
-                hits.push(values);
+                hits.push((matched, values));
             }
         }
     }
-    // 0 hits -> empty (format change); on the rare >1 (e.g. an extra historical
-    // block) keep the last/newest valid one instead of discarding everything,
-    // which previously blanked progression on such saves.
-    hits.pop().unwrap_or_default()
+    // 0 hits -> empty (format change). On the rare >1, prefer the MOST credible block
+    // (highest sentinel-match count) and, on a tie, the latest in file order — so a
+    // forged trailing block can't override the real progression unless it matches more
+    // hardcoded keys, while a genuine extra historical block still keeps the newest.
+    let max_matched = hits.iter().map(|(m, _)| *m).max().unwrap_or(0);
+    hits.into_iter()
+        .rfind(|(m, _)| *m == max_matched)
+        .map(|(_, v)| v)
+        .unwrap_or_default()
 }
 
 fn parse_progression_block(bytes: &[u8], start: usize) -> Option<(usize, BTreeMap<String, i32>)> {
@@ -1368,9 +1455,9 @@ fn parse_prefabs(
         // on the real footprint instead of half-a-building to the south-west.
         pois.push(Poi {
             name: name.clone(),
-            x: capture[2].parse().unwrap_or(0) + width / 2,
+            x: capture[2].parse::<i32>().unwrap_or(0).saturating_add(width / 2),
             y: capture[3].parse().unwrap_or(0),
-            z: capture[4].parse().unwrap_or(0) + depth / 2,
+            z: capture[4].parse::<i32>().unwrap_or(0).saturating_add(depth / 2),
             tier: info.tier,
             rotation,
             width,
@@ -1854,6 +1941,32 @@ fn refdata_sandbox_counts() -> HashMap<String, usize> {
     map
 }
 
+/// Keep only the newest `keep` gameOptions.sdf.bak.* files in a save dir; delete the
+/// rest. Backups are made on every write AND every restore and were never pruned, so
+/// they grew without bound in the user's real save folder.
+fn prune_backups(dir: &Path, keep: usize) {
+    let mut baks: Vec<(u128, PathBuf)> = match fs::read_dir(dir) {
+        Ok(rd) => rd
+            .flatten()
+            .filter_map(|e| {
+                let p = e.path();
+                let name = p.file_name()?.to_string_lossy().into_owned();
+                let stamp = name.strip_prefix("gameOptions.sdf.bak.")?;
+                Some((stamp.parse::<u128>().unwrap_or(0), p))
+            })
+            .collect(),
+        Err(_) => return,
+    };
+    if baks.len() <= keep {
+        return;
+    }
+    baks.sort_by_key(|(s, _)| *s);
+    let remove = baks.len() - keep;
+    for (_, p) in baks.into_iter().take(remove) {
+        let _ = fs::remove_file(p);
+    }
+}
+
 fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
     let req: Value = serde_json::from_str(body).map_err(|e| format!("JSON-Fehler: {e}"))?;
     let world = req["world"].as_str().ok_or("'world' fehlt")?;
@@ -1940,10 +2053,11 @@ fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
 
     let stamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
+        .map(|d| d.as_millis())
         .unwrap_or(0);
     let backup = dir.join(format!("gameOptions.sdf.bak.{stamp}"));
     fs::copy(&sdf, &backup).map_err(|e| format!("Backup fehlgeschlagen (nichts geschrieben): {e}"))?;
+    prune_backups(&dir, 10);
     // atomic replace: write a temp file in the same dir, then rename over the live file,
     // so a crash/standby mid-write can never leave a half-written gameOptions.sdf.
     let tmp = dir.join("gameOptions.sdf.tmp");
@@ -1993,9 +2107,10 @@ fn restore_settings(paths: &Paths, body: &str) -> Result<Value, String> {
     if sdf.is_file() {
         let stamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_secs())
+            .map(|d| d.as_millis())
             .unwrap_or(0);
         let _ = fs::copy(&sdf, dir.join(format!("gameOptions.sdf.bak.{stamp}")));
+        prune_backups(&dir, 10);
     }
     fs::copy(&newest, &sdf).map_err(|e| format!("Restore fehlgeschlagen: {e}"))?;
     Ok(json!({
