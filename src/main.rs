@@ -363,14 +363,23 @@ fn handle(
                 return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e}))
             }
         };
-        if source.lock().map(|s| s.remote_cache()).unwrap_or(false) {
-            return respond_status_json(
-                request,
-                StatusCode(409),
-                &json!({"ok": false, "error": "Write-back is read-only for remote (SFTP/FTP) sources. Use local or a mounted SMB share to edit settings."}),
-            );
-        }
-        return match write_settings(&eff_paths(paths, source), &body) {
+        // Resolve the read-only check AND the write root under ONE lock so a concurrent
+        // /api/source/* swap can't slip between the guard and the path resolution (TOCTOU).
+        let eff = {
+            let s = match source.lock() {
+                Ok(s) => s,
+                Err(_) => return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": "Source-Lock vergiftet"})),
+            };
+            if s.remote_cache() {
+                return respond_status_json(
+                    request,
+                    StatusCode(409),
+                    &json!({"ok": false, "error": "Write-back is read-only for remote (SFTP/FTP) sources. Use local or a mounted SMB share to edit settings."}),
+                );
+            }
+            Paths { appdata: s.root.clone(), install: paths.install.clone() }
+        };
+        return match write_settings(&eff, &body) {
             Ok(value) => respond_json(request, &value),
             Err(error) => {
                 respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
@@ -394,14 +403,22 @@ fn handle(
                 return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e}))
             }
         };
-        if source.lock().map(|s| s.remote_cache()).unwrap_or(false) {
-            return respond_status_json(
-                request,
-                StatusCode(409),
-                &json!({"ok": false, "error": "Restore is read-only for remote (SFTP/FTP) sources."}),
-            );
-        }
-        return match restore_settings(&eff_paths(paths, source), &body) {
+        // One lock for the read-only check + write root (TOCTOU, see write-settings).
+        let eff = {
+            let s = match source.lock() {
+                Ok(s) => s,
+                Err(_) => return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": "Source-Lock vergiftet"})),
+            };
+            if s.remote_cache() {
+                return respond_status_json(
+                    request,
+                    StatusCode(409),
+                    &json!({"ok": false, "error": "Restore is read-only for remote (SFTP/FTP) sources."}),
+                );
+            }
+            Paths { appdata: s.root.clone(), install: paths.install.clone() }
+        };
+        return match restore_settings(&eff, &body) {
             Ok(value) => respond_json(request, &value),
             Err(error) => {
                 respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
