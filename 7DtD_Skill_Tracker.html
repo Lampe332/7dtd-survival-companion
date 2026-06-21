@@ -1666,6 +1666,8 @@ function openSourcePanel(){
     '<input id="srcBase" class="srcin" placeholder="remote 7DaysToDie folder  (e.g.  /  or  /home/7dtd  or  .)">'+
     '<div class="srcrow"><button class="btn" id="srcTest">Test connection</button><button class="btn" id="srcConnect">Connect &amp; list saves ›</button></div>'+
     '<div id="srcMsg" class="srcmsg"></div><div id="srcPick"></div></div>'+
+    '<div class="src-card"><h3>📤 Share my world</h3><p>Hosting the world? Send a friend the full 3D map (a few MB) — they get your map, POIs and settings without your save files.</p><a class="btn" href="/api/share/export" download id="srcExport">⤓ Export world bundle</a></div>'+
+    '<div class="src-card"><h3>📥 Load a shared world</h3><p>Got a <code>.7dtdworld.json</code> from a friend who hosts? Open it for their full 3D map — no server or game files needed.</p><input type="file" id="srcShareFile" accept=".json,application/json" class="srcin"><div id="srcShareMsg" class="srcmsg"></div></div>'+
   '</div>'+
   '<div class="gate-actions"><button class="gate-back" id="srcBack">‹ Back</button></div>';
  var $=function(id){return document.getElementById(id);};
@@ -1675,6 +1677,7 @@ function openSourcePanel(){
  function rememberSrv(){S.srv={proto:$("srcProto").value,host:$("srcHost").value.trim(),port:$("srcPort").value,user:$("srcUser").value,base:$("srcBase").value.trim()};save();}
  $("srcProto").onchange=function(){if(!$("srcPort").value)$("srcPort").placeholder=($("srcProto").value==="ftp"?"21":"2022");};
  $("srcBack").onclick=function(){location.reload();};
+ var sf=$("srcShareFile");if(sf)sf.onchange=function(){var file=sf.files&&sf.files[0];if(!file)return;var msg=$("srcShareMsg");msg.className="srcmsg";msg.textContent="Loading "+file.name+" …";var fr=new FileReader();fr.onload=function(){fetch("/api/share/import",{method:"POST",headers:{"Content-Type":"application/json"},body:fr.result}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));return j;});}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){msg.className="srcmsg err";msg.textContent=e.message;});};fr.onerror=function(){msg.className="srcmsg err";msg.textContent="Could not read file";};fr.readAsText(file);};
  $("srcLocal").onclick=function(){var b=$("srcLocal");b.disabled=true;srcPost("/api/source/reset",{}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){b.disabled=false;alert(e.message);});};
  $("srcFolder").onclick=function(){var p=$("srcPath").value.trim();if(!p){return;}var b=$("srcFolder");b.disabled=true;srcPost("/api/source/local",{path:p}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){b.disabled=false;setMsg("Folder: "+e.message,true);});};
  $("srcTest").onclick=function(){setMsg("Testing…");srcPost("/api/source/test",connObj()).then(function(d){setMsg("Connected. Base contains: "+((d.entries||[]).join(", ")||"(empty)"));}).catch(function(e){setMsg(e.message,true);});};

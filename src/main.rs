@@ -3,7 +3,7 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use percent_encoding::percent_decode_str;
 use regex::Regex;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
@@ -31,7 +31,7 @@ const SANDORDER: [&str; 150] = [
     "RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","HeadshotMultiplier","CrouchSpeed","WalkSpeed","RunSpeed","JumpStrength","StaminaUsage","StaminaRegen","PlayerLevelBonusApplied","JarRefund","ShowHealthBars","ShowEnemyDamage","NewbieCoat","HeadshotMode","IncomingDamage","XPMultiplier","ShowXP","EncumbranceModifier","ItemDegradation","LoseItemsOnDeathType","LoseItemsOnDeathCount","DegradeItemsOnDeath","DegradeAmountOnDeath","DeathPenalty","DropOnDeath","DropOnQuit","InfectionRate","EnemySpawnMode","EntityDamage","BlockDamageAI","BlockDamageAIBM","ZombieMove","ZombieMoveNight","ZombieFeralMove","ZombieBMMove","ZombieFeralSense","AISmellMode","AllowZombieDigging","ZombieRageChance","EntityIncomingDamage","MaxEnemyTier","BiomeZombieRespawn","BiomeAnimalRespawn","BiomeEnemyDensity","ZombiesEatAnimals","BloodMoonFrequency","BloodMoonRange","BloodMoonWarning","BloodMoonEnemyCount","AirDropFrequency","AirDropMarker","AirDropRandomTime","BiomeProgression","TemperatureSurvival","StormFreq","StormWarning","HeatMapSensitivity","GlobalGSModifier","BiomeGSModifier","GlobalLSModifier","BiomeLSModifier","POITierLSModifier","GlobalTSModifier","DayNightLength","DayLightLength","AllowMap","AllowCompass","AllowScreenMarkers","ShowLocationInfo","ShowDayTime","WorkstationsInTheWild","MaxTechType","LootRespawnDays","LootTimer","LootMaxTier","GlobalLootCount","FoodLootCount","DrinkLootCount","MedicalLootCount","AmmoLootCount","ResourceLootCount","ArmorLootCount","MeleeLootCount","RangedLootCount","DukesLootCount","CraftingMagazinesLootCount","TreasureMapChance","LootBagChance","CropOutput","SeedDropOutput","CropGrowthSpeed","BackpackCrafting","WorkstationCrafting","CraftingProgression","CraftingTime","CraftingInput","CraftingOutput","CraftingMaxTier","MiningOutput","HarvestingOutput","ScrappingOutput","SmeltingType","DewCollectorTime","DewCollectorOutput","DewCollectorInput","ApiaryTime","ApiaryOutput","ApiaryInput","RepairTypes","MaxDegradationAmount","PointsPerMagazine","SkillGainRate","SkillPointsPerLevel","QuestsEnabled","IntroQuestEnabled","TraderToTraderQuestsEnabled","StarterSkillPoints","QuestsPerTier","QuestProgressionDailyLimit","BuriedQuestsEnabled","POIQuestsEnabled","TraderDialog","TraderHours","TradersEnabled","VendingEnabled","TraderSellPrices","TraderBuyPrices","TraderProtection","TraderResetInterval","TraderItemAbundance","TraderBuyLimit","TraderMaxTier","VendingResetInterval","VendingItemAbundance","ChallengesEnabled","IntroChallengesEnabled","VehicleFuelUsage","VehicleEntityDamage","VehicleBlockDamage","VehicleSelfDamage","ElectricalOutput","SillyCelebrate","SillyBigHeads","SillyTinyZombies","SillySounds","SillyLowGravity","SillyBlackandWhite",
 ];
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct Player {
     name: String,
     steam: String,
@@ -42,7 +42,7 @@ struct Player {
     progression: BTreeMap<String, i32>,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct Save {
     id: String,
     world: String,
@@ -55,7 +55,7 @@ struct Save {
     day: Option<i32>,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct Poi {
     name: String,
     x: i32,
@@ -73,7 +73,7 @@ struct Poi {
     ingame: String,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct HeightMap {
     n: usize,
     mn: u8,
@@ -81,13 +81,13 @@ struct HeightMap {
     d: String,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct WaterMask {
     n: usize,
     d: String,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct WorldMap {
     world: String,
     key: String,
@@ -105,7 +105,7 @@ struct WorldMap {
     water_mask: Option<WaterMask>,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct ScanData {
     saves: Vec<Save>,
     maps: BTreeMap<String, WorldMap>,
@@ -142,7 +142,7 @@ struct Source {
 
 impl Source {
     fn remote_cache(&self) -> bool {
-        self.kind == "sftp" || self.kind == "ftp"
+        self.kind == "sftp" || self.kind == "ftp" || self.kind == "share"
     }
 }
 
@@ -270,6 +270,26 @@ fn handle(
         };
         return respond_json(request, &info);
     }
+    // World sharing: export a bundle of the active world, or import a friend's bundle.
+    if request.method() == &Method::Get && path == "/api/share/export" {
+        let eff = eff_paths(paths, source);
+        return match build_share_bundle(&eff) {
+            Ok(bundle) => {
+                let world = bundle.get("world").and_then(|v| v.as_str()).unwrap_or("world").to_string();
+                serve_share_download(request, &bundle, &world)
+            }
+            Err(e) => respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": e})),
+        };
+    }
+    if request.method() == &Method::Post && path == "/api/share/import" {
+        let mut body = String::new();
+        let _ = request.as_reader().read_to_string(&mut body);
+        let bundle: Value = match serde_json::from_str(&body) {
+            Ok(v) => v,
+            Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": format!("JSON ungültig: {e}")})),
+        };
+        return import_share(request, cache, source, bundle);
+    }
     if request.method() == &Method::Post && path == "/api/write-settings" {
         if !req_header(&request, "Content-Type")
             .map(|c| c.starts_with("application/json"))
@@ -353,27 +373,46 @@ fn handle(
             UIASSETS.as_bytes().to_vec(),
             "application/json; charset=utf-8",
         ),
-        (&Method::Get, "/api/scan") | (&Method::Post, "/api/scan") => match scan(&eff_paths(paths, source)) {
-            Ok(data) => {
-                *cache.lock().map_err(|e| e.to_string())? = Some(data.clone());
-                respond_json(request, &data)
+        (&Method::Get, "/api/scan") | (&Method::Post, "/api/scan") => {
+            // imported share: no raw saves to re-scan — serve the bundled scan
+            if source.lock().map(|s| s.kind == "share").unwrap_or(false) {
+                if let Some(d) = cache.lock().map_err(|e| e.to_string())?.clone() {
+                    return respond_json(request, &d);
+                }
             }
-            Err(error) => respond_status_json(
-                request,
-                StatusCode(500),
-                &json!({"ok": false, "error": error}),
-            ),
-        },
+            match scan(&eff_paths(paths, source)) {
+                Ok(data) => {
+                    *cache.lock().map_err(|e| e.to_string())? = Some(data.clone());
+                    respond_json(request, &data)
+                }
+                Err(error) => respond_status_json(
+                    request,
+                    StatusCode(500),
+                    &json!({"ok": false, "error": error}),
+                ),
+            }
+        }
         // Lightweight live refresh: re-reads ONLY the saves (settings + players/.ttp + world day),
         // never the maps/POIs/heightmaps. Cheap enough to poll every few seconds while the game runs.
-        (&Method::Get, "/api/refresh") => match scan_saves(&eff_paths(paths, source)) {
-            Ok(saves) => respond_json(request, &json!({ "saves": saves })),
-            Err(error) => respond_status_json(
-                request,
-                StatusCode(500),
-                &json!({ "ok": false, "error": error }),
-            ),
-        },
+        (&Method::Get, "/api/refresh") => {
+            if source.lock().map(|s| s.kind == "share").unwrap_or(false) {
+                let saves = cache
+                    .lock()
+                    .map_err(|e| e.to_string())?
+                    .as_ref()
+                    .map(|d| d.saves.clone())
+                    .unwrap_or_default();
+                return respond_json(request, &json!({ "saves": saves }));
+            }
+            match scan_saves(&eff_paths(paths, source)) {
+                Ok(saves) => respond_json(request, &json!({ "saves": saves })),
+                Err(error) => respond_status_json(
+                    request,
+                    StatusCode(500),
+                    &json!({ "ok": false, "error": error }),
+                ),
+            }
+        }
         (&Method::Get, "/api/data") => {
             let current = cache.lock().map_err(|e| e.to_string())?.clone();
             match current {
@@ -586,6 +625,98 @@ fn handle_remote(
         }
         _ => respond_status_json(request, StatusCode(404), &json!({"ok": false, "error": "Unbekannte Remote-Route"})),
     }
+}
+
+// Texture files the 3D map needs (the heightmap is already baked into the scan JSON
+// as a small 256² sample, so the heavy dtm.raw is NOT shared — keeps the bundle ~4 MB).
+const SHARE_ASSETS: &[&str] = &["biomes.png", "splat3_half.png", "splat4_half.png"];
+
+/// Build a self-contained "world share" bundle from the active source: the full scan
+/// JSON (saves + maps incl. heightmap/water/POIs) plus the map texture files (base64).
+/// A friend imports this and gets the whole 3D map without owning the world files.
+fn build_share_bundle(paths: &Paths) -> Result<Value, String> {
+    let data = scan(paths)?;
+    let worlds_root = paths.appdata.join("GeneratedWorlds");
+    let mut assets = Map::new();
+    for world in data.maps.keys() {
+        let dir = worlds_root.join(world);
+        for f in SHARE_ASSETS {
+            if let Ok(bytes) = fs::read(dir.join(f)) {
+                assets.insert(format!("{world}/{f}"), Value::String(STANDARD.encode(bytes)));
+            }
+        }
+    }
+    let world = data.maps.keys().next().cloned().unwrap_or_else(|| "world".into());
+    let scan_value = serde_json::to_value(&data).map_err(|e| e.to_string())?;
+    Ok(json!({
+        "kind": "7dtd-world-share", "v": 1, "world": world,
+        "scan": scan_value, "assets": Value::Object(assets),
+    }))
+}
+
+fn serve_share_download(request: tiny_http::Request, bundle: &Value, world: &str) -> Result<(), String> {
+    let body = serde_json::to_vec(bundle).map_err(|e| e.to_string())?;
+    let safe: String = world.chars().map(|c| if c.is_alphanumeric() { c } else { '_' }).collect();
+    let fname = format!("{safe}.7dtdworld.json");
+    let resp = Response::from_data(body)
+        .with_header(Header::from_bytes(&b"Content-Type"[..], &b"application/json; charset=utf-8"[..]).unwrap())
+        .with_header(
+            Header::from_bytes(&b"Content-Disposition"[..], format!("attachment; filename=\"{fname}\"").as_bytes()).unwrap(),
+        );
+    request.respond(resp).map_err(|e| e.to_string())
+}
+
+/// Import a world-share bundle: write its textures into the cache, mark the source as
+/// a read-only "share", and serve the bundled scan directly (the cache has no raw saves
+/// to re-scan, so the scan route returns this cached copy while kind == "share").
+fn import_share(
+    request: tiny_http::Request,
+    cache: &Arc<Mutex<Option<ScanData>>>,
+    source: &Arc<Mutex<Source>>,
+    bundle: Value,
+) -> Result<(), String> {
+    if bundle.get("kind").and_then(|v| v.as_str()) != Some("7dtd-world-share") {
+        return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Keine gültige World-Share-Datei"}));
+    }
+    let scan_value = match bundle.get("scan").cloned() {
+        Some(v) => v,
+        None => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Share-Datei ohne Scan-Daten"})),
+    };
+    let data: ScanData = match serde_json::from_value(scan_value) {
+        Ok(d) => d,
+        Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": format!("Scan-Daten unlesbar: {e}")})),
+    };
+    let cdir = remote_cache_dir();
+    let _ = fs::remove_dir_all(&cdir);
+    if let Err(e) = fs::create_dir_all(&cdir) {
+        return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": format!("Cache-Ordner: {e}")}));
+    }
+    if let Some(assets) = bundle.get("assets").and_then(|v| v.as_object()) {
+        for (k, v) in assets {
+            let b64 = match v.as_str() { Some(s) => s, None => continue };
+            let (w, f) = match k.rsplit_once('/') { Some(x) => x, None => continue };
+            // path-traversal guard
+            if w.is_empty() || f.is_empty() || w.contains("..") || f.contains("..") || f.contains('/') || f.contains('\\') {
+                continue;
+            }
+            if let Ok(bytes) = STANDARD.decode(b64) {
+                let dir = cdir.join("GeneratedWorlds").join(w);
+                if fs::create_dir_all(&dir).is_ok() {
+                    let _ = fs::write(dir.join(f), bytes);
+                }
+            }
+        }
+    }
+    let world = bundle.get("world").and_then(|v| v.as_str()).unwrap_or("world").to_string();
+    {
+        let mut s = source.lock().map_err(|e| e.to_string())?;
+        s.root = cdir;
+        s.kind = "share".into();
+        s.label = format!("Shared world: {world}");
+        s.conn = None;
+    }
+    *cache.lock().map_err(|e| e.to_string())? = Some(data.clone());
+    respond_json(request, &data)
 }
 
 // Saves-only scan (no maps): used by /api/refresh for cheap live polling. Mirrors the saves loop in scan().
