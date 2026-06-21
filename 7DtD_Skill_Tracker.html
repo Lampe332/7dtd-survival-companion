@@ -160,6 +160,10 @@ body.map-fs-active{overflow:hidden}
 #srcPick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .srcpick{background:rgba(239,122,53,.12);border:1px solid var(--acc);color:var(--text)}
 .srcpick:disabled{opacity:.5;cursor:default}
+.squad-wpn{font:600 11.5px var(--mono,monospace);color:var(--text2);padding:3px 8px;border:1px solid var(--line2);border-radius:6px;white-space:nowrap}
+.squad-fill{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.squad-fillbtn{background:rgba(239,122,53,.12);border:1px solid var(--acc);color:var(--text);font-size:12.5px}
+.squad-planline{margin-top:3px;color:var(--text2);line-height:1.4}
 .tierchip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line2);user-select:none;background:var(--card2)}
 .tierchip.off{opacity:.35}.tdot{width:10px;height:10px;border-radius:50%;flex:none}
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -1262,6 +1266,9 @@ var SQUAD_ROLE={shotgun:"Anchor",mg:"Anchor",club:"Anchor",sledge:"Anchor",brawl
  stealth:"Flanker",pistol:"Flanker",blade:"Flanker",bow:"Flanker",vulture:"Flanker",
  robotics:"Support",trader:"Support",medic:"Support"};
 var SQUAD_ROLE_DESC={Anchor:"Holds the funnel — horde weapon + HP wall",Ranged:"Deletes Demolishers / Radiated at range (headshot + AP)",Flanker:"PvP roam / scout / burst (500m shared kill range)",Support:"Heals, buffs, turrets, trade — keeps the squad alive"};
+var SQUAD_WEAPON={sledge:["Sledgehammer","melee"],shotgun:["Shotgun","shells"],sniper:["Sniper Rifle","7.62"],mg:["Machine Gun","7.62"],stealth:["Stealth Bow","arrows"],club:["Club / Bat","melee"],spear:["Spear","melee"],bow:["Bow / Crossbow","arrows"],brawler:["Knuckles","melee"],robotics:["Robotic Turrets","robotics"],pistol:["Pistol / SMG","9mm"],blade:["Machete / Knife","melee"],demolition:["Explosives","rockets"],baton:["Stun Baton","melee"],miner:["Auger / Pick","melee"],trader:["Barter / Scout","—"],medic:["Medkit / Physician","—"],jack:["Mixed kit","mixed"],vulture:["Scavenge / Mobility","mixed"]};
+var ROLE_FILL={Anchor:"shotgun",Ranged:"sniper",Flanker:"stealth",Support:"medic"};
+var BM_PLAN={Anchor:"Hold the funnel / chokepoint — primary horde DPS, repair the kill-lane blocks between waves. Stand on a 13-high forced-climb so sprinters slow down.",Ranged:"Back platform — headshot <b>Demolishers, Radiated & Wights ONLY</b>. Never let melee touch a Demolisher (chest charge blows your base open).",Support:"Behind the line — repair blocks, hand out ammo + first-aid, drop turrets, heal. Fuel the generator on Day 6, not Day 7.",Flanker:"Roam — clear stragglers, watch the flanks, recover dropped gear (Drop-on-Death loses everything)."};
 function memberGS(L){L=L||1;return Math.floor((L+Math.min(S.day||1,L))*1.2);}
 function partyGS(){var gs=(S.squad||[]).map(function(m){return memberGS(m.level);}).sort(function(a,b){return b-a;});var p=0;gs.forEach(function(g,i){p+=g*Math.pow(0.5,i);});return Math.round(p);}
 function rSquad(){
@@ -1281,15 +1288,25 @@ function rSquad(){
    '<input class="squad-name" data-sf="name" value="'+esc(m.name||"")+'" placeholder="Player name" aria-label="Player name">'+
    '<input class="squad-lvl" data-sf="level" type="number" min="1" max="300" value="'+(m.level||1)+'" aria-label="Level" title="Level">'+
    '<select class="squad-build" data-sf="build" aria-label="Build">'+sel+'</select>'+
+   '<span class="squad-wpn" title="Main weapon">'+esc((SQUAD_WEAPON[m.build]||["—"])[0])+'</span>'+
    '<span class="squad-role role-'+(SQUAD_ROLE[m.build]||"x")+'">'+(SQUAD_ROLE[m.build]||"—")+'</span>'+
    '<button class="squad-del" data-sdel="'+i+'" title="Remove player" aria-label="Remove">✕</button></div>';
  }).join("");
+ var ammoMap={},meleeCount=0;
+ S.squad.forEach(function(m){var w=SQUAD_WEAPON[m.build]||["—","—"],a=w[1];if(a==="melee"){meleeCount++;}else if(a&&a!=="—"&&a!=="mixed"){(ammoMap[a]=ammoMap[a]||[]).push(m.name||"P");}});
+ var ammoRows=Object.keys(ammoMap).map(function(a){return '<div class="refrow"><b>'+esc(a)+'</b> — '+esc(ammoMap[a].join(", "))+'</div>';}).join("");
+ if(meleeCount)ammoRows+='<div class="refrow"><b>melee</b> — '+meleeCount+' player'+(meleeCount===1?"":"s")+' (no ammo; keep repair kits + stamina food)</div>';
+ var planRows=Object.keys(roles).filter(function(r){return roles[r];}).map(function(r){var who=S.squad.filter(function(m){return SQUAD_ROLE[m.build]===r;}).map(function(m){return esc(m.name||"P");});return '<div class="refrow"><span class="squad-role role-'+r+'">'+r+'</span> <b>'+who.join(", ")+'</b><div class="squad-planline">'+BM_PLAN[r]+'</div></div>';}).join("");
+ var missing=["Anchor","Ranged","Support","Flanker"].filter(function(r){return !roles[r];});
+ var quickfill=(missing.length&&S.squad.length<8)?'<div class="squad-fill">'+missing.map(function(r){return '<button type="button" class="btn squad-fillbtn" data-fill="'+ROLE_FILL[r]+'" data-role="'+r+'">+ Add '+r+'</button>';}).join("")+'</div>':"";
  var html=hero("Squad Board","8-player team coverage","Assign each teammate a build, spot role gaps, and read the real party Game Stage your group's Blood Moon actually spawns at.","tab_horde")+
   '<div class="ops-strip">'+opsStat("SQUAD / SIZE",S.squad.length+" / 8","Players on the roster")+opsStat("PARTY / GS",pgs,"Effective group Game Stage (estimate, assumes no deaths) — higher than solo, so a tougher Blood Moon and earlier Demolishers/Radiated",true)+opsStat("SOLO / GS",solo,"Your individual Game Stage, for comparison",true)+opsStat("BLOOD MOON / LOAD",bmc+"×"+S.squad.length,bmc+" enemies PER PLAYER — up to ~"+(bmc*S.squad.length)+" total across the squad (capped by the server's max-alive). 8 players is far harsher than the GS number alone implies.",true)+opsStat("ROLES / COVERED",Object.keys(roles).filter(function(r){return roles[r];}).length+" / 4","Anchor · Ranged · Flanker · Support",true)+'</div>'+
-  (gaps.length?'<div class="card" style="border-color:rgba(216,74,63,.4)"><h3>Coverage Gaps</h3><div>'+gaps.map(function(g){return '<div class="squad-gap">⚠ '+g+'</div>';}).join("")+'</div></div>':'<div class="banner safe">Full role coverage — Anchor, Ranged, Flanker and Support are all present.</div>')+flankNote+
+  ((gaps.length||missing.length)?'<div class="card" style="border-color:rgba(216,74,63,.4)"><h3>Coverage Gaps</h3><div>'+gaps.map(function(g){return '<div class="squad-gap">⚠ '+g+'</div>';}).join("")+(missing.length?'<div class="sub" style="margin:6px 0 2px">One-click fill a missing role:</div>':"")+quickfill+'</div></div>':'<div class="banner safe">Full role coverage — Anchor, Ranged, Flanker and Support are all present.</div>')+flankNote+
   '<div class="card"><h3>Roster</h3><div class="squad-list">'+members+'</div>'+(S.squad.length<8?'<button class="btn" id="squadAdd" style="margin-top:12px">+ Add player</button>':'<div class="sub" style="margin-top:10px">Roster full (8 players).</div>')+'</div>'+
   '<div class="card"><h3>Roles</h3><div>'+Object.keys(SQUAD_ROLE_DESC).map(function(r){return '<div class="squad-roledef"><span class="squad-role role-'+r+'">'+r+' ×'+roles[r]+'</span><span>'+SQUAD_ROLE_DESC[r]+'</span></div>';}).join("")+'</div>'+
    '<p class="sub" style="margin-top:10px">Party GS = highest member GS ×1 + 2nd ×0.5 + 3rd ×0.25… (more players = a tougher Blood Moon). Member GS = (level + days survived) ×1.2. Source: seven-days-to-die skill.</p></div>'+
+  '<div class="card"><h3>🩸 Blood Moon Battle Plan</h3><div class="sub">Who does what on horde night (derived from each build). Spread across 2-3 corridors — one doorway won\'t hold '+bmc+' sprinters per player.</div>'+(planRows||'<div class="refrow">Add players to generate a battle plan.</div>')+'</div>'+
+  '<div class="card"><h3>📦 Ammo & Supply Matrix</h3><div class="sub">What the squad must keep stocked — coordinate crafting so nobody runs dry mid-horde.</div>'+(ammoRows||'<div class="refrow">All-melee squad — stock repair kits + stamina food.</div>')+'</div>'+
   '<div class="card"><h3>PvP — Counter Playbook</h3><div class="sub">Kill-Everyone is on. How to fight each enemy archetype on Insane (you deal ~50%, take ~250%).</div>'+
    '<div class="refrow"><b>vs Anchor</b> (Shotgun / MG / melee tank) — High HP, holds ground, slow to turn. Kite at range, never melee-trade, focus-fire from cover and bait them off their funnel.</div>'+
    '<div class="refrow"><b>vs Ranged</b> (Sniper / Spear / Demolitionist) — Deletes you at distance. Break line-of-sight, close through cover/verticality, flank their lane — and never bunch up near a Demolitionist.</div>'+
@@ -1301,6 +1318,7 @@ function rSquad(){
    row.querySelectorAll("[data-sf]").forEach(function(inp){inp.onchange=function(){var f=inp.dataset.sf;S.squad[i][f]=f==="level"?Math.max(1,parseInt(inp.value,10)||1):inp.value;save();rSquad();};});});
  document.querySelectorAll("#squad [data-sdel]").forEach(function(b){b.onclick=function(){S.squad.splice(+b.dataset.sdel,1);save();rSquad();};});
  var add=document.getElementById("squadAdd");if(add)add.onclick=function(){if(S.squad.length<8){S.squad.push({name:"Player "+(S.squad.length+1),level:1,build:"sledge"});save();rSquad();}};
+ document.querySelectorAll("#squad [data-fill]").forEach(function(b){b.onclick=function(){if(S.squad.length<8){S.squad.push({name:b.dataset.role,level:(S.importedPlayer&&S.importedPlayer.level)||S.lvl||1,build:b.dataset.fill});save();rSquad();}};});
  a11yClickable(document.getElementById("squad"));
 }
 // ---- LOOT ----
