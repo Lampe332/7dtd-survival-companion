@@ -16,6 +16,8 @@ use std::{
 };
 use tiny_http::{Header, Method, Response, Server, StatusCode};
 
+mod remote;
+
 const ADDRESS: &str = "127.0.0.1:17873";
 const HEIGHTMAP_N: usize = 256;
 const APP_HTML: &str = include_str!("../7DtD_Skill_Tracker.html");
@@ -116,6 +118,34 @@ struct Paths {
     install: Option<PathBuf>,
 }
 
+/// A remote server connection (filled once the user enters credentials).
+/// Lives ONLY in memory for the session — never written to disk, never sent to
+/// the browser (the UI keeps host/user/port/base; the password stays here).
+#[derive(Clone)]
+struct RemoteConn {
+    proto: String, // "sftp" | "ftp" | "ftps"
+    host: String,
+    port: u16,
+    user: String,
+    pass: String,
+    base: String, // remote 7DaysToDie data dir containing Saves/ + GeneratedWorlds/
+}
+
+/// The active data source. Default = the local game folder. The user can repoint
+/// it at a custom/UNC(SMB) path, or at a temp cache populated by a remote download.
+struct Source {
+    root: PathBuf,
+    kind: String, // "local" | "smb" | "sftp" | "ftp"
+    label: String,
+    conn: Option<RemoteConn>,
+}
+
+impl Source {
+    fn remote_cache(&self) -> bool {
+        self.kind == "sftp" || self.kind == "ftp"
+    }
+}
+
 fn main() {
     let appdata = env::var_os("APPDATA")
         .map(PathBuf::from)
@@ -135,6 +165,12 @@ fn main() {
         }
     };
     let cache: Arc<Mutex<Option<ScanData>>> = Arc::new(Mutex::new(None));
+    let source: Arc<Mutex<Source>> = Arc::new(Mutex::new(Source {
+        root: paths.appdata.clone(),
+        kind: "local".into(),
+        label: "Local game saves".into(),
+        conn: None,
+    }));
     println!("[7DtD] Rust Companion läuft: http://{ADDRESS}");
 
     thread::spawn(|| {
@@ -149,9 +185,10 @@ fn main() {
         let server = server.clone();
         let paths = paths.clone();
         let cache = cache.clone();
+        let source = source.clone();
         workers.push(thread::spawn(move || {
             while let Ok(request) = server.recv() {
-                if let Err(error) = handle(request, &paths, &cache) {
+                if let Err(error) = handle(request, &paths, &cache, &source) {
                     eprintln!("[7DtD] Request-Fehler: {error}");
                 }
             }
@@ -187,10 +224,25 @@ fn local_request_ok(request: &tiny_http::Request) -> bool {
     host_ok && origin_ok
 }
 
+/// The active paths: install is always local, but the data root follows the
+/// selected source (local / custom / SMB / remote cache).
+fn eff_paths(paths: &Paths, source: &Arc<Mutex<Source>>) -> Paths {
+    let root = source
+        .lock()
+        .ok()
+        .map(|s| s.root.clone())
+        .unwrap_or_else(|| paths.appdata.clone());
+    Paths {
+        appdata: root,
+        install: paths.install.clone(),
+    }
+}
+
 fn handle(
     mut request: tiny_http::Request,
     paths: &Paths,
     cache: &Arc<Mutex<Option<ScanData>>>,
+    source: &Arc<Mutex<Source>>,
 ) -> Result<(), String> {
     let raw_url = request.url().to_string();
     let path = raw_url.split('?').next().unwrap_or("/").to_string();
@@ -200,6 +252,23 @@ fn handle(
             StatusCode(403),
             &json!({"ok": false, "error": "Ungültiger Origin/Host"}),
         );
+    }
+    // Source switching (local/SMB path + remote SFTP/FTP). Body = JSON.
+    if request.method() == &Method::Post && path.starts_with("/api/source/") {
+        let mut body = String::new();
+        let _ = request.as_reader().read_to_string(&mut body);
+        let payload: Value = serde_json::from_str(&body).unwrap_or(Value::Null);
+        return handle_source(request, paths, cache, source, &path, payload);
+    }
+    if request.method() == &Method::Get && path == "/api/source" {
+        let info = {
+            let s = source.lock().map_err(|e| e.to_string())?;
+            json!({
+                "kind": s.kind, "label": s.label, "root": s.root.display().to_string(),
+                "remote": s.remote_cache(), "canWrite": !s.remote_cache(),
+            })
+        };
+        return respond_json(request, &info);
     }
     if request.method() == &Method::Post && path == "/api/write-settings" {
         if !req_header(&request, "Content-Type")
@@ -220,7 +289,14 @@ fn handle(
                 &json!({"ok": false, "error": format!("Body unlesbar: {error}")}),
             );
         }
-        return match write_settings(paths, &body) {
+        if source.lock().map(|s| s.remote_cache()).unwrap_or(false) {
+            return respond_status_json(
+                request,
+                StatusCode(409),
+                &json!({"ok": false, "error": "Write-back is read-only for remote (SFTP/FTP) sources. Use local or a mounted SMB share to edit settings."}),
+            );
+        }
+        return match write_settings(&eff_paths(paths, source), &body) {
             Ok(value) => respond_json(request, &value),
             Err(error) => {
                 respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
@@ -246,7 +322,14 @@ fn handle(
                 &json!({"ok": false, "error": format!("Body unlesbar: {error}")}),
             );
         }
-        return match restore_settings(paths, &body) {
+        if source.lock().map(|s| s.remote_cache()).unwrap_or(false) {
+            return respond_status_json(
+                request,
+                StatusCode(409),
+                &json!({"ok": false, "error": "Restore is read-only for remote (SFTP/FTP) sources."}),
+            );
+        }
+        return match restore_settings(&eff_paths(paths, source), &body) {
             Ok(value) => respond_json(request, &value),
             Err(error) => {
                 respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
@@ -270,7 +353,7 @@ fn handle(
             UIASSETS.as_bytes().to_vec(),
             "application/json; charset=utf-8",
         ),
-        (&Method::Get, "/api/scan") | (&Method::Post, "/api/scan") => match scan(paths) {
+        (&Method::Get, "/api/scan") | (&Method::Post, "/api/scan") => match scan(&eff_paths(paths, source)) {
             Ok(data) => {
                 *cache.lock().map_err(|e| e.to_string())? = Some(data.clone());
                 respond_json(request, &data)
@@ -283,7 +366,7 @@ fn handle(
         },
         // Lightweight live refresh: re-reads ONLY the saves (settings + players/.ttp + world day),
         // never the maps/POIs/heightmaps. Cheap enough to poll every few seconds while the game runs.
-        (&Method::Get, "/api/refresh") => match scan_saves(paths) {
+        (&Method::Get, "/api/refresh") => match scan_saves(&eff_paths(paths, source)) {
             Ok(saves) => respond_json(request, &json!({ "saves": saves })),
             Err(error) => respond_status_json(
                 request,
@@ -302,13 +385,193 @@ fn handle(
                 ),
             }
         }
-        _ if path.starts_with("/world/") => serve_world_asset(request, paths, &path),
+        _ if path.starts_with("/world/") => serve_world_asset(request, &eff_paths(paths, source), &path),
         _ if path.starts_with("/poi/") => serve_poi_asset(request, paths, &path),
         _ => respond_status_json(
             request,
             StatusCode(404),
             &json!({"ok": false, "error": "Nicht gefunden"}),
         ),
+    }
+}
+
+fn scan_and_respond(
+    request: tiny_http::Request,
+    paths: &Paths,
+    cache: &Arc<Mutex<Option<ScanData>>>,
+    source: &Arc<Mutex<Source>>,
+) -> Result<(), String> {
+    let eff = eff_paths(paths, source);
+    match scan(&eff) {
+        Ok(data) => {
+            *cache.lock().map_err(|e| e.to_string())? = Some(data.clone());
+            respond_json(request, &data)
+        }
+        Err(error) => {
+            respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
+        }
+    }
+}
+
+/// Source switching: local/custom/SMB path (Phase 0) and remote SFTP/FTP (Phase 1/2).
+fn handle_source(
+    request: tiny_http::Request,
+    paths: &Paths,
+    cache: &Arc<Mutex<Option<ScanData>>>,
+    source: &Arc<Mutex<Source>>,
+    path: &str,
+    body: Value,
+) -> Result<(), String> {
+    match path {
+        "/api/source/local" => {
+            let p = body
+                .get("path")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .trim()
+                .to_string();
+            if p.is_empty() {
+                return respond_status_json(
+                    request,
+                    StatusCode(400),
+                    &json!({"ok": false, "error": "Pfad fehlt"}),
+                );
+            }
+            let pb = PathBuf::from(&p);
+            if !pb.join("Saves").is_dir() {
+                return respond_status_json(
+                    request,
+                    StatusCode(400),
+                    &json!({"ok": false, "error": format!("Kein 'Saves'-Ordner in {p}. Zeig auf den 7DaysToDie-Daten-Ordner (enthält Saves und GeneratedWorlds).")}),
+                );
+            }
+            let kind = if p.starts_with("\\\\") { "smb" } else { "local" };
+            {
+                let mut s = source.lock().map_err(|e| e.to_string())?;
+                s.root = pb;
+                s.kind = kind.into();
+                s.label = p;
+                s.conn = None;
+            }
+            *cache.lock().map_err(|e| e.to_string())? = None;
+            scan_and_respond(request, paths, cache, source)
+        }
+        "/api/source/reset" => {
+            {
+                let mut s = source.lock().map_err(|e| e.to_string())?;
+                s.root = paths.appdata.clone();
+                s.kind = "local".into();
+                s.label = "Local game saves".into();
+                s.conn = None;
+            }
+            *cache.lock().map_err(|e| e.to_string())? = None;
+            scan_and_respond(request, paths, cache, source)
+        }
+        "/api/source/test" | "/api/source/remote-list" | "/api/source/remote-fetch" => {
+            handle_remote(request, paths, cache, source, path, body)
+        }
+        _ => respond_status_json(
+            request,
+            StatusCode(404),
+            &json!({"ok": false, "error": "Unbekannte Source-Route"}),
+        ),
+    }
+}
+
+fn remote_cache_dir() -> PathBuf {
+    std::env::temp_dir().join("7dtd-companion-remote")
+}
+
+fn parse_conn(body: &Value) -> Result<RemoteConn, String> {
+    let proto = body
+        .get("proto")
+        .and_then(|v| v.as_str())
+        .unwrap_or("sftp")
+        .to_lowercase();
+    let host = body.get("host").and_then(|v| v.as_str()).unwrap_or("").trim().to_string();
+    let default_port = if proto == "ftp" { 21 } else { 2022 };
+    let port = body.get("port").and_then(|v| v.as_u64()).unwrap_or(default_port) as u16;
+    let user = body.get("user").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let pass = body.get("pass").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let base = body.get("base").and_then(|v| v.as_str()).unwrap_or("").trim().to_string();
+    if host.is_empty() {
+        return Err("Host fehlt".into());
+    }
+    if base.is_empty() {
+        return Err("Basis-Pfad fehlt (der 7DaysToDie-Ordner auf dem Server, enthält Saves/ + GeneratedWorlds/)".into());
+    }
+    Ok(RemoteConn { proto, host, port, user, pass, base })
+}
+
+// Remote (SFTP/FTP) source handling.
+fn handle_remote(
+    request: tiny_http::Request,
+    paths: &Paths,
+    cache: &Arc<Mutex<Option<ScanData>>>,
+    source: &Arc<Mutex<Source>>,
+    path: &str,
+    body: Value,
+) -> Result<(), String> {
+    match path {
+        "/api/source/test" => {
+            let conn = match parse_conn(&body) {
+                Ok(c) => c,
+                Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e})),
+            };
+            match remote::test(&conn) {
+                Ok(v) => respond_json(request, &v),
+                Err(e) => respond_status_json(request, StatusCode(502), &json!({"ok": false, "error": e})),
+            }
+        }
+        "/api/source/remote-list" => {
+            let conn = match parse_conn(&body) {
+                Ok(c) => c,
+                Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e})),
+            };
+            match remote::list(&conn) {
+                Ok(v) => {
+                    if let Ok(mut s) = source.lock() {
+                        s.conn = Some(conn);
+                    }
+                    respond_json(request, &v)
+                }
+                Err(e) => respond_status_json(request, StatusCode(502), &json!({"ok": false, "error": e})),
+            }
+        }
+        "/api/source/remote-fetch" => {
+            let world = body.get("world").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            let save = body.get("save").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            if world.is_empty() || save.is_empty() {
+                return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "world/save fehlt"}));
+            }
+            let conn = {
+                let stored = source.lock().ok().and_then(|s| s.conn.clone());
+                match stored.or_else(|| parse_conn(&body).ok()) {
+                    Some(c) => c,
+                    None => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Erst verbinden (Verbindung testen/auflisten)."})),
+                }
+            };
+            let cdir = remote_cache_dir();
+            let _ = std::fs::remove_dir_all(&cdir);
+            if let Err(e) = std::fs::create_dir_all(&cdir) {
+                return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": format!("Cache-Ordner: {e}")}));
+            }
+            match remote::fetch(&conn, &world, &save, &cdir) {
+                Ok(_) => {
+                    {
+                        let mut s = source.lock().map_err(|e| e.to_string())?;
+                        s.root = cdir;
+                        s.kind = conn.proto.clone();
+                        s.label = format!("{}://{}/{}/{}", conn.proto, conn.host, world, save);
+                        s.conn = Some(conn);
+                    }
+                    *cache.lock().map_err(|e| e.to_string())? = None;
+                    scan_and_respond(request, paths, cache, source)
+                }
+                Err(e) => respond_status_json(request, StatusCode(502), &json!({"ok": false, "error": e})),
+            }
+        }
+        _ => respond_status_json(request, StatusCode(404), &json!({"ok": false, "error": "Unbekannte Remote-Route"})),
     }
 }
 

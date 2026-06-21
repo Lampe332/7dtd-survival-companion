@@ -11,6 +11,12 @@ regex = "1.11"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tiny_http = "0.12"
+# Remote save sources (read server files into a local cache). Pure-Rust, no OpenSSL/libssh2:
+# russh uses the `ring` crypto backend so the single .exe builds on stock MSVC (no NASM/cmake).
+russh = { version = "0.61", default-features = false, features = ["ring", "flate2", "rsa"] }
+russh-sftp = "2.3"
+tokio = { version = "1", features = ["rt", "io-util", "fs", "net", "macros"] }
+suppaftp = "9"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = ["Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }

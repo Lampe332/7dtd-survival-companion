@@ -145,6 +145,21 @@ textarea{width:100%;min-height:120px;background:var(--card2);border:1px solid va
 .mapwrap.fs canvas{width:100vw;height:100vh}
 .flight-status.fs-overlay{position:absolute;top:8px;left:8px;z-index:7;width:300px;max-width:46vw;max-height:calc(100vh - 16px);overflow:auto;background:rgba(10,9,7,.94);backdrop-filter:blur(3px)}
 body.map-fs-active{overflow:hidden}
+.srclink{display:block;width:100%;margin-top:12px;background:none;border:1px solid var(--line2);color:var(--text2);border-radius:9px;padding:11px 14px;font:600 13px var(--mono,monospace);cursor:pointer;transition:.15s}
+.srclink:hover{border-color:var(--acc);color:var(--acc)}
+.src-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 4px}
+.src-card{background:rgba(255,255,255,.025);border:1px solid var(--line2);border-radius:12px;padding:16px 18px}
+.src-card h3{margin:0 0 4px;font-size:16px}
+.src-card p{margin:0 0 11px;font-size:12.5px;color:var(--text2);line-height:1.45}
+.src-card.src-remote{grid-column:1/3}
+.srcin{width:100%;box-sizing:border-box;margin:5px 0;background:rgba(0,0,0,.32);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:9px 11px;font:500 13px var(--mono,monospace)}
+.srcin:focus{outline:none;border-color:var(--acc)}
+.srcrow{display:flex;gap:8px}.srcrow .srcin{flex:1}.srcsm{max-width:96px}
+.srcmsg{margin-top:9px;font:500 12.5px var(--mono,monospace);color:var(--text2);min-height:16px;word-break:break-word}
+.srcmsg.ok{color:var(--acc2,#7fd18a)}.srcmsg.err{color:#e7795f}
+#srcPick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.srcpick{background:rgba(239,122,53,.12);border:1px solid var(--acc);color:var(--text)}
+.srcpick:disabled{opacity:.5;cursor:default}
 .tierchip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line2);user-select:none;background:var(--card2)}
 .tierchip.off{opacity:.35}.tdot{width:10px;height:10px;border-radius:50%;flex:none}
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -613,6 +628,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
     <div class="launchtag">Your offline 7 Days to Die command center · <b>V3.0 Dead Hot Summer</b></div>
     <div class="launchfeat"><span>Live saves</span><span>World editor</span><span>3D map</span><span>Build planner</span><span>Squad board</span><span>Magazine tracking</span></div>
     <button class="btn launchbtn" id="scanbtn">Scan Worlds &amp; Survivors</button>
+    <button class="srclink" id="srcbtn">Playing on a server? Connect over SFTP / FTP, or use a custom folder ›</button>
     <div class="launchstatus" id="launchstatus">100% local · offline · no cloud · one self-contained EXE</div>
     <div class="launch-privacy">Scanning only <b>reads</b> your local saves to show your worlds, character and settings. Nothing is written to your game until you explicitly press <b>Write to World</b> in the World tab — and that always makes a backup first. The local server is locked to this machine and rejects requests from other websites, so nothing on the web can read or change your saves.</div>
   </div>
@@ -1566,9 +1582,10 @@ function renderWorldGate(){
  if(!choices)choices='<div class="empty-state"><div><b>No saves found.</b><br>The scan looked in <code>%AppData%\\Roaming\\7DaysToDie\\Saves</code>. If your saves live elsewhere, continue without a world, then use <b>World → Link a World Manually</b> and select the <code>7DaysToDie</code> folder. Launch the game once first so the save folder exists.</div></div>';
  box.innerHTML=gateHeader(1,"Select a World","Choose the save that should power maps, settings, progression and live operation data. The app stays locked until you select a world or explicitly continue without one.")+
   '<div class="gate-summary">'+opsStat("SCAN / SAVES",(W.tree||[]).length,"Local save folders found")+opsStat("SCAN / WORLDS",Object.keys(byW).length,"Unique worlds available")+opsStat("SCAN / SURVIVORS",survivors,"Character profiles detected")+'</div>'+
-  '<div class="gate-worlds">'+choices+'</div><div class="gate-actions"><span class="ops-code">Nothing is imported until you select a save.</span><button class="gate-skip" id="gateNoWorld">Continue without World</button></div>';
+  '<div class="gate-worlds">'+choices+'</div><div class="gate-actions"><button class="gate-back" id="gateSource">⇆ Change data source</button><span class="ops-code">Nothing is imported until you select a save.</span><button class="gate-skip" id="gateNoWorld">Continue without World</button></div>';
  box.querySelectorAll("[data-gsave]").forEach(function(c){c.onclick=function(){var s=W.tree[+c.dataset.gsave];W.curSave=s;renderCharacterGate(s);};});
  document.getElementById("gateNoWorld").onclick=function(){enterWithoutWorld();};
+ var _gsrc=document.getElementById("gateSource");if(_gsrc)_gsrc.onclick=openSourcePanel;
 }
 function renderCharacterGate(s){
  var launch=document.getElementById("launcher"),box=launch.querySelector(".launchbox"),pls=s.pl||s.players||[],v3=s.settings&&("SandboxCode" in s.settings),choices="";
@@ -1625,6 +1642,53 @@ async function scanNow(){
   }catch(e){status.textContent="Scan failed: "+e.message;btn.disabled=false;}
 }
 document.getElementById("scanbtn").onclick=scanNow;
+var _srcb=document.getElementById("srcbtn");if(_srcb)_srcb.onclick=openSourcePanel;
+
+// ---- Data source: local / custom folder / remote SFTP/FTP server ----
+function srcPost(path,obj){
+ return fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(obj||{})})
+  .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));return j;});});
+}
+function applySourceScan(data){data=normalizeScan(data);W.tree=data.saves||[];W.maps=data.maps||{};W.scanned=true;W.curSave=null;}
+function openSourcePanel(){
+ var launch=document.getElementById("launcher"),box=launch.querySelector(".launchbox");
+ launch.classList.add("wizard");launch.classList.remove("hide");
+ var sv=S.srv||{proto:"sftp",host:"",port:"",user:"",base:""};
+ box.innerHTML=
+  '<div class="gate-head"><div class="gate-mark">7D</div><div><div class="gate-step">Data source</div><h2>Where are your saves?</h2><p>Use this PC, a mounted network share, or a dedicated server over SFTP/FTP. The app still runs only on your machine — it just reads the files.</p></div></div>'+
+  '<div class="src-grid">'+
+   '<div class="src-card"><h3>This PC</h3><p>The normal local game folder (default).</p><button class="btn" id="srcLocal">Use local game saves</button></div>'+
+   '<div class="src-card"><h3>Custom / network folder</h3><p>Any folder or UNC share that contains <code>Saves</code> + <code>GeneratedWorlds</code>.</p><input id="srcPath" class="srcin" placeholder="C:\\path\\to\\7DaysToDie   or   \\\\host\\share\\7DaysToDie"><button class="btn" id="srcFolder">Use this folder</button></div>'+
+   '<div class="src-card src-remote"><h3>Dedicated server (SFTP / FTP)</h3><p>Read your save while playing on a server. The password stays in memory for this session — it is never written to disk.</p>'+
+    '<div class="srcrow"><select id="srcProto" class="srcin"><option value="sftp">SFTP (default port 2022)</option><option value="ftp">FTP (default port 21)</option></select><input id="srcPort" class="srcin srcsm" placeholder="port"></div>'+
+    '<input id="srcHost" class="srcin" placeholder="host  (e.g. 12.34.56.78  or  my.server.com)">'+
+    '<div class="srcrow"><input id="srcUser" class="srcin" placeholder="username"><input id="srcPass" type="password" class="srcin" placeholder="password"></div>'+
+    '<input id="srcBase" class="srcin" placeholder="remote 7DaysToDie folder  (e.g.  /  or  /home/7dtd  or  .)">'+
+    '<div class="srcrow"><button class="btn" id="srcTest">Test connection</button><button class="btn" id="srcConnect">Connect &amp; list saves ›</button></div>'+
+    '<div id="srcMsg" class="srcmsg"></div><div id="srcPick"></div></div>'+
+  '</div>'+
+  '<div class="gate-actions"><button class="gate-back" id="srcBack">‹ Back</button></div>';
+ var $=function(id){return document.getElementById(id);};
+ $("srcProto").value=sv.proto||"sftp";$("srcHost").value=sv.host||"";$("srcPort").value=sv.port||"";$("srcUser").value=sv.user||"";$("srcBase").value=sv.base||"";
+ function setMsg(t,err){var m=$("srcMsg");m.textContent=t||"";m.className="srcmsg"+(err?" err":(t?" ok":""));}
+ function connObj(){return {proto:$("srcProto").value,host:$("srcHost").value.trim(),port:(+$("srcPort").value)||undefined,user:$("srcUser").value,pass:$("srcPass").value,base:$("srcBase").value.trim()};}
+ function rememberSrv(){S.srv={proto:$("srcProto").value,host:$("srcHost").value.trim(),port:$("srcPort").value,user:$("srcUser").value,base:$("srcBase").value.trim()};save();}
+ $("srcProto").onchange=function(){if(!$("srcPort").value)$("srcPort").placeholder=($("srcProto").value==="ftp"?"21":"2022");};
+ $("srcBack").onclick=function(){location.reload();};
+ $("srcLocal").onclick=function(){var b=$("srcLocal");b.disabled=true;srcPost("/api/source/reset",{}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){b.disabled=false;alert(e.message);});};
+ $("srcFolder").onclick=function(){var p=$("srcPath").value.trim();if(!p){return;}var b=$("srcFolder");b.disabled=true;srcPost("/api/source/local",{path:p}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){b.disabled=false;setMsg("Folder: "+e.message,true);});};
+ $("srcTest").onclick=function(){setMsg("Testing…");srcPost("/api/source/test",connObj()).then(function(d){setMsg("Connected. Base contains: "+((d.entries||[]).join(", ")||"(empty)"));}).catch(function(e){setMsg(e.message,true);});};
+ $("srcConnect").onclick=function(){setMsg("Connecting…");$("srcPick").innerHTML="";srcPost("/api/source/remote-list",connObj()).then(function(d){rememberSrv();renderRemotePicks(d);}).catch(function(e){setMsg(e.message,true);});};
+ function renderRemotePicks(d){
+  var html="",n=0;(d.worlds||[]).forEach(function(w){(w.saves||[]).forEach(function(s){n++;html+='<button class="btn srcpick" data-w="'+esc(w.world)+'" data-s="'+esc(s)+'">'+esc(w.world)+' / '+esc(s)+'</button>';});});
+  $("srcPick").innerHTML=html;setMsg(n?("Connected — pick a save to download ("+n+" found):"):"Connected, but no worlds with saves under that path. Check the base folder.",!n);
+  $("srcPick").querySelectorAll(".srcpick").forEach(function(b){b.onclick=function(){
+   setMsg("Downloading "+b.dataset.w+" / "+b.dataset.s+" … (large worlds take a moment)");
+   $("srcPick").querySelectorAll(".srcpick").forEach(function(x){x.disabled=true;});
+   srcPost("/api/source/remote-fetch",{world:b.dataset.w,save:b.dataset.s}).then(function(data){applySourceScan(data);renderWorldGate();}).catch(function(e){setMsg(e.message,true);$("srcPick").querySelectorAll(".srcpick").forEach(function(x){x.disabled=false;});});
+  };});
+ }
+}
 
 function progressionValue(prog,key){return +(prog&&prog[key]||0);}
 // Score every build by its DISTINGUISHING perk (not a shared one) so an imported
