@@ -158,6 +158,15 @@ mod sftp {
         rt()?.block_on(async {
             let sftp = connect(conn).await?;
             let base = norm_base(&conn.base);
+            let listpath = if base.is_empty() { "/".to_string() } else { base.clone() };
+            let top = sftp
+                .read_dir(listpath)
+                .await
+                .map_err(|e| format!("Basis-Ordner '{}' nicht lesbar: {e}", conn.base))?;
+            let names: Vec<String> = top.map(|e| e.file_name()).collect();
+            if !names.iter().any(|n| n == "Saves") && !names.iter().any(|n| n == "GeneratedWorlds") {
+                return Err(format!("'{}' enthält kein Saves/GeneratedWorlds — ist das der 7DaysToDie-Ordner?", conn.base));
+            }
             let mut worlds = Vec::new();
             for w in subdirs(&sftp, &format!("{base}/Saves")).await {
                 let saves = subdirs(&sftp, &format!("{base}/Saves/{w}")).await;
@@ -262,6 +271,15 @@ mod ftp {
     pub fn list(conn: &RemoteConn) -> Result<Value, String> {
         let mut s = login(conn)?;
         let base = norm_base(&conn.base);
+        let listpath = if base.is_empty() { "/".to_string() } else { base.clone() };
+        let top = s
+            .nlst(Some(listpath.as_str()))
+            .map_err(|e| format!("Basis-Ordner '{}' nicht lesbar: {e}", conn.base))?;
+        let has = |n: &str| top.iter().any(|x| x.rsplit('/').next().unwrap_or(x) == n);
+        if !has("Saves") && !has("GeneratedWorlds") {
+            let _ = s.quit();
+            return Err(format!("'{}' enthält kein Saves/GeneratedWorlds — ist das der 7DaysToDie-Ordner?", conn.base));
+        }
         let mut worlds = Vec::new();
         for w in subdirs(&mut s, &format!("{base}/Saves")) {
             let saves = subdirs(&mut s, &format!("{base}/Saves/{w}"));

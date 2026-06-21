@@ -10,7 +10,7 @@ use std::{
     env, fs,
     io::{Read, Seek, SeekFrom},
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, OnceLock},
     thread,
     time::Duration,
 };
@@ -482,6 +482,14 @@ fn remote_cache_dir() -> PathBuf {
     std::env::temp_dir().join("7dtd-companion-remote")
 }
 
+/// Serializes remote fetches so two concurrent downloads can't race on the shared
+/// cache dir (one wiping it while the other writes). Single-user app, so a global
+/// lock is fine — fetches are rare and never need to overlap.
+fn fetch_guard() -> &'static Mutex<()> {
+    static L: OnceLock<Mutex<()>> = OnceLock::new();
+    L.get_or_init(|| Mutex::new(()))
+}
+
 fn parse_conn(body: &Value) -> Result<RemoteConn, String> {
     let proto = body
         .get("proto")
@@ -539,6 +547,11 @@ fn handle_remote(
             }
         }
         "/api/source/remote-fetch" => {
+            // serialize concurrent fetches (shared cache dir)
+            let _fetch_g = match fetch_guard().lock() {
+                Ok(g) => g,
+                Err(_) => return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": "fetch lock vergiftet"})),
+            };
             let world = body.get("world").and_then(|v| v.as_str()).unwrap_or("").to_string();
             let save = body.get("save").and_then(|v| v.as_str()).unwrap_or("").to_string();
             if world.is_empty() || save.is_empty() {
