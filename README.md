@@ -31,6 +31,18 @@ No installer. No account. No cloud. No telemetry. Everything it reads and writes
 
 ---
 
+## 🎬 See it in action
+
+<div align="center">
+
+[![Guided tour of the 7DtD Survival Companion](https://github.com/Lampe332/7dtd-survival-companion/releases/download/v1.38.0/demo.gif)](https://github.com/Lampe332/7dtd-survival-companion/releases/download/v1.38.0/demo.mp4)
+
+<sub>A guided tour through the tabs &nbsp;·&nbsp; <b><a href="https://github.com/Lampe332/7dtd-survival-companion/releases/download/v1.38.0/demo.mp4">▶ watch the full video (MP4)</a></b></sub>
+
+</div>
+
+---
+
 ## The tabs
 
 | Tab | What it does |
@@ -100,7 +112,17 @@ All 23 crafting magazines with a readable **quality ladder** (Q1–Q6) and a **C
 **📚 Wiki** — live Fandom search in-app, cached for offline use.
 <br><img src="assets/screenshots/wiki.png" width="820" alt="In-app wiki search">
 
+**📖 Reference** — quick cards for biomes, attributes, buffs, the trader and gamestage thresholds, with a beginner primer.
+<br><img src="assets/screenshots/ref.png" width="820" alt="Reference quick cards">
+
 </details>
+
+### ⚡ Always on hand
+
+- **⌕ Global Search (Ctrl+K)** — jump straight to any perk, build, magazine, POI or setting.
+- **◉ LIVE mode** — re-reads your save every ~10 s, so the day, level, magazines and Blood Moon countdown follow the game while you play.
+- **🔔 Blood-Moon alerts** — an optional desktop notification the day before a horde night.
+- **📡 Offline wiki cache** — wiki searches are cached, so they keep working with no connection.
 
 ---
 
