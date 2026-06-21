@@ -10,7 +10,7 @@
 ![Windows](https://img.shields.io/badge/Windows-single%20.exe-1d8fc4?style=flat-square&logo=windows&logoColor=white&labelColor=14110d)
 ![Rust](https://img.shields.io/badge/Rust-backend-ce8b4f?style=flat-square&logo=rust&logoColor=white&labelColor=14110d)
 ![Offline](https://img.shields.io/badge/100%25-offline-3b7d3b?style=flat-square&labelColor=14110d)
-![No telemetry](https://img.shields.io/badge/no-account%20%C2%B7%20no%20cloud-7a7a7a?style=flat-square&labelColor=14110d)
+![No telemetry](https://img.shields.io/badge/no-account%20%C2%B7%20no%20telemetry-7a7a7a?style=flat-square&labelColor=14110d)
 ![License](https://img.shields.io/badge/license-MIT-9a9a9a?style=flat-square&labelColor=14110d)
 
 </div>
@@ -21,7 +21,7 @@
 
 One self-contained Windows `.exe`. Double-click it and a dark, fast control panel opens in your browser — it scans your **real** _7 Days to Die_ saves and generated worlds and turns them into a full operational toolkit: a 3D map of your world, a gate-correct build planner, a sandbox-settings editor that writes back to your game, horde-night prep, a squad board, and more.
 
-No installer. No account. No cloud. No telemetry. Everything it reads and writes stays on your machine.
+No installer. No account. No telemetry. Your save data never leaves your machine — the only outbound calls are the wiki search you trigger and a once-a-day update check.
 
 <div align="center">
 
@@ -156,7 +156,7 @@ The app reads, it doesn't phone home:
 - **Worlds** — `…/7DaysToDie/GeneratedWorlds/<world>/` → terrain, biomes, water and POIs for the 3D map.
 - **Game install** *(optional)* → prefab tiers and POI thumbnails.
 
-The **only** thing it ever writes is the world settings you change yourself in the World tab — and only after a timestamped backup you can restore in one click. 100% local: no account, no analytics, no background services. The only network call is the in-app wiki search you trigger yourself. Close the tab and it's gone.
+The **only** thing it ever writes is the world settings you change yourself in the World tab — and only after a timestamped backup you can restore in one click. No account, no analytics, no telemetry, no background services — your saves and settings never leave your PC. Exactly two optional outbound calls exist and nothing else: the wiki search you trigger (7DtD Fandom wiki) and a once-a-day version check (GitHub releases API) that powers the update badge; the page's Content-Security-Policy hard-blocks every other destination. Close the tab and it's gone.
 
 ## Build from source
 

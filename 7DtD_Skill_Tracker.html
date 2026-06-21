@@ -780,13 +780,13 @@ var BUILD_LOADOUT={
  vulture:["Bow / Pistol + melee backup","Light load to stay mobile — kite Nightmare sprinters, never get cornered. Melee backup.","Arrows / 9mm + 1 Repair Kit","Travel light; you win by movement, not by carrying a fortress of ammo.","Kite + Parkour the base","Parkour the base, reposition constantly, fire while moving — never anchor in one spot."]
 };
 var REF=[
-["⚙️ Active Settings",[["Difficulty","Insane — you deal 50%, enemies deal 250%"],["Headshot Multiplier","125% — aim sledge attacks at the head"],["XP","125%"],["Zombie Speed","Nightmare by day and night"],["Feral Sense","Night"],["Block Damage","Enemies 85%, Blood Moon 65%"],["Blood Moon","Every 10 days · 64 enemies"],["Skill Points","2 per level"]]],
+["⚙️ Active Settings",[["Difficulty","Insane — you deal 50%, enemies deal 250%"],["Headshot Multiplier","125% — aim sledge attacks at the head"],["XP","125%"],["Zombie Speed","Nightmare by day and night"],["Feral Sense","Night"],["Block Damage","Enemies 85%, Blood Moon 65%"],["Blood Moon","Every 10 days · 64 enemies"],["Skill Points","1 per level (+4 tutorial)"]]],
 ["🔨 Sledge Rules",[["Power Attack","2.24× damage, 2× stamina"],["Normal Zombies","Hit the head for the 125% multiplier"],["Demolisher","Body or legs; never chest, never shotgun"],["Stamina","Cardio + Skull Crusher + Sledge Saga completion"],["Mutants","Hard head target; highest melee threat"]]],
 ["🦠 Infection",[["Prevention","Vitamins grant 12 minutes of immunity"],["Treatment","Antibiotics −25% · Herbal −10% · Honey −5%"],["Hard Counter","Preacher Light Armor can reach 100% infection resistance at Q6"],["Early Plan","Stockpile Honey and Vitamins from day one"]]],
 ["🏰 Melee Funnel Base",[["Principle","One block-wide choke; fight targets individually"],["Material","Steel, at least 13 blocks high"],["Forge","More than 32 blocks underground to limit Screamers"],["Island","Water does not stop zombies; use a funnel tower"],["Demolisher","Isolate in the funnel and hit body or legs"]]],
 ["🌍 Biome Risk & Loot",[["Forest","×0.9 · safest"],["Burnt Forest","×1.1 · heat and smoke"],["Desert","×1.3 · extreme heat"],["Snow","×1.2 · cold"],["Wasteland","×1.5 · radiation, lethal, best loot"]]],
 ["🧬 Five Attributes",[["Perception","Precision weapons and scavenging"],["Strength","Impact weapons, mining and construction"],["Fortitude","Toughness, health and recovery"],["Agility","Finesse, athletics and stealth"],["Intellect","Technology, crafting, traders and influence"]]],
-["📈 Attribute Costs",[["Levels 2-5","1 point each"],["Levels 6-8","2 points each"],["Levels 9-10","3 points each"],["Total 1→10","16 points"],["Points per Level","2 in this world"]]],
+["📈 Attribute Costs",[["Levels 2-5","1 point each"],["Levels 6-8","2 points each"],["Levels 9-10","3 points each"],["Total 1→10","16 points"],["Points per Level","1 (+4 tutorial)"]]],
 ["🛠️ Crafting System",[["Unlock Recipes","Read magazines; perks do not unlock recipes"],["Perks","Only increase matching magazine drop weight"],["Quality Tiers","Primitive → Iron → Steel through magazine level"],["Star Loot","Looted weapons can roll boosted stats"],["Combine Bench","Merge two items into a stronger base item"]]],
 ["💊 Critical Buffs",[["Vitamins","12 minutes of infection immunity"],["Grandpa's Moonshine","Stamina boost for the Blood Moon opener"],["Mega Crush","Emergency stamina and speed"],["Nerd Goggles","XP boost"],["Coffee","Stamina regeneration"]]],
 ["💰 Traders & Quests",[["Quest Reward","Choose the highest useful tier"],["Trader Protection","Safe spawn and damage-free zone"],["Daily Limit","Caps quest progression per day"],["Infested Quest","Bonus loot tier and strong high-LS gear source"]]],
@@ -882,7 +882,7 @@ function gamestage(){var L=S.lvl||1,d=S.day||1;var adj=Math.min(d,L);return Math
 function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor(L*bm2*(1+(S.ll||0)/100));}
 function lootTier(ls2){return ls2<40?"T0 (Primitive)":ls2<80?"T1 (Iron)":ls2<118?"T2 (Steel begins)":ls2<262?"T3 (Q5 / T4 weapons)":"T4 (Q6 / T5-T6 endgame)";}
 // Skill points the whole route costs: each perk rank = 1 point, each attribute level = its real cost (1 pt lvl 2-5, 2 pt 6-8, 3 pt 9-10).
-function routePoints(bid){var pts=0;buildAtomicSteps(bid).forEach(function(s){var m=/^→ (Strength|Perception|Fortitude|Agility|Intellect) (\d+)$/.exec(s.name);pts+=m?attrPointCost(+m[2]):1;});return pts;}
+function routePoints(bid){var pts=0;buildAtomicSteps(bid).forEach(function(s){var m=/^→ (Strength|Perception|Fortitude|Agility|Intellect) (\d+)$/.exec(s.name);pts+=m?attrPointCost(+m[2]):1;});var st=S.builds&&S.builds[bid];if(st)pickRankEntries(st).forEach(function(e){if(e.attrStep&&e.start)return;pts+=e.attrStep?attrPointCost(e.level):1;});return pts;}
 // Skill points earned per character level. Vanilla V1.0-V3.0 = 1/level (verified June 2026: xGamingServer/BisectHosting
 // perks guides; the "5" on the progression-xml doc site is a stale alpha figure). It is NOT a sandbox option and is
 // absent from SandboxCode/serverconfig — it lives only in progression.xml — so a real save never overrides it. We still
@@ -984,13 +984,13 @@ function rBuild(){var st=bstate();
  html+='<div class="module-title">Perk Reference <span>READ-ONLY · WHAT EVERY PERK DOES</span></div>'+
   '<div class="card perk-nav" data-go="perks" role="button" tabindex="0"><div><div class="ops-code">REFERENCE / 57 PERKS</div><b style="display:block;margin-top:7px;font-size:16px;color:var(--text)">Open the Perk Reference</b><span class="sub">View every perk and what each rank does. Selecting perks for the route is done in the list above.</span></div><span class="perk-nav-go">›</span></div>';
  document.getElementById("build").innerHTML=html;
- wireDropdown("builddd",function(k){S.cur=k;save();rBuild();});
+ wireDropdown("builddd",function(k){S.cur=k;S.curManual=true;save();rBuild();});
  var bc=document.getElementById("buildCopy");if(bc)bc.onclick=function(){var md=buildToMarkdown(S.cur);var done=function(){bc.textContent="✓ Copied!";setTimeout(function(){bc.textContent="⧉ Copy build as text";},1500);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(md).then(done,done);}else{var ta=document.createElement("textarea");ta.value=md;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(_){}ta.remove();done();}};
  document.querySelectorAll("#build [data-col]").forEach(function(h){h.onclick=function(){var pi=h.dataset.col;S.col[S.cur+pi]=!h.parentNode.classList.contains("col")?1:0;save();rBuild();};});
- document.querySelectorAll("#build [data-id]").forEach(function(r){r.onclick=function(){var id=r.dataset.id;st.chk[id]=!st.chk[id];save();rBuild();};});
+ document.querySelectorAll("#build [data-id]").forEach(function(r){r.onclick=function(){var id=r.dataset.id;st.chk[id]=!st.chk[id];st.manual=true;save();rBuild();};});
  document.querySelectorAll("#build [data-pick]").forEach(function(r){r.onclick=function(){var k=r.dataset.pick;if(st.picks)delete st.picks[k];save();rBuild();};r.onkeydown=activateOnKey;});
  // perk selection list above the phases: tick to slot into the route, untick to remove. Preserve scroll on re-render.
- document.querySelectorAll("#build [data-perk]").forEach(function(r){r.onclick=function(){var sc=document.getElementById("perkcat"),top=sc?sc.scrollTop:0,wy=window.scrollY;var k=r.dataset.perk;st.picks=st.picks||{};if(st.picks[k])delete st.picks[k];else st.picks[k]=1;save();rBuild();var s2=document.getElementById("perkcat");if(s2)s2.scrollTop=top;window.scrollTo(0,wy);};r.onkeydown=activateOnKey;});
+ document.querySelectorAll("#build [data-perk]").forEach(function(r){r.onclick=function(){var sc=document.getElementById("perkcat"),top=sc?sc.scrollTop:0,wy=window.scrollY;var k=r.dataset.perk;st.picks=st.picks||{};if(st.picks[k])delete st.picks[k];else st.picks[k]=1;st.manual=true;save();rBuild();var s2=document.getElementById("perkcat");if(s2)s2.scrollTop=top;window.scrollTo(0,wy);};r.onkeydown=activateOnKey;});
  var pq=document.getElementById("perkq");if(pq)pq.oninput=function(){S.perkq=this.value;filterPerks("#build",S.perkq,S.perkAttr);};
  document.querySelectorAll("#build .filterchips [data-pa]").forEach(function(c){c.onclick=function(){S.perkAttr=c.dataset.pa;document.querySelectorAll("#build .filterchips [data-pa]").forEach(function(x){x.classList.toggle("on",x===c);});filterPerks("#build",S.perkq,S.perkAttr);};c.onkeydown=activateOnKey;});
  document.querySelectorAll("#build .perk-nav").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};x.onkeydown=activateOnKey;});
@@ -1585,15 +1585,28 @@ var PERK_NAMES={
 };
 var LABEL_TO_PERK={};Object.keys(PERK_NAMES).forEach(function(k){LABEL_TO_PERK[PERK_NAMES[k].toLowerCase()]=k;});
 
+function urlOk(u){
+  // Only same-origin relative paths (/world/… /poi/…, percent-encoding allowed) or a data:image
+  // URL may reach an <img>/WebGL-texture src. Blocks http(s)://, //host and javascript: from an
+  // untrusted share bundle (the page CSP also blocks them — this is defence-in-depth and keeps
+  // outbound egress impossible even if the CSP is ever loosened).
+  if(typeof u!=="string"||!u)return false;
+  if(/^data:image\/(png|jpe?g|webp|gif);base64,/.test(u))return true;
+  return u.charAt(0)==="/"&&u.indexOf("//")!==0&&u.indexOf(":")<0&&/^[\w%./-]+$/.test(u);
+}
 function normalizeScan(data){
-  // Coerce every numeric POI field at the import boundary: POIs can arrive from a
-  // friend's share bundle or a remote save (untrusted), and several are interpolated
-  // RAW into innerHTML downstream — forcing Number() (NaN->0) neutralises HTML/JS
-  // injection there and keeps the distance/footprint math finite.
+  // Sanitise everything at the import boundary: POIs/maps can arrive from a friend's share bundle
+  // or a remote save (untrusted). Numeric fields → Number() (NaN→0) so RAW innerHTML/footprint math
+  // stays finite & injection-free; URLs → urlOk() so no external/scheme egress; heightmap/watermask
+  // size → bounded so a hand-crafted bundle can't drive an unbounded buildTerrain allocation (OOM).
   function num(x){var n=+x;return isFinite(n)?n:0;}
   Object.keys(data.maps||{}).forEach(function(w){
-    var m=data.maps[w];m.pois=(m.pois||[]).map(function(p){
-      return [String(p.name==null?"":p.name),num(p.x),num(p.z),num(p.tier),num(p.rotation),num(p.width),num(p.depth),num(p.height),p.thumbnail,num(p.y),num(p.zombies),p.quests,p.theme,p.ingame||""];
+    var m=data.maps[w];
+    m.img=urlOk(m.img)?m.img:"";m.roads=urlOk(m.roads)?m.roads:null;m.water=urlOk(m.water)?m.water:null;
+    if(m.hm&&!(typeof m.hm.n==="number"&&m.hm.n>0&&m.hm.n<=512))m.hm=null;
+    if(m.watermask&&!(typeof m.watermask.n==="number"&&m.watermask.n>0&&m.watermask.n<=4096))m.watermask=null;
+    m.pois=(m.pois||[]).map(function(p){
+      return [String(p.name==null?"":p.name),num(p.x),num(p.z),num(p.tier),num(p.rotation),num(p.width),num(p.depth),num(p.height),urlOk(p.thumbnail)?p.thumbnail:"",num(p.y),num(p.zombies),p.quests,p.theme,p.ingame||""];
     });
   });
   return data;
@@ -1701,7 +1714,7 @@ function openSourcePanel(){
     '<input id="srcBase" class="srcin" placeholder="remote 7DaysToDie folder  (e.g.  /  or  /home/7dtd  or  .)">'+
     '<div class="srcrow"><button class="btn" id="srcTest">Test connection</button><button class="btn" id="srcConnect">Connect &amp; list saves ›</button></div>'+
     '<div id="srcMsg" class="srcmsg"></div><div id="srcPick"></div></div>'+
-    '<div class="src-card"><h3>📤 Share my world</h3><p>Hosting the world? Send a friend the full 3D map (a few MB) — they get your map, POIs and settings without your save files.</p><a class="btn" href="/api/share/export" download id="srcExport">⤓ Export world bundle</a></div>'+
+    '<div class="src-card"><h3>📤 Share my world</h3><p>Hosting the world? Send a friend the full 3D map (a few MB) — they get your map, POIs and settings without your save files. Player Steam IDs, base coordinates and login times are stripped from the bundle.</p><a class="btn" href="/api/share/export" download id="srcExport">⤓ Export world bundle</a></div>'+
     '<div class="src-card"><h3>📥 Load a shared world</h3><p>Got a <code>.7dtdworld.json</code> from a friend who hosts? Open it for their full 3D map — no server or game files needed.</p><input type="file" id="srcShareFile" accept=".json,application/json" class="srcin"><div id="srcShareMsg" class="srcmsg"></div></div>'+
   '</div>'+
   '<div class="gate-actions"><button class="gate-back" id="srcBack">‹ Back</button></div>';
@@ -1785,15 +1798,21 @@ function bookCount(prog,prefix){
 // Identity = which SAVE, not just which Steam account: the same Steam player has many saves/worlds with different progress, so include world+save (else switching save keeps the old character's checked steps).
 function charIdentity(pl){return pl?((pl.steam||pl.name||"?")+"|"+(pl.world||"")+"|"+(pl.save||"")):null;}
 function applyImportedCharacter(pl,force){
-  var prog=pl&&pl.progression||{};S.playerProgression=prog;S.lvl=pl&&pl.level||S.lvl;S.cur=detectBuild(prog);
-  // Only overwrite the user's manual perk checks + magazine edits when the imported
-  // character actually changed; re-importing the SAME survivor preserves manual edits.
-  // EXCEPTION: force=true (LIVE auto-refresh) always mirrors the save — magazine counts and
-  // build progress should follow the game, so manual edits intentionally yield to the real save.
-  var newId=charIdentity(pl),oldId=charIdentity(S.importedPlayer);
-  if(force||!(newId&&oldId&&newId===oldId)){
-    var st=bstate();st.chk={};var gi=0;
+  var prog=pl&&pl.progression||{};S.playerProgression=prog;S.lvl=pl&&pl.level||S.lvl;
+  // Build selection follows the save UNLESS the user manually picked a build (S.curManual);
+  // a genuine character switch drops that override. Manual perk checks (st.chk) survive a LIVE
+  // (force) tick once the user has hand-edited the build (st.manual). Magazine/book counts are
+  // read-only save data and always mirror the game on force or character change.
+  var newId=charIdentity(pl),oldId=charIdentity(S.importedPlayer),sameChar=!!(newId&&oldId&&newId===oldId);
+  if(!sameChar)S.curManual=false;
+  if(!S.curManual)S.cur=detectBuild(prog);
+  var st=bstate();
+  if(!sameChar||(force&&!st.manual)){
+    if(!sameChar)st.manual=false;
+    st.chk={};var gi=0;
     buildAtomicSteps(S.cur).forEach(function(s){gi++;st.chk["c"+gi]=rowImportedDone(s.name,prog);});
+  }
+  if(force||!sameChar){
     MAGS.forEach(function(m,i){S.mag[i]=m[5]==="book"?Math.min(m[1],bookCount(prog,m[4])):Math.min(m[1],progressionValue(prog,m[4]));});
   }
   // perk-book volumes are read-only save data → always refresh from the imported
@@ -1803,7 +1822,7 @@ function applyImportedCharacter(pl,force){
   S.importedPlayer=pl?{name:pl.name,level:pl.level,steam:pl.steam,world:pl.world,save:pl.save}:null;save();
 }
 // ---- WELT: gameOptions.sdf binary parser (verifiziert gegen echte Saves) ----
-function esc(s){return (""+s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+function esc(s){return (""+s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
 function parseSdf(buf){
  var out={};try{
   var dv=new DataView(buf),u8=new Uint8Array(buf),pos=0,n=buf.byteLength;
@@ -2099,7 +2118,9 @@ function finishImport(pl){
    ? ("<b>"+esc(pl.name||"Survivor")+"</b> · Level "+(pl.level||"?")+" imported. Detected build: <b>"+esc((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)+"</b>.")
    : "World settings loaded without a survivor.";
  save();
- if(S.tab==="world")rWorld(); else show();
+ // On the 3D tab keep the live camera (just refresh the day counter) instead of a full re-render
+ // that rebuilds the scene and resets pan/zoom/yaw/pitch — same camera-preservation LIVE uses.
+ if(S.tab==="world")rWorld(); else if(S.tab==="d3")renderTop(); else show();
 }
 function importWorld(s,pl){
  var st=s.settings||{},v3=("SandboxCode" in st);
@@ -2386,7 +2407,7 @@ function r3D(){
    '<div class="mapwrap"><button id="d3fs" class="mapfsbtn" aria-label="Toggle fullscreen map" title="Fullscreen (Esc to exit)">⛶</button><canvas id="cv3" width="900" height="600" tabindex="0"></canvas><div id="lbl3" class="map3lbl"></div><div id="poiInfo" class="poiInfo" style="display:none"></div><div class="maptip" id="hud3" style="display:block;left:8px;top:8px">Loading WebGL…</div></div>';
   W3.q="";  // reset map search on (re)entering the tab so the first terrain build shows all POIs
   try{init3D();}catch(e){el.innerHTML='<div class="banner danger">3D error: '+esc(e.message)+'</div>';W3.dead=true;return;}
-  document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();if(W3.buildTerrain)W3.buildTerrain();};
+  document.getElementById("vex").oninput=function(){S.d3v=+this.value;document.getElementById("vexv").textContent=S.d3v.toFixed(1)+"×";save();rebuildTerrainSoon();};
   document.getElementById("d3reset").onclick=function(){r3D();};
   ensureMapAnalysis(function(){renderBiomeBar();if(S.baseSpots&&S.baseSpots.length&&W3.buildTerrain){W3.buildTerrain();if(W3.renderScene)W3.renderScene();}});
   var bfBtn=document.getElementById("baseFind");if(bfBtn)bfBtn.onclick=function(){bfBtn.textContent="Scoring…";ensureMapAnalysis(function(){findBaseSpots();bfBtn.textContent="⌂ Find base locations";});};
@@ -2394,7 +2415,7 @@ function r3D(){
   // p[13]=in-game/brand name (Crack-A-Book, Trader Bob…) from Localization.csv; p[0]=prefab.
   function poiText(p){return ((p[0]||"")+" "+(p[13]||"")).toLowerCase();}
   function poiLabel(p){return (p[13]||prettyPoi(p[0]||"POI"));}
-  function applyMapSearch(q){W3.q=q||"";if(W3.buildTerrain)W3.buildTerrain();}
+  function applyMapSearch(q){W3.q=q||"";rebuildTerrainSoon();}
   if(psi)psi.oninput=function(){
    var q=this.value.toLowerCase().trim();
    applyMapSearch(q);            // filter the buildings ON the map, not just the dropdown
@@ -2403,7 +2424,7 @@ function r3D(){
    pres.innerHTML=hits.length?hits.map(function(o){var sub=o[0][13]?esc(o[0][0]):TIERLBL[o[0][3]];return '<button type="button" class="poi-hit" data-pi="'+o[1]+'"><span class="tdot" style="background:'+TIERCOL[o[0][3]]+'"></span><span class="poi-hit-name">'+esc(poiLabel(o[0]))+'</span><small>'+sub+'</small></button>';}).join(""):'<div class="poi-hit muted">No match — try a brand: Crack-A-Book, Shamway, Trader…</div>';
    pres.querySelectorAll("[data-pi]").forEach(function(r){r.onclick=function(){var p=S.map.pois[+r.dataset.pi];if(!mapFilterOn(p[3])){S.mapFilter[p[3]]=1;save();var ch=document.querySelector('#d3legend [data-tf="'+p[3]+'"]');if(ch)ch.classList.remove("off");}psi.value=poiLabel(p);applyMapSearch(psi.value.toLowerCase());if(W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=poiLabel(p);W3.flyTo(t);}openPoiInfo(+r.dataset.pi);var c=document.getElementById("cv3");if(c)c.focus();pres.innerHTML="";};});
   };
-  el.querySelectorAll("#d3legend [data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();c.classList.toggle("off",!mapFilterOn(t));if(W3.buildTerrain)W3.buildTerrain();};});
+  el.querySelectorAll("#d3legend [data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();c.classList.toggle("off",!mapFilterOn(t));rebuildTerrainSoon();};});
   // --- Fullscreen toggle (CSS overlay; keeps POI search + tier filter live by moving the control card into the map) ---
   W3.fs=false;document.body.classList.remove("map-fs-active");
   var fsBtn=document.getElementById("d3fs");
@@ -2632,6 +2653,10 @@ function updateLabels3D(mvp,cv){
 }
 function closePoiInfo(){var el=document.getElementById("poiInfo");if(el){el.style.display="none";el.innerHTML="";}}
 function prettyPoi(n){return (n||"").replace(/_/g," ").replace(/\b\w/g,function(c){return c.toUpperCase();});}
+var _terDeb=null;
+// Collapse a burst of POI-search keystrokes / exaggeration-slider drags / tier-chip toggles into
+// ONE terrain rebuild — buildTerrain reallocates every GL buffer, so per-event was the 3D jank source.
+function rebuildTerrainSoon(){clearTimeout(_terDeb);_terDeb=setTimeout(function(){if(typeof W3!=="undefined"&&W3.buildTerrain){W3.buildTerrain();if(W3.renderScene)W3.renderScene();}},120);}
 function openPoiInfo(pi){
  var el=document.getElementById("poiInfo");if(!el)return;
  var p=(S.map&&S.map.pois)?S.map.pois[pi]:null;if(!p){closePoiInfo();return;}
@@ -2660,9 +2685,9 @@ function buildSearchIndex(){
  try{TABS.forEach(function(t){ix.push({cat:"tab",label:t[1],sub:"Open the "+t[1]+" tab",tab:t[0]});});}catch(e){}
  try{(RD&&RD.perks?RD.perks:[]).forEach(function(p){ix.push({cat:"perk",label:p.name||p.key,sub:(p.attr?("["+p.attr+"] "):"")+String(p.desc||p.short||"").slice(0,90),tab:"perks",q:p.name});});}catch(e){}
  try{Object.keys(BUILDS||{}).forEach(function(k){var b=BUILDS[k];ix.push({cat:"build",label:b.name,sub:b.sub||"Build route",tab:"build",cur:k});});}catch(e){}
- try{(typeof MAGCAT!=="undefined"?MAGCAT:[]).forEach(function(m){var nm=m.name||m.title||m[0];if(nm)ix.push({cat:"mag",label:nm,sub:"Crafting magazine / unlock ladder",tab:"mags",q:nm});});}catch(e){}
+ try{(typeof MAGS!=="undefined"?MAGS:[]).forEach(function(m){var nm=m&&m[0];if(nm)ix.push({cat:"mag",label:nm,sub:m[2]||"Crafting magazine / unlock ladder",tab:"mags",q:nm});});}catch(e){}
  try{(settingsCatalog()||[]).forEach(function(o){ix.push({cat:"set",label:o.label||humanKey(o.name),sub:"World setting · "+String(o.desc||"").slice(0,80),tab:"world",q:o.label||o.name});});}catch(e){}
- try{(typeof REF!=="undefined"?REF:[]).forEach(function(r){var t=r[0]||r.t,d=r[1]||r.d;if(t)ix.push({cat:"ref",label:t,sub:String(d||"").slice(0,90),tab:"ref",q:t});});}catch(e){}
+ try{(typeof REF!=="undefined"?REF:[]).forEach(function(r){var t=r[0]||r.t,rows=r[1]||[];if(t)ix.push({cat:"ref",label:t,sub:(Array.isArray(rows)?rows.map(function(p){return p&&p[0];}).filter(Boolean).slice(0,5).join(" · "):String(rows||"")).slice(0,90),tab:"ref",q:t});if(Array.isArray(rows))rows.forEach(function(p){if(p&&p[0])ix.push({cat:"ref",label:p[0],sub:String(p[1]||"").slice(0,90),tab:"ref",q:t});});});}catch(e){}
  try{PRIMER.forEach(function(p){ix.push({cat:"ref",label:p[0],sub:String(p[1]).slice(0,90),tab:"ref",q:p[0]});});}catch(e){}
  try{if(S.map&&S.map.pois)S.map.pois.forEach(function(p,pi){var nm=p[13]||prettyPoi(p[0]);ix.push({cat:"poi",label:nm,sub:"POI · "+(TIERLBL[p[3]]||"?")+" · fly to on 3D map",tab:"d3",q:nm,pi:pi});});}catch(e){}
  return ix;
@@ -2683,11 +2708,11 @@ function renderGS(q){
  res.innerHTML=hits.map(function(h,i){return '<div class="gs-hit'+(i===0?" gs-on":"")+'" data-i="'+i+'"><span class="gs-cat '+(CN[h.cat]||"")+'">'+h.cat+'</span><div class="gs-txt"><b>'+esc(h.label)+'</b><span>'+esc(h.sub||"")+'</span></div></div>';}).join("");
  [].forEach.call(res.querySelectorAll(".gs-hit"),function(e){e.onclick=function(){gsRun(+e.dataset.i);};});
 }
-function gsRun(i){var h=GS_HITS[i];if(!h)return;closeGlobalSearch();if(h.tab){S.tab=h.tab;}if(h.cur!=null){S.cur=h.cur;}save();show();if(h.q)setTimeout(function(){prefillTab(h.tab,h.q);},70);
+function gsRun(i){var h=GS_HITS[i];if(!h)return;closeGlobalSearch();if(h.tab){S.tab=h.tab;}if(h.cur!=null){S.cur=h.cur;S.curManual=true;}save();show();if(h.q)setTimeout(function(){prefillTab(h.tab,h.q);},70);
  if(h.cat==="poi"&&h.pi!=null)setTimeout(function(){try{var p=S.map&&S.map.pois&&S.map.pois[h.pi];if(p&&W3.poiTo3D&&W3.flyTo){var t=W3.poiTo3D(p);t.name=h.label;W3.flyTo(t);openPoiInfo(h.pi);}}catch(e){}},320);}
 function gsMove(d){var res=document.getElementById("gsresults");if(!GS_HITS.length||!res)return;GS_SEL=Math.max(0,Math.min(GS_HITS.length-1,GS_SEL+d));[].forEach.call(res.querySelectorAll(".gs-hit"),function(e,i){e.classList.toggle("gs-on",i===GS_SEL);if(i===GS_SEL&&e.scrollIntoView)e.scrollIntoView({block:"nearest"});});}
 (function(){var gb=document.getElementById("gsbtn");if(gb){gb.onclick=openGlobalSearch;gb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();openGlobalSearch();}}}
- var gi=document.getElementById("gsinput");if(gi){gi.oninput=function(){renderGS(this.value);};gi.onkeydown=function(e){if(e.key==="ArrowDown"){e.preventDefault();gsMove(1);}else if(e.key==="ArrowUp"){e.preventDefault();gsMove(-1);}else if(e.key==="Enter"){e.preventDefault();gsRun(GS_SEL);}else if(e.key==="Escape"){closeGlobalSearch();}};}
+ var gi=document.getElementById("gsinput");if(gi){var _gsDeb=null;gi.oninput=function(){var v=this.value;clearTimeout(_gsDeb);_gsDeb=setTimeout(function(){renderGS(v);},110);};gi.onkeydown=function(e){if(e.key==="ArrowDown"){e.preventDefault();gsMove(1);}else if(e.key==="ArrowUp"){e.preventDefault();gsMove(-1);}else if(e.key==="Enter"){e.preventDefault();gsRun(GS_SEL);}else if(e.key==="Escape"){closeGlobalSearch();}};}
  var ov=document.getElementById("gsoverlay");if(ov)ov.onclick=function(e){if(e.target===ov)closeGlobalSearch();};
  document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&(e.key==="k"||e.key==="K")){e.preventDefault();gsToggle();}else if(e.key==="Escape"){var o=document.getElementById("gsoverlay");if(o&&o.style.display==="flex")closeGlobalSearch();}});})();
 /* ===== Blood Moon desktop notifications ===== */
@@ -2726,11 +2751,17 @@ function autoRefreshTick(){
   var cur=saves.filter(function(s){return s.world===S.world.world&&s.save===S.world.save;})[0];if(!cur)return;
   var pls=cur.pl||cur.players||[],sid=S.importedPlayer&&S.importedPlayer.steam;
   var pl=pls.filter(function(p){return p.steam&&p.steam===sid;})[0]||pls.filter(function(p){return p.name===(S.importedPlayer&&S.importedPlayer.name);})[0]||pls[0]||null;
-  var oldDay=S.day,oldLvl=S.lvl,oldProg=JSON.stringify(S.playerProgression||{});
+  var oldDay=S.day,oldLvl=S.lvl,oldProg=JSON.stringify(S.playerProgression||{}),oldCur=S.cur;
   autoApplyRefresh(cur,pl);
-  var changed=(S.day!==oldDay)||(S.lvl!==oldLvl)||(JSON.stringify(S.playerProgression||{})!==oldProg);
+  var changed=(S.day!==oldDay)||(S.lvl!==oldLvl)||(S.cur!==oldCur)||(JSON.stringify(S.playerProgression||{})!==oldProg);
   renderTop(); // day counter always reflects the latest read
-  if(changed&&S.tab!=="d3")show(); // re-render the active tab, but never the 3D map (would reset the camera)
+  // Re-render the active tab, but never: the 3D map (would reset the camera), while the user is
+  // typing into a field (would drop their input), or while the World settings tab has pending
+  // unsaved edits (a re-render reverts the visible inputs while EDIT still holds them → the
+  // savebar would lie and Write to World would post values the user can no longer see).
+  var _ae=document.activeElement,_typing=_ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(_ae.tagName||"");
+  var _pendingSet=S.tab==="world"&&typeof EDIT!=="undefined"&&EDIT&&Object.keys(EDIT).length>0;
+  if(changed&&S.tab!=="d3"&&!_typing&&!_pendingSet)show();
   checkBloodMoonNotify(false);
  }).catch(function(){/* game writing the file / transient — ignore, try again next tick */});
 }
@@ -2744,7 +2775,7 @@ function setAutoRefresh(on){
 (function(){var lb=document.getElementById("livebtn");if(lb){lb.onclick=function(){setAutoRefresh(!S.autoRefresh);};lb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setAutoRefresh(!S.autoRefresh);}}}renderLiveBtn();if(S.autoRefresh&&S.world){_autoTimer=setInterval(autoRefreshTick,AUTO_REFRESH_MS);setTimeout(autoRefreshTick,1500);}})();
 // ---- Update check: compare this build with the latest GitHub release (public API,
 // no token, CORS-enabled). Throttled to once/day; shows a ⬆ Update badge when newer.
-var APP_VERSION="1.39.0";
+var APP_VERSION="1.40.0";
 var UPD_REPO="Lampe332/7dtd-survival-companion";
 function verCmp(a,b){var f=function(s){return String(s).replace(/^[vV]\s*/,"").split(/[^0-9]+/).filter(function(x){return x!=="";}).map(Number);};var pa=f(a),pb=f(b);for(var i=0;i<Math.max(pa.length,pb.length);i++){var d=(pa[i]||0)-(pb[i]||0);if(d)return d<0?-1:1;}return 0;}
 function showUpdateBadge(tag){var b=document.getElementById("updbtn");if(!b)return;if(tag&&verCmp(tag,APP_VERSION)>0){b.style.display="";b.textContent="⬆ v"+String(tag).replace(/^[vV]/,"");b.title="Version "+tag+" is available (you have v"+APP_VERSION+") — click to download";}else{b.style.display="none";}}

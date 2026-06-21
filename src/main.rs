@@ -716,7 +716,17 @@ const SHARE_ASSETS: &[&str] = &["biomes.png", "splat3_half.png", "splat4_half.pn
 /// JSON (saves + maps incl. heightmap/water/POIs) plus the map texture files (base64).
 /// A friend imports this and gets the whole 3D map without owning the world files.
 fn build_share_bundle(paths: &Paths) -> Result<Value, String> {
-    let data = scan(paths)?;
+    let mut data = scan(paths)?;
+    // Privacy: a share bundle is sent to OTHER people. Strip the per-player PII the recipient
+    // never needs for the map — Steam id, last-login time and world POSITION (base coordinates) —
+    // so sharing a world never doxes you or co-op partners (critical on an 8-player PvP server).
+    for s in data.saves.iter_mut() {
+        for p in s.pl.iter_mut() {
+            p.steam.clear();
+            p.login.clear();
+            p.pos.clear();
+        }
+    }
     let worlds_root = paths.appdata.join("GeneratedWorlds");
     let mut assets = Map::new();
     // Cap the in-memory bundle so many/large worlds can't OOM the process (every
@@ -783,6 +793,14 @@ fn import_share(
         return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": format!("Cache-Ordner: {e}")}));
     }
     if let Some(assets) = bundle.get("assets").and_then(|v| v.as_object()) {
+        // Import-side caps mirror the export MAX_BUNDLE: a hostile bundle must not write an
+        // unbounded number/size of files into the temp cache (disk-fill DoS on mere import).
+        const MAX_IMPORT_FILES: usize = 512;
+        const MAX_IMPORT_BYTES: usize = 256 * 1024 * 1024;
+        if assets.len() > MAX_IMPORT_FILES {
+            return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Share-Datei hat zu viele Asset-Dateien"}));
+        }
+        let mut total = 0usize;
         for (k, v) in assets {
             let b64 = match v.as_str() { Some(s) => s, None => continue };
             let (w, f) = match k.rsplit_once('/') { Some(x) => x, None => continue };
@@ -793,6 +811,10 @@ fn import_share(
                 continue;
             }
             if let Ok(bytes) = STANDARD.decode(b64) {
+                total += bytes.len();
+                if total > MAX_IMPORT_BYTES {
+                    return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Share-Datei zu groß (Asset-Daten überschreiten das Limit)"}));
+                }
                 let dir = cdir.join("GeneratedWorlds").join(w);
                 if fs::create_dir_all(&dir).is_ok() {
                     let _ = fs::write(dir.join(f), bytes);
@@ -1543,6 +1565,16 @@ fn sample_heightmap(path: &Path, size: usize) -> Result<HeightMap, String> {
         return Err(format!("Unplausible HeightMapSize: {size}"));
     }
     let mut file = fs::File::open(path).map_err(|e| e.to_string())?;
+    // dtm.raw is a headerless size×size grid of u16 → exactly size*size*2 bytes. If the length
+    // doesn't match (corrupt or guessed HeightMapSize from a malformed map_info.xml), reject so
+    // we drop the heightmap instead of sampling at the wrong stride and rendering a garbled map.
+    let expected = (size as u64).saturating_mul(size as u64).saturating_mul(2);
+    let actual = file.metadata().map(|m| m.len()).unwrap_or(0);
+    if actual != expected {
+        return Err(format!(
+            "dtm.raw Größe {actual} != erwartet {expected} (HeightMapSize {size} unplausibel)"
+        ));
+    }
     let step = (size / HEIGHTMAP_N).max(1);
     let row_bytes = size * 2;
     let mut data = vec![0u8; HEIGHTMAP_N * HEIGHTMAP_N];
@@ -1703,6 +1735,9 @@ fn serve_bytes(
     let mut response = Response::from_data(data);
     response.add_header(Header::from_bytes("Content-Type", content_type).unwrap());
     response.add_header(Header::from_bytes("Cache-Control", "no-store").unwrap());
+    // Anti-clickjacking: a <meta> CSP cannot set frame-ancestors, so deny framing via header.
+    // Stops a malicious local page from iframing the loopback UI to UI-redress the write buttons.
+    response.add_header(Header::from_bytes("X-Frame-Options", "DENY").unwrap());
     request.respond(response).map_err(|e| e.to_string())
 }
 
@@ -1969,7 +2004,9 @@ fn prune_backups(dir: &Path, keep: usize) {
                 let p = e.path();
                 let name = p.file_name()?.to_string_lossy().into_owned();
                 let stamp = name.strip_prefix("gameOptions.sdf.bak.")?;
-                Some((stamp.parse::<u128>().unwrap_or(0), p))
+                // Skip non-numeric suffixes (filter_map drops None) so a user-renamed backup is
+                // never sorted to stamp 0 and pruned first — only real millis-stamped ones prune.
+                Some((stamp.parse::<u128>().ok()?, p))
             })
             .collect(),
         Err(_) => return,
@@ -2108,7 +2145,7 @@ fn restore_settings(paths: &Paths, body: &str) -> Result<Value, String> {
             let path = entry.path();
             let name = path.file_name()?.to_string_lossy().into_owned();
             let stamp = name.strip_prefix("gameOptions.sdf.bak.")?;
-            Some((stamp.parse::<u64>().unwrap_or(0), path))
+            Some((stamp.parse::<u64>().ok()?, path))
         })
         .collect();
     backups.sort_by_key(|(stamp, _)| *stamp);

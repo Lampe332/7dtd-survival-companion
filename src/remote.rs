@@ -114,7 +114,11 @@ mod sftp {
                     Ok(false)
                 }
                 None => {
-                    let _ = known_hosts_add(&self.known_hosts, &self.host_label, &fp);
+                    // First connect: pin the key (TOFU). If the pin can't be persisted, do NOT
+                    // pretend it's protected — warn loudly so a silently-disabled pin is visible.
+                    if let Err(e) = known_hosts_add(&self.known_hosts, &self.host_label, &fp) {
+                        eprintln!("[7DtD] WARN: Host-Key-Pin konnte nicht gespeichert werden ({e}) — TOFU-Schutz für {} bleibt diese Sitzung inaktiv.", self.host_label);
+                    }
                     Ok(true)
                 }
             }
