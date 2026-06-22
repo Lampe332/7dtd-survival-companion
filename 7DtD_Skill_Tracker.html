@@ -11,7 +11,7 @@
 :root{
  --bg:#0c0b09;--bg2:#14130f;--card:#1a1813;--card2:#221f18;--glass:rgba(26,24,19,.78);
  --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.15);
- --text:#f2efe8;--muted:#a8a293;--dim:#6f6a5c;
+ --text:#f2efe8;--muted:#a8a293;--dim:#8a847a;
  --acc:#ef7a35;--acc2:#f5b73c;--blood:#d83b32;--done:#5cc47a;--next:#5aa6ff;--star:#ffce4a;
  --mono:ui-monospace,"Cascadia Mono","Consolas",monospace;
  --p0:#ef7a35;--p1:#5aa6ff;--p2:#e2564a;--p3:#9b8cff;--p4:#5cc47a;--px:#f5b73c;
@@ -106,7 +106,7 @@ input[type=number]{font-family:var(--mono);font-weight:700}
 .launch.wizard .launchbox{width:min(1040px,100%);padding:32px;text-align:left}
 .gate-head{display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:16px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.08)}
 .gate-mark{display:grid;place-items:center;width:58px;height:58px;border:1px solid rgba(240,120,47,.42);border-radius:7px;color:#ffd4a4;background:linear-gradient(145deg,#2b2018,#12171b);font:800 17px/1 var(--display);box-shadow:0 0 28px rgba(240,120,47,.12)}
-.gate-step{color:var(--acc2);font:700 9px/1 var(--mono);letter-spacing:1.8px;text-transform:uppercase}.gate-head h2{margin-top:7px;color:#f5eee6;font:780 25px/1.05 var(--display);letter-spacing:.3px;text-transform:uppercase}.gate-head p{margin-top:7px;color:#a59e97;font-size:12.5px;line-height:1.45}
+.gate-step{color:var(--acc2);font:700 11px/1 var(--mono);letter-spacing:1.8px;text-transform:uppercase}.gate-head h2{margin-top:7px;color:#f5eee6;font:780 25px/1.05 var(--display);letter-spacing:.3px;text-transform:uppercase}.gate-head p{margin-top:7px;color:#a59e97;font-size:12.5px;line-height:1.45}
 .gate-progress{display:flex;gap:7px}.gate-progress span{width:46px;height:3px;border-radius:2px;background:#34383b}.gate-progress span.on{background:linear-gradient(90deg,var(--blood),var(--acc2));box-shadow:0 0 10px rgba(240,120,47,.22)}
 .gate-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:16px 0}.gate-summary .ops-stat{min-height:104px}.gate-summary .ops-value{margin-top:19px;font-size:25px}
 .gate-worlds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.gate-world-group{grid-column:1/-1;margin:14px 2px 1px;color:#cfc7bf;font:740 10px/1 var(--display);letter-spacing:1px;text-transform:uppercase}.gate-world-group::before{content:"";display:inline-block;width:7px;height:7px;margin-right:9px;border:1px solid var(--acc);transform:rotate(45deg);background:rgba(240,120,47,.12)}
@@ -238,7 +238,7 @@ body.map-fs-active{overflow:hidden}
 .perkrow.disabled{cursor:default}
 .perkrow.disabled:hover{background:transparent}
 .perkrow.disabled .cbx.inb{background:rgba(var(--tab-rgb),.28);color:var(--tab-cold);border:1px solid rgba(var(--tab-rgb),.5)}
-.inbuildbadge{font:700 9px/1 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--tab-cold);background:rgba(var(--tab-rgb),.16);padding:3px 7px;border-radius:999px;margin-left:6px}
+.inbuildbadge{font:700 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--tab-cold);background:rgba(var(--tab-rgb),.16);padding:3px 7px;border-radius:999px;margin-left:6px}
 /* P2a: custom dropdown (replaces the native select) */
 .dropdown{position:relative;margin-top:9px}
 .dd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2);color:var(--text);font:600 14px/1.2 var(--display);cursor:pointer;transition:border-color var(--motion),background var(--motion)}
@@ -257,7 +257,7 @@ body.map-fs-active{overflow:hidden}
 .pickrow:hover .pickx{background:rgba(216,74,63,.22);color:#ff8a7a}
 .pickrow .lbl{font-size:14px;font-weight:650;color:var(--text);display:flex;align-items:center}
 .pickrow .ef{font-size:11.5px;color:var(--text-muted);margin-top:2px}
-.custombadge{font:700 9px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--tab-cold);background:rgba(var(--tab-rgb),.2);padding:3px 7px;border-radius:999px;margin-left:7px}
+.custombadge{font:700 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--tab-cold);background:rgba(var(--tab-rgb),.2);padding:3px 7px;border-radius:999px;margin-left:7px}
 .pickrow .rtag{font:700 10px/1 var(--mono);color:var(--tab-cold);background:rgba(var(--tab-rgb),.18);padding:2px 6px;border-radius:5px;margin-left:3px}
 .capnote{color:var(--acc2);font-size:11px}
 .pickrow.attrstep{border-style:solid;border-color:rgba(var(--tab-rgb),.55);background:rgba(var(--tab-rgb),.14);cursor:default}
@@ -311,7 +311,7 @@ body.map-fs-active{overflow:hidden}
 :root{
  --bg:#090b0d;--bg2:#0e1114;--card:#14181c;--card2:#1a1f24;--glass:rgba(11,14,17,.93);
  --line:rgba(255,255,255,.075);--line2:rgba(255,151,66,.22);
- --text:#f2eee7;--muted:#a9a29a;--dim:#69645f;
+ --text:#f2eee7;--muted:#a9a29a;--dim:#8a847a;
  --acc:#f0782f;--acc2:#f6b24a;--blood:#b82d24;--done:#6fa778;--next:#e69742;--star:#ffd266;
  --tab-rgb:240,120,47;--tab-hot:#f0782f;--tab-cold:#f6b24a;
  --display:"Segoe UI Variable Display","Segoe UI",Arial,sans-serif;
@@ -350,13 +350,13 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .logo{position:relative;display:flex;align-items:center;gap:12px;flex:1;min-width:260px;padding-left:17px;font-family:var(--display);text-transform:uppercase;text-shadow:0 2px 12px #000}
 .logo::before{content:"";position:absolute;left:0;top:2px;bottom:3px;width:5px;border-radius:1px;background:linear-gradient(180deg,var(--acc2),var(--acc),var(--blood));box-shadow:0 0 20px rgba(240,120,47,.25)}
 .brand-mark{display:grid;place-items:center;width:43px;height:43px;border:1px solid rgba(255,151,66,.28);border-radius:6px;color:#ffd7a5;background:linear-gradient(145deg,#282017,#14171a);font-size:15px;font-weight:850;letter-spacing:-.5px;box-shadow:inset 0 1px rgba(255,255,255,.04)}
-.brand-copy{display:block}.brand-copy b{display:block;font-size:25px;font-weight:800;letter-spacing:.35px}.logo small{display:block;margin-top:3px;color:#d3964a;font:650 9px/1.2 var(--mono);letter-spacing:2.05px}
+.brand-copy{display:block}.brand-copy b{display:block;font-size:25px;font-weight:800;letter-spacing:.35px}.logo small{display:block;margin-top:3px;color:#d3964a;font:650 11px/1.2 var(--mono);letter-spacing:2.05px}
 .dayctl,.icon{border:1px solid rgba(255,166,83,.25);border-radius:6px;background:linear-gradient(180deg,#1b2025,#111519);box-shadow:inset 0 1px rgba(255,255,255,.04),0 8px 24px rgba(0,0,0,.24)}
 .dayctl{gap:8px;padding:6px}.dayctl button{width:32px;height:32px;border-radius:4px;background:#20262b;color:#d8d1c8}.dayctl button:hover{background:var(--acc);color:#111}
-.dayctl .dv{font-size:17px;min-width:55px}.dayctl .dl{font-size:9px;color:#918a82;letter-spacing:1.5px}.icon{padding:10px 12px;color:#aaa29a}.icon:hover{color:#fff;border-color:var(--acc)}
+.dayctl .dv{font-size:17px;min-width:55px}.dayctl .dl{font-size:11px;color:#918a82;letter-spacing:1.5px}.icon{padding:10px 12px;color:#aaa29a}.icon:hover{color:#fff;border-color:var(--acc)}
 .tabs{counter-reset:nav;display:grid;grid-template-columns:repeat(9,minmax(88px,1fr));gap:4px;position:sticky;top:8px;z-index:30;margin:13px 0 22px;padding:5px;overflow:visible;border:1px solid rgba(255,145,59,.18);border-radius:8px;background:rgba(10,13,16,.94);backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(0,0,0,.24)}
 .tab{counter-increment:nav;position:relative;min-height:52px;padding:16px 9px 9px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid transparent;border-radius:5px;color:#928d87;font-family:var(--display);font-size:11px;font-weight:760;letter-spacing:.8px;text-transform:uppercase;transition:background .18s,border-color .18s,color .18s,transform .18s}
-.tab::before{content:"0" counter(nav);position:absolute;top:5px;left:8px;color:#565c60;font:650 8px/1 var(--mono);letter-spacing:.8px}
+.tab::before{content:"0" counter(nav);position:absolute;top:5px;left:8px;color:#565c60;font:650 11px/1 var(--mono);letter-spacing:.8px}
 .tab::after{content:"";position:absolute;left:24%;right:24%;bottom:3px;height:2px;border-radius:2px;background:transparent;transition:.18s}
 .tab:hover{color:#f5eee6;background:rgba(255,255,255,.035);transform:translateY(-1px)}
 .tab.on{color:#fff4e8;border-color:rgba(var(--tab-rgb),.46);background:linear-gradient(180deg,rgba(var(--tab-rgb),.30),rgba(var(--tab-rgb),.08));box-shadow:inset 0 1px rgba(255,255,255,.05),0 0 22px rgba(var(--tab-rgb),.09)}
@@ -373,8 +373,8 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .hero-copy{position:relative;z-index:1;max-width:850px}.eyebrow{margin-bottom:9px;color:#eaa354;font:700 10px/1 var(--mono);letter-spacing:2.1px;text-transform:uppercase}
 .hero h1{font:780 31px/1.05 var(--display);letter-spacing:.25px;text-transform:uppercase;text-shadow:0 2px 12px #000}
 .hero p{max-width:780px;margin-top:8px;color:#b9b1a8;font-size:13px;line-height:1.55}
-.hero-state{position:absolute;z-index:1;right:24px;top:22px;display:flex;align-items:center;gap:7px;color:#817c77;font:650 9px/1 var(--mono);letter-spacing:1.25px}.hero-state::before{content:"";width:7px;height:7px;border-radius:50%;background:#719b71;box-shadow:0 0 10px rgba(113,155,113,.7)}
-.hero-telemetry{position:absolute;z-index:1;right:24px;bottom:19px;display:flex;gap:14px;color:rgba(255,255,255,.32);font:600 8px/1 var(--mono);letter-spacing:1.5px;text-transform:uppercase}.hero-telemetry span:first-child{color:rgba(var(--tab-rgb),.72)}
+.hero-state{position:absolute;z-index:1;right:24px;top:22px;display:flex;align-items:center;gap:7px;color:#817c77;font:650 11px/1 var(--mono);letter-spacing:1.25px}.hero-state::before{content:"";width:7px;height:7px;border-radius:50%;background:#719b71;box-shadow:0 0 10px rgba(113,155,113,.7)}
+.hero-telemetry{position:absolute;z-index:1;right:24px;bottom:19px;display:flex;gap:14px;color:rgba(255,255,255,.55);font:600 11px/1 var(--mono);letter-spacing:1.5px;text-transform:uppercase}.hero-telemetry span:first-child{color:rgba(var(--tab-rgb),.72)}
 .card,.ph,.acc,.wi,.pcard,.lcard{border:1px solid var(--line);border-radius:7px;background:linear-gradient(145deg,rgba(24,29,34,.98),rgba(17,21,25,.98));box-shadow:0 10px 32px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.018)}
 .card{position:relative;padding:20px;overflow:hidden}.card::before{content:"";position:absolute;top:0;left:0;width:72px;height:2px;background:linear-gradient(90deg,var(--blood),var(--tab-hot),transparent)}
 .card::after{content:"";position:absolute;right:7px;bottom:7px;width:12px;height:12px;border-right:1px solid rgba(var(--tab-rgb),.22);border-bottom:1px solid rgba(var(--tab-rgb),.22);pointer-events:none}
@@ -424,41 +424,41 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .horde-overview{display:grid;grid-template-columns:minmax(360px,1.25fr) repeat(3,minmax(150px,.55fr));gap:12px;margin-bottom:12px}
 .readiness-core{min-height:190px;display:grid;grid-template-columns:126px 1fr;align-items:center;gap:20px;border-color:rgba(211,54,43,.32);background:radial-gradient(360px 200px at 0 50%,rgba(211,54,43,.15),transparent 70%),linear-gradient(145deg,#1c2024,#111519)}
 .readiness-dial{position:relative;width:118px;height:118px;display:grid;place-items:center}.readiness-dial svg{position:absolute;inset:0;transform:rotate(-90deg);filter:drop-shadow(0 0 9px rgba(211,54,43,.22))}
-.readiness-grade{position:relative;text-align:center;font:800 43px/.85 var(--display);color:#fff}.readiness-grade small{display:block;margin-top:8px;color:#928b84;font:650 9px/1 var(--mono);letter-spacing:1.4px}
+.readiness-grade{position:relative;text-align:center;font:800 43px/.85 var(--display);color:#fff}.readiness-grade small{display:block;margin-top:8px;color:#928b84;font:650 11px/1 var(--mono);letter-spacing:1.4px}
 .readiness-copy .statusline{color:var(--tab-cold);font:760 18px/1.1 var(--display);letter-spacing:.8px;text-transform:uppercase}.readiness-copy p{max-width:430px;margin:8px 0 14px;color:#99928a;font-size:12px;line-height:1.5}
 .readiness-copy .bar{height:8px}.readiness-copy .fillb{background:linear-gradient(90deg,#8c201d,var(--tab-hot),var(--tab-cold));box-shadow:0 0 12px rgba(211,54,43,.3)}
-.horde-stat{min-height:190px;display:flex;flex-direction:column;justify-content:space-between}.horde-stat .code{color:#6e6964;font:650 8px/1 var(--mono);letter-spacing:1.4px}.horde-stat .value{color:#fff;font:780 36px/.95 var(--display)}.horde-stat .unit{margin-top:5px;color:#a7a099;font-size:11px}.horde-stat .signal{width:100%;height:3px;background:linear-gradient(90deg,var(--tab-hot),transparent)}
+.horde-stat{min-height:190px;display:flex;flex-direction:column;justify-content:space-between}.horde-stat .code{color:#6e6964;font:650 11px/1 var(--mono);letter-spacing:1.4px}.horde-stat .value{color:#fff;font:780 36px/.95 var(--display)}.horde-stat .unit{margin-top:5px;color:#a7a099;font-size:11px}.horde-stat .signal{width:100%;height:3px;background:linear-gradient(90deg,var(--tab-hot),transparent)}
 .horde-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
 .prep-group{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.075);border-radius:8px;background:linear-gradient(155deg,rgba(25,30,35,.98),rgba(13,17,20,.98));box-shadow:0 14px 38px rgba(0,0,0,.2)}
 .prep-group::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(var(--tab-rgb),.045),transparent 40%)}.prep-group.ready{border-color:rgba(111,167,120,.32);box-shadow:inset 0 0 30px rgba(77,137,88,.055),0 14px 38px rgba(0,0,0,.2)}
 .prep-head{position:relative;display:flex;align-items:center;gap:10px;padding:15px 15px 13px;border-bottom:1px solid rgba(255,255,255,.07)}
 .prep-index{display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(var(--tab-rgb),.35);border-radius:4px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.08);font:750 11px/1 var(--mono)}
-.prep-title{flex:1}.prep-title b{display:block;font:750 12px/1.15 var(--display);letter-spacing:.85px;text-transform:uppercase}.prep-title small{display:block;margin-top:4px;color:#77736e;font:600 9px/1 var(--mono);letter-spacing:.7px}
-.prep-arm{position:relative;width:auto;padding:6px 8px;border:1px solid rgba(255,255,255,.1);border-radius:4px;background:#101417;color:#98918a;font:700 9px/1 var(--mono);letter-spacing:.7px;text-transform:uppercase;cursor:pointer}.prep-arm:hover{border-color:rgba(var(--tab-rgb),.55);color:#fff;background:rgba(var(--tab-rgb),.12)}
+.prep-title{flex:1}.prep-title b{display:block;font:750 12px/1.15 var(--display);letter-spacing:.85px;text-transform:uppercase}.prep-title small{display:block;margin-top:4px;color:#77736e;font:600 11px/1 var(--mono);letter-spacing:.7px}
+.prep-arm{position:relative;width:auto;padding:6px 8px;border:1px solid rgba(255,255,255,.1);border-radius:4px;background:#101417;color:#98918a;font:700 11px/1 var(--mono);letter-spacing:.7px;text-transform:uppercase;cursor:pointer}.prep-arm:hover{border-color:rgba(var(--tab-rgb),.55);color:#fff;background:rgba(var(--tab-rgb),.12)}
 .prep-list{position:relative;padding:7px}
 .prep-item{display:grid;grid-template-columns:29px 1fr auto;align-items:center;gap:9px;min-height:62px;margin:5px 0;padding:9px 10px;border:1px solid transparent;border-radius:5px;background:rgba(255,255,255,.018);cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
 .prep-item:hover{transform:translateX(3px);border-color:rgba(var(--tab-rgb),.25);background:rgba(var(--tab-rgb),.055)}
 .prep-check{display:grid;place-items:center;width:27px;height:27px;border:1px solid rgba(255,255,255,.17);border-radius:4px;color:transparent;background:#0d1114;font:800 15px/1 var(--mono);transition:.18s}
-.prep-name{color:#d9d2ca;font-size:12.5px;font-weight:620;line-height:1.25}.prep-note{margin-top:3px;color:#756f69;font-size:10px;line-height:1.3}.prep-state{color:#625e5a;font:700 8px/1 var(--mono);letter-spacing:.8px}
+.prep-name{color:#d9d2ca;font-size:12.5px;font-weight:620;line-height:1.25}.prep-note{margin-top:3px;color:#756f69;font-size:10px;line-height:1.3}.prep-state{color:#625e5a;font:700 11px/1 var(--mono);letter-spacing:.8px}
 .prep-item.critical .prep-state{color:#bd675e}.prep-item.done{border-color:rgba(111,167,120,.18);background:rgba(86,143,96,.055)}.prep-item.done .prep-check{color:#07100a;border-color:#75b47e;background:#75b47e;box-shadow:0 0 14px rgba(111,167,120,.22)}.prep-item.done .prep-name{color:#9fafa0}.prep-item.done .prep-state{color:#76b37e}
-.horde-threats{counter-reset:threat;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.horde-threats .enemy-card{counter-increment:threat;min-height:132px;padding-top:38px}.horde-threats .enemy-card::before{content:"T-" counter(threat,decimal-leading-zero);position:absolute;left:15px;top:14px;color:#68635e;font:700 9px/1 var(--mono);letter-spacing:1.2px}.horde-threats .enemy-card.active::before{color:#df6a5f}.threat-status{display:inline-flex;margin-top:12px;padding:4px 7px;border:1px solid rgba(255,255,255,.08);border-radius:3px;color:#77716b;font:700 8px/1 var(--mono);letter-spacing:.8px}.enemy-card.active .threat-status{color:#ff9285;border-color:rgba(195,59,46,.35);background:rgba(195,59,46,.08)}
+.horde-threats{counter-reset:threat;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.horde-threats .enemy-card{counter-increment:threat;min-height:132px;padding-top:38px}.horde-threats .enemy-card::before{content:"T-" counter(threat,decimal-leading-zero);position:absolute;left:15px;top:14px;color:#68635e;font:700 11px/1 var(--mono);letter-spacing:1.2px}.horde-threats .enemy-card.active::before{color:#df6a5f}.threat-status{display:inline-flex;margin-top:12px;padding:4px 7px;border:1px solid rgba(255,255,255,.08);border-radius:3px;color:#77716b;font:700 8px/1 var(--mono);letter-spacing:.8px}.enemy-card.active .threat-status{color:#ff9285;border-color:rgba(195,59,46,.35);background:rgba(195,59,46,.08)}
 .protocol-list{position:relative}.protocol-step{display:grid;grid-template-columns:54px 1fr;gap:13px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}.protocol-step:last-child{border-bottom:0}.protocol-time{color:var(--tab-cold);font:720 11px/1.3 var(--mono)}.protocol-copy{color:#9e9790;font-size:12px;line-height:1.4}.protocol-copy b{display:block;margin-bottom:2px;color:#e2dbd3;font-family:var(--display);text-transform:uppercase;letter-spacing:.45px}
 .ops-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin:0 0 12px}
 .ops-stat{position:relative;min-height:128px;padding:17px 18px 15px;overflow:hidden;border:1px solid rgba(255,255,255,.075);border-radius:7px;background:linear-gradient(150deg,rgba(25,30,35,.98),rgba(14,18,21,.98));box-shadow:0 12px 34px rgba(0,0,0,.18)}
 .ops-stat::before{content:"";position:absolute;left:0;top:0;width:64px;height:2px;background:linear-gradient(90deg,var(--tab-hot),transparent)}.ops-stat::after{content:"";position:absolute;right:8px;bottom:8px;width:11px;height:11px;border-right:1px solid rgba(var(--tab-rgb),.26);border-bottom:1px solid rgba(var(--tab-rgb),.26)}
 .ops-stat:hover{border-color:rgba(var(--tab-rgb),.27);background:linear-gradient(150deg,rgba(30,36,41,.99),rgba(15,19,23,.99))}
-.ops-code{color:#827c76;font:690 9.5px/1 var(--mono);letter-spacing:1.15px;text-transform:uppercase}.ops-value{margin-top:23px;color:#fff;font:780 31px/.95 var(--display);letter-spacing:-.45px}.ops-value.small{font-size:18px;line-height:1.15;letter-spacing:0}.ops-label{margin-top:8px;color:#b4ada6;font-size:12.5px;line-height:1.4}.ops-signal{position:absolute;left:18px;right:18px;bottom:14px;height:2px;background:linear-gradient(90deg,var(--tab-hot),rgba(var(--tab-rgb),.05))}
+.ops-code{color:#8a847a;font:690 11px/1 var(--mono);letter-spacing:1.15px;text-transform:uppercase}.ops-value{margin-top:23px;color:#fff;font:780 31px/.95 var(--display);letter-spacing:-.45px}.ops-value.small{font-size:18px;line-height:1.15;letter-spacing:0}.ops-label{margin-top:8px;color:#b4ada6;font-size:12.5px;line-height:1.4}.ops-signal{position:absolute;left:18px;right:18px;bottom:14px;height:2px;background:linear-gradient(90deg,var(--tab-hot),rgba(var(--tab-rgb),.05))}
 .ops-lead{grid-column:span 2;min-height:128px;display:grid;grid-template-columns:104px 1fr;align-items:center;gap:18px;background:radial-gradient(300px 180px at 0 50%,rgba(var(--tab-rgb),.14),transparent 72%),linear-gradient(150deg,rgba(25,30,35,.98),rgba(14,18,21,.98))}
 .ops-lead .ring{width:94px;height:94px}.ops-lead .big{font-size:24px}.ops-lead-copy b{display:block;color:var(--tab-cold);font:760 17px/1.1 var(--display);letter-spacing:.65px;text-transform:uppercase}.ops-lead-copy p{margin-top:8px;color:#9c958e;font-size:11.5px;line-height:1.45}
-.module-title{display:flex;align-items:center;gap:10px;margin:19px 2px 9px;color:#d9d2ca;font:740 11px/1 var(--display);letter-spacing:1.15px;text-transform:uppercase}.module-title::before{content:"";width:20px;height:2px;background:var(--tab-hot);box-shadow:0 0 10px rgba(var(--tab-rgb),.3)}.module-title span{margin-left:auto;color:#65615d;font:650 8px/1 var(--mono);letter-spacing:1px}
-.command-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.command-tile{position:relative;min-height:105px;padding:16px;border:1px solid rgba(255,255,255,.075);border-radius:6px;background:rgba(18,23,27,.92);cursor:pointer;transition:.17s}.command-tile:hover{transform:translateY(-2px);border-color:rgba(var(--tab-rgb),.42);background:rgba(var(--tab-rgb),.075);box-shadow:0 13px 28px rgba(0,0,0,.22)}.command-tile .num{color:var(--tab-cold);font:720 9px/1 var(--mono)}.command-tile b{display:block;margin-top:18px;color:#e5ded6;font:750 12px/1 var(--display);letter-spacing:.7px;text-transform:uppercase}.command-tile small{display:block;margin-top:6px;color:#817b75;font-size:10px;line-height:1.35}.command-tile::after{content:"›";position:absolute;right:14px;top:50%;color:rgba(var(--tab-rgb),.65);font-size:21px}
+.module-title{display:flex;align-items:center;gap:10px;margin:19px 2px 9px;color:#d9d2ca;font:740 11px/1 var(--display);letter-spacing:1.15px;text-transform:uppercase}.module-title::before{content:"";width:20px;height:2px;background:var(--tab-hot);box-shadow:0 0 10px rgba(var(--tab-rgb),.3)}.module-title span{margin-left:auto;color:#8a847a;font:650 11px/1 var(--mono);letter-spacing:1px}
+.command-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.command-tile{position:relative;min-height:105px;padding:16px;border:1px solid rgba(255,255,255,.075);border-radius:6px;background:rgba(18,23,27,.92);cursor:pointer;transition:.17s}.command-tile:hover{transform:translateY(-2px);border-color:rgba(var(--tab-rgb),.42);background:rgba(var(--tab-rgb),.075);box-shadow:0 13px 28px rgba(0,0,0,.22)}.command-tile .num{color:var(--tab-cold);font:720 11px/1 var(--mono)}.command-tile b{display:block;margin-top:18px;color:#e5ded6;font:750 12px/1 var(--display);letter-spacing:.7px;text-transform:uppercase}.command-tile small{display:block;margin-top:6px;color:#817b75;font-size:10px;line-height:1.35}.command-tile::after{content:"›";position:absolute;right:14px;top:50%;color:rgba(var(--tab-rgb),.65);font-size:21px}
 .dashboard-core{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}.status-board .kv{padding:11px 0}.status-board .kv:first-of-type{padding-top:3px}
 .dashboard-overview{grid-template-columns:repeat(4,minmax(0,1fr))}
 .build-console{display:grid;grid-template-columns:minmax(260px,.65fr) 1.35fr;gap:12px;margin-bottom:13px}.build-progress{display:grid;grid-template-columns:105px 1fr;align-items:center;gap:18px}.build-progress .ring{width:100px;height:100px}.build-progress .big{font-size:27px}.build-controls{display:flex;flex-direction:column;justify-content:center;overflow:visible;position:relative;z-index:5}.build-controls select{margin-top:9px}
 .dropdown.open{z-index:60}
-#build{counter-reset:phase}.ph{counter-increment:phase}.phh::before{content:"P-0" counter(phase);color:var(--pa);font:720 9px/1 var(--mono);letter-spacing:.7px}.phh>span:first-child{display:none}.ph .body{background:linear-gradient(90deg,rgba(var(--tab-rgb),.018),transparent)}
-.loot-console{display:grid;grid-template-columns:.72fr 1.28fr;gap:12px}.loot-form{background:radial-gradient(280px 180px at 0 100%,rgba(var(--tab-rgb),.11),transparent 72%),linear-gradient(145deg,rgba(24,29,34,.98),rgba(17,21,25,.98))}.loot-form .fld{color:#8f8983;font:650 9px/1 var(--mono);letter-spacing:.85px;text-transform:uppercase}.loot-projection{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.loot-projection .ops-stat{min-height:150px}.biome-card.active{border-color:var(--tab-hot);box-shadow:0 0 0 1px rgba(var(--tab-rgb),.22),0 12px 28px rgba(0,0,0,.25)}.biome-card{cursor:pointer}
-.mag-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.mag-section{margin-top:12px;padding:14px;border:1px solid rgba(255,255,255,.07);border-radius:8px;background:rgba(13,17,20,.78)}.mag-section-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}.mag-section-code{display:grid;place-items:center;width:35px;height:30px;border:1px solid rgba(var(--tab-rgb),.32);border-radius:4px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.07);font:720 9px/1 var(--mono)}.mag-section-head b{font:750 12px/1 var(--display);letter-spacing:.8px;text-transform:uppercase}.mag-section-head small{margin-left:auto;color:#77716b;font:650 9px/1 var(--mono)}.mag-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-items:start}
+#build{counter-reset:phase}.ph{counter-increment:phase}.phh::before{content:"P-0" counter(phase);color:var(--pa);font:720 11px/1 var(--mono);letter-spacing:.7px}.phh>span:first-child{display:none}.ph .body{background:linear-gradient(90deg,rgba(var(--tab-rgb),.018),transparent)}
+.loot-console{display:grid;grid-template-columns:.72fr 1.28fr;gap:12px}.loot-form{background:radial-gradient(280px 180px at 0 100%,rgba(var(--tab-rgb),.11),transparent 72%),linear-gradient(145deg,rgba(24,29,34,.98),rgba(17,21,25,.98))}.loot-form .fld{color:#8f8983;font:650 11px/1 var(--mono);letter-spacing:.85px;text-transform:uppercase}.loot-projection{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.loot-projection .ops-stat{min-height:150px}.biome-card.active{border-color:var(--tab-hot);box-shadow:0 0 0 1px rgba(var(--tab-rgb),.22),0 12px 28px rgba(0,0,0,.25)}.biome-card{cursor:pointer}
+.mag-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.mag-section{margin-top:12px;padding:14px;border:1px solid rgba(255,255,255,.07);border-radius:8px;background:rgba(13,17,20,.78)}.mag-section-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}.mag-section-code{display:grid;place-items:center;width:35px;height:30px;border:1px solid rgba(var(--tab-rgb),.32);border-radius:4px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.07);font:720 11px/1 var(--mono)}.mag-section-head b{font:750 12px/1 var(--display);letter-spacing:.8px;text-transform:uppercase}.mag-section-head small{margin-left:auto;color:#77716b;font:650 11px/1 var(--mono)}.mag-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-items:start}
 .bookcard .bookhead{cursor:pointer;user-select:none}.bvtoggle{display:inline-block;width:11px;color:var(--acc2);font-size:10px}
 .bookvols{margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;display:flex;flex-direction:column;gap:6px}.bookvols.hide{display:none}
 .bookvol{display:grid;grid-template-columns:42px 82px 1fr;align-items:center;gap:9px;font-size:12px}
@@ -476,12 +476,12 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .wiki-hit-sub{margin-top:3px;color:var(--muted);font-size:11.5px;line-height:1.45;font-family:var(--mono)}
 .wiki-empty{padding:16px 2px;color:var(--muted);font-size:13px}
 .mag-entry{position:relative;padding:13px 150px 13px 14px;border:1px solid rgba(255,255,255,.065);border-radius:5px;background:#151a1e}.mag-entry:hover{border-color:rgba(var(--tab-rgb),.27);background:rgba(var(--tab-rgb),.045)}.mag-entry.priority{box-shadow:inset 2px 0 var(--tab-hot)}.mag-entry.complete{border-color:rgba(111,167,120,.25);background:rgba(79,130,87,.055)}.mag-name{font-size:13px;font-weight:680}.mag-meta{margin-top:3px;color:#807a74;font-size:10px}.mag-entry .stepper{position:absolute;right:12px;top:11px}.mag-entry .stepper button{width:25px;height:25px;border-radius:4px}.mag-entry .stepper .mc{min-width:48px;font-size:11px}.mag-entry .bar{margin-top:12px;height:5px}
-.ref-console{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px}.ref-console .searchbar{margin:0}.ref-count{padding:11px 14px;border:1px solid rgba(var(--tab-rgb),.24);border-radius:6px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.055);font:700 10px/1 var(--mono);letter-spacing:.8px;white-space:nowrap}.ref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}.ref-grid .refcard{margin:0!important;min-height:185px}.refcard h3::before{content:attr(data-code);margin-right:8px;color:var(--tab-cold);font:720 9px/1 var(--mono)}.refcard{cursor:pointer;transition:.17s}.refcard:hover{transform:translateY(-2px);border-color:rgba(var(--tab-rgb),.3)}.refcard.compact{min-height:0}.refcard.compact .kv{display:none}.refcard.compact h3{margin:0}
-.world-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.world-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.world-catalog .world-group{grid-column:1/-1;margin-top:14px}.world-catalog .wi{margin:0;min-height:72px}.wi::after{content:"OPEN";color:#6c6762;font:700 8px/1 var(--mono);letter-spacing:.8px}.wi:hover::after{color:var(--tab-cold)}
+.ref-console{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px}.ref-console .searchbar{margin:0}.ref-count{padding:11px 14px;border:1px solid rgba(var(--tab-rgb),.24);border-radius:6px;color:var(--tab-cold);background:rgba(var(--tab-rgb),.055);font:700 10px/1 var(--mono);letter-spacing:.8px;white-space:nowrap}.ref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}.ref-grid .refcard{margin:0!important;min-height:185px}.refcard h3::before{content:attr(data-code);margin-right:8px;color:var(--tab-cold);font:720 11px/1 var(--mono)}.refcard{cursor:pointer;transition:.17s}.refcard:hover{transform:translateY(-2px);border-color:rgba(var(--tab-rgb),.3)}.refcard.compact{min-height:0}.refcard.compact .kv{display:none}.refcard.compact h3{margin:0}
+.world-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.world-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.world-catalog .world-group{grid-column:1/-1;margin-top:14px}.world-catalog .wi{margin:0;min-height:72px}.wi::after{content:"OPEN";color:#8a847a;font:700 11px/1 var(--mono);letter-spacing:.8px}.wi:hover::after{color:var(--tab-cold)}
 .map-console{display:grid;grid-template-columns:.78fr 1.22fr;gap:10px;margin-bottom:10px}.map-console .card{margin:0!important}.mapwrap{position:relative}.mapwrap::before{content:"TACTICAL GRID / LIVE";position:absolute;z-index:4;right:10px;top:10px;padding:6px 8px;border:1px solid rgba(var(--tab-rgb),.25);border-radius:3px;color:rgba(255,255,255,.55);background:rgba(7,10,12,.78);font:650 8px/1 var(--mono);letter-spacing:1px;pointer-events:none}.map-actions{display:flex;gap:7px;margin-top:10px}.map-actions .btn{flex:1}
 .flight-deck{display:grid;grid-template-columns:1.2fr .8fr;gap:10px;margin-bottom:10px}.key-grid{display:grid;grid-template-columns:repeat(3,36px);gap:5px;justify-content:center;align-content:center}.keycap{display:grid;place-items:center;height:34px;border:1px solid rgba(var(--tab-rgb),.27);border-radius:4px;color:#ddd5cd;background:#11161a;font:720 10px/1 var(--mono);box-shadow:inset 0 -3px rgba(0,0,0,.28)}.keycap.wide{grid-column:span 3}.flight-status{display:flex;flex-direction:column;justify-content:center}.flight-status b{color:var(--tab-cold);font:750 13px/1 var(--display);letter-spacing:.7px;text-transform:uppercase}.flight-status p{margin-top:7px;color:#8e8881;font-size:11px;line-height:1.45}
 .settings-workspace{display:grid;grid-template-columns:minmax(0,1fr) 330px;align-items:start;gap:12px}.settings-list{min-width:0}.sethelp{position:sticky;top:78px;min-height:330px;padding:21px;border:1px solid rgba(240,120,47,.22);border-radius:7px;background:radial-gradient(260px 190px at 100% 0,rgba(240,120,47,.09),transparent 70%),linear-gradient(150deg,#191e22,#101417);box-shadow:0 18px 42px rgba(0,0,0,.25)}
-.sethelp::before{content:"";position:absolute;left:0;top:0;width:78px;height:2px;background:linear-gradient(90deg,var(--acc),transparent)}.sethelp-kicker{color:var(--acc2);font:700 9px/1 var(--mono);letter-spacing:1.4px;text-transform:uppercase}.sethelp-symbol{display:grid;place-items:center;width:42px;height:42px;margin:18px 0 15px;border:1px solid rgba(240,120,47,.38);border-radius:50%;color:#ffc078;background:rgba(240,120,47,.08);font:800 20px/1 var(--display)}.sethelp h3{margin:0 0 10px;color:#f1eae2;font:760 17px/1.15 var(--display);letter-spacing:.35px;text-transform:none}.sethelp p{color:#b2aba4;font-size:13px;line-height:1.65}.sethelp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}.sethelp-fact{padding:10px;border:1px solid rgba(255,255,255,.065);border-radius:5px;background:#11161a}.sethelp-fact span{display:block;color:#716c67;font:680 8px/1 var(--mono);letter-spacing:.9px;text-transform:uppercase}.sethelp-fact b{display:block;margin-top:7px;color:#ddd6ce;font-size:11px;line-height:1.35;word-break:break-word}.sethelp-tip{margin-top:14px;padding:11px 12px;border-left:2px solid var(--acc);color:#8e8881;background:rgba(240,120,47,.045);font-size:11px;line-height:1.5}
+.sethelp::before{content:"";position:absolute;left:0;top:0;width:78px;height:2px;background:linear-gradient(90deg,var(--acc),transparent)}.sethelp-kicker{color:var(--acc2);font:700 11px/1 var(--mono);letter-spacing:1.4px;text-transform:uppercase}.sethelp-symbol{display:grid;place-items:center;width:42px;height:42px;margin:18px 0 15px;border:1px solid rgba(240,120,47,.38);border-radius:50%;color:#ffc078;background:rgba(240,120,47,.08);font:800 20px/1 var(--display)}.sethelp h3{margin:0 0 10px;color:#f1eae2;font:760 17px/1.15 var(--display);letter-spacing:.35px;text-transform:none}.sethelp p{color:#b2aba4;font-size:13px;line-height:1.65}.sethelp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}.sethelp-fact{padding:10px;border:1px solid rgba(255,255,255,.065);border-radius:5px;background:#11161a}.sethelp-fact span{display:block;color:#716c67;font:680 8px/1 var(--mono);letter-spacing:.9px;text-transform:uppercase}.sethelp-fact b{display:block;margin-top:7px;color:#ddd6ce;font-size:11px;line-height:1.35;word-break:break-word}.sethelp-tip{margin-top:14px;padding:11px 12px;border-left:2px solid var(--acc);color:#8e8881;background:rgba(240,120,47,.045);font-size:11px;line-height:1.5}
 .sethelpq{display:inline-grid;place-items:center;width:20px;height:20px;margin-left:3px;border:1px solid rgba(240,120,47,.36);border-radius:50%;color:#f2a04e;background:rgba(240,120,47,.07);font:800 11px/1 var(--display);cursor:help;transition:.16s}.sethelpq:hover,.sethelpq:focus-visible{outline:none;color:#111;border-color:var(--acc2);background:var(--acc2);box-shadow:0 0 13px rgba(240,120,47,.3)}.setrow.help-active{background:rgba(240,120,47,.055);box-shadow:inset 2px 0 var(--acc)}.setlbl{gap:7px}
 @media(max-width:1120px){.horde-overview{grid-template-columns:repeat(3,1fr)}.readiness-core{grid-column:1/-1}.horde-groups{grid-template-columns:1fr}.horde-threats{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-workspace{grid-template-columns:1fr}.sethelp{position:relative;top:auto;order:-1;min-height:0}.gate-worlds{grid-template-columns:1fr}}
 @media(max-width:900px){body{padding-inline:13px}.tabs{display:flex;overflow-x:auto}.tab{min-width:105px;flex:0 0 105px}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.enemy-grid,.loot-grid,.biome-grid,.attr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-core,.build-console,.loot-console,.map-console,.flight-deck{grid-template-columns:1fr}.dashboard-overview,.mag-overview,.world-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -489,9 +489,9 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 
 /* ---- Scoped premium polish for the newly added surfaces ---- */
 :root{--surface:#15181d;--surface-2:#1c2027;--border:rgba(255,255,255,.08);--text-muted:#9aa0a6;--accent:#e8722a;--accent-hover:#f0823d;--accent-soft:#f0b88f;--accent-pale:#ffc397;--accent-ink:#140d09;--control:#111419;--text-soft:#d7dadd;--ok:#4fb477;--gold:#d8a24a;--locked:#5a5f66;--radius:6px;--motion:180ms ease}
-.launch,#introCoach,#world,#d3,#mags,#ref,#wiki,.readiness-legend{--bg:#0d0f12;--card:var(--surface);--card2:var(--surface-2);--line:var(--border);--line2:rgba(255,255,255,.14);--text:#f2f3f5;--muted:var(--text-muted);--dim:var(--locked);--acc:var(--accent);--acc2:var(--accent-soft);--done:var(--ok);--star:var(--gold)}
+.launch,#introCoach,#world,#d3,#mags,#ref,#wiki,#dash,#build,#perks,#horde,#squad,#loot,.readiness-legend{--bg:#0d0f12;--card:var(--surface);--card2:var(--surface-2);--line:var(--border);--line2:rgba(255,255,255,.14);--text:#f2f3f5;--muted:var(--text-muted);--dim:#8a847a;--acc:var(--accent);--acc2:var(--accent-soft);--done:var(--ok);--star:var(--gold)}
 .launch *,#introCoach *,#world *,#d3 *,#mags *,#ref *,#wiki *{transition-timing-function:ease}
-.launch :is(button,[role=button],input,select):focus-visible,#introCoach :is(button,[role=button]):focus-visible,#world :is(button,[role=button],input,select):focus-visible,#d3 :is(button,[role=button],input,select,canvas):focus-visible,#mags :is(button,[role=button],input,a):focus-visible,#ref :is(button,[role=button],input,textarea,.refcard):focus-visible,#wiki :is(button,input,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(232,114,42,.16)}
+.launch :is(button,[role=button],input,select):focus-visible,#introCoach :is(button,[role=button]):focus-visible,#world :is(button,[role=button],input,select):focus-visible,#d3 :is(button,[role=button],input,select,canvas):focus-visible,#mags :is(button,[role=button],input,a):focus-visible,#ref :is(button,[role=button],input,textarea,.refcard):focus-visible,#wiki :is(button,input,a):focus-visible,#dash :is(button,[role=button],input,select,a):focus-visible,#build :is(button,[role=button],input,select,a):focus-visible,#perks :is(button,[role=button],input,select,a):focus-visible,#horde :is(button,[role=button],input,select,a):focus-visible,#squad :is(button,[role=button],input,select,a):focus-visible,#loot :is(button,[role=button],input,select,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(232,114,42,.16)}
 .launchbox,#world .card,#world .acc,#world .wi,#d3 .card,#d3 .mapwrap,#d3 .poiInfo,#mags .card,#mags .mag-section,#mags .mag-entry,#ref .card,#wiki .card,#introCoach{border-radius:var(--radius);border-color:var(--border);background:var(--surface);box-shadow:0 12px 30px rgba(0,0,0,.18)}
 #world .card,#d3 .card,#mags .card,#ref .card,#wiki .card{padding:16px}
 #world .card>h3,#d3 .card>h3,#mags .card>h3,#ref .card>h3,#wiki .card>h3{margin:-16px -16px 16px;padding:12px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(255,255,255,.025),transparent);font:700 11px/1.2 var(--mono);letter-spacing:.08em;color:var(--text);text-transform:uppercase}
@@ -545,7 +545,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 /* 3D map: search, chips, POI panel and fullscreen */
 #d3 .flight-deck{grid-template-columns:minmax(360px,1fr) minmax(240px,.54fr);gap:12px}#d3 .flight-status{justify-content:flex-start}#d3 .map-search{margin:10px 0 6px}#d3 .map-filter-label{margin:8px 0 4px;color:var(--text-muted);font:700 10px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase}
 #d3 .tierchip{min-height:30px;padding:6px 10px;border-color:var(--border);background:var(--surface-2);color:var(--text-muted);font:700 10px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;transition:opacity var(--motion),border-color var(--motion),background var(--motion),transform var(--motion)}#d3 .tierchip:hover{border-color:rgba(232,114,42,.48);color:var(--text);transform:translateY(-1px)}#d3 .tierchip.off{opacity:.36;filter:saturate(.4)}
-#d3 .poi-results{max-height:220px;border-radius:var(--radius);background:var(--control)}#d3 .poi-results:not(:empty){border:1px solid var(--border)}#d3 .poi-hit{width:100%;min-height:38px;padding:8px 10px;border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;color:inherit;text-align:left}#d3 .poi-hit:last-child{border-bottom:0}#d3 .poi-hit:hover{background:rgba(232,114,42,.07)}#d3 .poi-hit small{color:var(--locked);opacity:1;font:600 9px/1 var(--mono)}
+#d3 .poi-results{max-height:220px;border-radius:var(--radius);background:var(--control)}#d3 .poi-results:not(:empty){border:1px solid var(--border)}#d3 .poi-hit{width:100%;min-height:38px;padding:8px 10px;border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;color:inherit;text-align:left}#d3 .poi-hit:last-child{border-bottom:0}#d3 .poi-hit:hover{background:rgba(232,114,42,.07)}#d3 .poi-hit small{color:var(--locked);opacity:1;font:600 11px/1 var(--mono)}
 #d3 .mapwrap{border-color:rgba(232,114,42,.22);background:var(--bg)}#d3 .mapfsbtn{top:12px;right:12px;display:grid;place-items:center;width:38px;min-height:38px;padding:0;border-color:rgba(232,114,42,.38);border-radius:var(--radius);background:rgba(13,15,18,.9);color:var(--text);transition:background var(--motion),border-color var(--motion),color var(--motion),transform var(--motion)}#d3 .mapfsbtn:hover{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);transform:translateY(-1px)}
 #d3 .poiInfo{width:330px;padding:16px;border-color:rgba(232,114,42,.3);background:linear-gradient(155deg,var(--surface-2),var(--surface));box-shadow:0 18px 44px rgba(0,0,0,.42)}#d3 .poiInfo img,#d3 .poiInfo .pi-noimg{border-radius:var(--radius);border-color:var(--border)}#d3 .poiInfo h4{font-size:18px}#d3 .poiInfo .pi-sub{color:var(--text-muted)}#d3 .pi-details{margin-top:12px;border-top:1px solid var(--border)}#d3 .poiInfo .pi-kv{padding:8px 0;border-color:var(--border)}#d3 .poiInfo .pi-kv span{color:var(--text-muted)}#d3 .poiInfo .pi-close{top:10px;right:10px;display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--border);border-radius:50%;background:rgba(13,15,18,.88)}
 #d3 .flight-status.fs-overlay{top:12px;left:12px;width:340px;max-width:min(46vw,340px);padding:16px;border-color:rgba(232,114,42,.28);background:rgba(13,15,18,.94)}
@@ -585,7 +585,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .mag-arrow{color:var(--text-muted)}
 .qlegend .qk{display:inline-block;font:600 9.5px/1 var(--mono);padding:3px 7px;border-radius:5px;margin:0 1px;vertical-align:middle}
 .qlegend .qk.on{background:rgba(92,196,122,.16);color:#5cc47a}.qlegend .qk.cur{background:rgba(245,183,60,.16);color:var(--acc2)}.qlegend .qk.off{background:rgba(255,255,255,.05);color:var(--text-muted)}
-#mags .import-notice{display:flex;align-items:center;gap:10px;margin-top:10px}#mags .import-notice::before{content:"LOAD";flex:none;padding:4px 7px;border:1px solid rgba(79,180,119,.36);border-radius:999px;color:var(--ok);font:700 9px/1 var(--mono);letter-spacing:.08em}
+#mags .import-notice{display:flex;align-items:center;gap:10px;margin-top:10px}#mags .import-notice::before{content:"LOAD";flex:none;padding:4px 7px;border:1px solid rgba(79,180,119,.36);border-radius:999px;color:var(--ok);font:700 11px/1 var(--mono);letter-spacing:.08em}
 
 /* Reference primer, import badge and animated field-manual accordion */
 #ref .ref-import-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 14px;border:1px solid rgba(79,180,119,.24);border-radius:var(--radius);background:rgba(79,180,119,.045)}#ref .ref-import-copy{color:var(--text-muted);font-size:12px}#ref .ref-import-copy b{color:var(--text)}
@@ -610,7 +610,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .gs-results{max-height:54vh;overflow:auto}
 .gs-hit{display:flex;align-items:center;gap:11px;padding:10px 15px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03)}
 .gs-hit:hover,.gs-hit.gs-on{background:rgba(239,122,53,.12)}
-.gs-cat{font:600 9px var(--mono);letter-spacing:1px;text-transform:uppercase;color:#0c0b09;background:var(--acc2);border-radius:3px;padding:3px 6px;flex:none;min-width:66px;text-align:center}
+.gs-cat{font:600 11px var(--mono);letter-spacing:1px;text-transform:uppercase;color:#0c0b09;background:var(--acc2);border-radius:3px;padding:3px 6px;flex:none;min-width:66px;text-align:center}
 .gs-cat.c-poi{background:#5aa6ff}.gs-cat.c-perk{background:#5cc47a}.gs-cat.c-mag{background:#f5b73c}.gs-cat.c-build{background:#ef7a35}.gs-cat.c-set{background:#d83b32;color:#fff}.gs-cat.c-ref{background:#cfc7b6;color:#111}.gs-cat.c-tab{background:#6f6a5c;color:#fff}
 .gs-txt{flex:1;min-width:0}.gs-txt b{display:block;font-size:14px;color:var(--text)}.gs-txt span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gs-empty{padding:22px 15px;color:var(--muted);font-size:13px;text-align:center}
@@ -639,7 +639,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
     <div class="launchfeat"><span>Live saves</span><span>World editor</span><span>3D map</span><span>Build planner</span><span>Squad board</span><span>Magazine tracking</span></div>
     <button class="btn launchbtn" id="scanbtn">Scan Worlds &amp; Survivors</button>
     <button class="srclink" id="srcbtn">Playing on a server? Connect over SFTP / FTP, or use a custom folder ›</button>
-    <div class="launchstatus" id="launchstatus">100% local · offline · no cloud · one self-contained EXE</div>
+    <div class="launchstatus" id="launchstatus">Runs locally · no telemetry · one self-contained EXE — only the optional Wiki search needs internet</div>
     <div class="launch-privacy">Scanning only <b>reads</b> your local saves to show your worlds, character and settings. Nothing is written to your game until you explicitly press <b>Write to World</b> in the World tab — and that always makes a backup first. The local server is locked to this machine and rejects requests from other websites, so nothing on the web can read or change your saves.</div>
   </div>
 </div>
@@ -669,7 +669,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <div id="mags" class="sec"></div>
 <div id="ref" class="sec"></div>
 <div id="wiki" class="sec"></div>
-<div class="foot">All data <b>stored locally</b> · <b>offline</b> · no cloud · ⇅ exports or imports your progress</div>
+<div class="foot">All data <b>stored locally</b> · no cloud · the optional Wiki search fetches fandom.com · ⇅ exports or imports your progress</div>
 </div>
 <script>
 function lg(k){try{return localStorage.getItem(k);}catch(e){return null;}}
@@ -800,7 +800,7 @@ var SANDORDER=["RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","Heads
 var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XP Only","Injured","Permadeath"]},"DropOnDeath":{"d":["Nothing","Everything","Toolbelt","Backpack","Delete Everything"]},"DropOnQuit":{"d":["Nothing","Everything","Toolbelt","Backpack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Off","Day","Night","All"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morning","Evening"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unlimited"]}};
 var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["perks","Perks"],["horde","Horde"],["squad","Squad"],["loot","Loot"],["mags","Magazines"],["ref","Reference"],["wiki","Wiki"]];
 function loadState(){var raw=lg("7dtd-companion");if(!raw)return {};try{return JSON.parse(raw)||{};}catch(e){try{ls("7dtd-companion.bak",raw);}catch(_){}return {};}}
-function normalizeState(s){s=(s&&typeof s==="object")?s:{};var d={tab:"world",day:1,cur:"sledge",freq:10,builds:{},mag:{},ready:{},col:{},notes:"",lvl:22,ppl:2,biome:"Forest",ll:0,world:null};s=Object.assign({},d,s);if(!BUILDS[s.cur])s.cur="sledge";if(!BIOMES[s.biome])s.biome="Forest";["builds","mag","ready","col"].forEach(function(k){if(typeof s[k]!=="object"||!s[k])s[k]={};});if(typeof s.day!=="number"||s.day<1)s.day=1;if(typeof s.lvl!=="number"||s.lvl<1)s.lvl=22;return s;}
+function normalizeState(s){s=(s&&typeof s==="object")?s:{};var d={tab:"world",day:1,cur:"sledge",freq:7,builds:{},mag:{},ready:{},col:{},notes:"",lvl:1,biome:"Forest",ll:0,world:null};s=Object.assign({},d,s);if(!BUILDS[s.cur])s.cur="sledge";if(!BIOMES[s.biome])s.biome="Forest";["builds","mag","ready","col"].forEach(function(k){if(typeof s[k]!=="object"||!s[k])s[k]={};});if(typeof s.day!=="number"||s.day<1)s.day=1;if(typeof s.lvl!=="number"||s.lvl<1)s.lvl=1;s.importMsg=null;s.setMsg=null;return s;}
 var S=normalizeState(loadState());
 var W={tree:null,curSave:null,maps:{},mapImg:null,roadImg:null,waterImg:null,view:null,sel:null,mapKey:null,scanned:false};
 var W3={dead:true,gl:null,raf:0};
@@ -874,9 +874,9 @@ function showRenderError(e){
  var b=document.getElementById("stReset");if(b)b.onclick=function(){try{ls("7dtd-companion.bak",lg("7dtd-companion")||"");}catch(_){}try{localStorage.removeItem("7dtd-companion");}catch(_){}location.reload();};
 }
 // ---- calc ----
-function bm(){var f=S.freq||10;var next=S.day%f===0?S.day:Math.ceil(S.day/f)*f;return {next:next,until:next-S.day,today:S.day%f===0&&S.day>0};}
+function bm(){var f=S.freq;if(f===0||f===null){return {off:true};}f=(typeof f==="number"&&f>0)?f:7;var next=S.day%f===0?S.day:Math.ceil(S.day/f)*f;return {next:next,until:next-S.day,today:S.day%f===0&&S.day>0};}
 function ringSVG(pct,col,size){size=size||90;var r=(size/2)-6;var c=2*Math.PI*r;return '<svg width="'+size+'" height="'+size+'"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+(c-c*pct/100)+'"/></svg>';}
-function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var gi=0,n=0,t=0;buildAtomicSteps(S.cur).forEach(function(){gi++;t++;if(b.chk["c"+gi])n++;});(b.ext||[]).forEach(function(nm){t++;if(b.chk["x"+nm])n++;});pickRankEntries(b).forEach(function(e){if(e.attrStep&&e.start)return;t++;if(b.chk[pickRowId(e)])n++;});return t?Math.round(n/t*100):0;}
+function buildPct(){var b=S.builds[S.cur]||{chk:{},ext:[]};var n=0,t=0;buildAtomicSteps(S.cur).forEach(function(s){t++;if(b.chk[s.id])n++;});(b.ext||[]).forEach(function(nm){t++;if(b.chk["x"+nm])n++;});pickRankEntries(b).forEach(function(e){if(e.attrStep&&e.start)return;t++;if(b.chk[pickRowId(e)])n++;});return t?Math.round(n/t*100):0;}
 function readyScore(){var got=0,max=0;READY.forEach(function(r,i){max+=r[2];if(S.ready[i])got+=r[2];});var p=max?Math.round(got/max*100):0;var g=p>=90?"A":p>=75?"B":p>=55?"C":p>=35?"D":"F";return {p:p,g:g};}
 function gamestage(){var L=S.lvl||1,d=S.day||1;var adj=Math.min(d,L);return Math.floor((L+adj)*1.2);}
 function lootstage(){var L=S.lvl||1;var bm2=BIOMES[S.biome]||1;return Math.floor(L*bm2*(1+(S.ll||0)/100));}
@@ -902,7 +902,7 @@ function buildToMarkdown(bid){var b=BUILDS[bid];if(!b)return"";var atomic=buildA
 // ---- DASHBOARD ----
 function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
  var bmc=(function(v){var n=parseInt(v,10);return n>0?n:64;})(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)));
- var ban=b.today?'<div class="banner danger">BLOOD MOON TONIGHT — '+bmc+' enemies. Hold the funnel.</div>':b.until===1?'<div class="banner warn">Blood Moon tomorrow — finish every preparation today.</div>':'<div class="banner safe">No Blood Moon tonight. '+b.until+' days remain for looting, building and leveling.</div>';
+ var ban=b.off?'<div class="banner safe">Blood Moon disabled in this world — no horde nights scheduled.</div>':b.today?'<div class="banner danger">BLOOD MOON TONIGHT — '+bmc+' enemies. Hold the funnel.</div>':b.until===1?'<div class="banner warn">Blood Moon tomorrow — finish every preparation today.</div>':'<div class="banner safe">No Blood Moon tonight. '+b.until+' days remain for looting, building and leveling.</div>';
  var ip=S.importedPlayer, world=S.world, loaded=!!world;
  var bp=buildPct(),systems=(loaded?25:0)+(ip?25:0)+(RD?25:0)+(bp>0?25:0);
  function pill(ok,txt){return '<span class="statpill '+(ok?"ok":"no")+'">'+(ok?"✓ ":"— ")+esc(txt)+'</span>';}
@@ -955,11 +955,10 @@ function rBuild(){var st=bstate();
   (BUILDS[S.cur].rationale?'<div class="card" style="margin-top:12px"><div class="ops-code">DOCTRINE / WIN-CONDITION</div><p style="margin:8px 0 0;color:var(--text-soft);line-height:1.6;font-size:13.5px">'+esc(BUILDS[S.cur].rationale)+'</p></div>':'')+
   '<div class="module-title">Perk Selection <span>TICK A PERK TO SLOT IT INTO THE ROUTE</span></div>'+perkCatalogHTML(st,'select')+
   '<div class="module-title">Doctrine Phases <span>CLICK A PHASE TO COLLAPSE</span></div>';
- var gi=0;
  var atomic=buildAtomicSteps(S.cur);
  var rankEntries=pickRankEntries(st);
  BUILDS[S.cur].phases.forEach(function(ph,pi){var body="",d=0,t=0;
-  atomic.filter(function(s){return s.phase===pi;}).forEach(function(s){gi++;var id="c"+gi;var on=!!st.chk[id];t++;if(on)d++;
+  atomic.filter(function(s){return s.phase===pi;}).forEach(function(s){var id=s.id;var on=!!st.chk[id];t++;if(on)d++;
    body+=rowHTML(id,s.name,attrStepDesc(s.name,s.desc),s.prio,on);});
   st.ext.forEach(function(nm){if(EXTRA_PHASE[nm]!==pi)return;var id="x"+nm,e=EXTRAS.filter(function(x){return x[0]===nm;})[0]||[nm,"",""];var on=!!st.chk[id];t++;if(on)d++;body+=rowHTML(id,nm,e[1]+" · "+e[2],0,on);});
   // Selected perks + their attribute raise-steps render as normal route rows (same style as native steps), sorted by gate so each raise-step sits right before the rank it unlocks.
@@ -1066,7 +1065,14 @@ function expandStep(name,desc,attrState){
 }
 // Every atomic step of a build with its phase index — the single source of truth shared by render, import auto-check and progress %, so their checkbox ids stay aligned.
 function buildAtomicSteps(bid){var out=[],attrState={},B=BUILDS[bid];if(!B)return out;
- B.phases.forEach(function(ph,pi){ph[4].forEach(function(it){expandStep(it[0],it[1],attrState).forEach(function(s){out.push({phase:pi,name:s[0],desc:s[1],prio:it[2]});});});});
+ // L1: each step carries a STABLE checkbox id (phase + slugged name + dedupe), not a
+ // running ordinal — so reordering a BUILDS route between releases can't remap an old
+ // saved tick onto a different perk. Render, import auto-check and progress % all read s.id.
+ var seen={};
+ B.phases.forEach(function(ph,pi){ph[4].forEach(function(it){expandStep(it[0],it[1],attrState).forEach(function(s){
+  var slug=("c_"+pi+"_"+String(s[0]).toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,""));
+  var k=slug,c=seen[slug]||0;if(c)k=slug+"_"+c;seen[slug]=c+1; // disambiguate any duplicate phase+name
+  out.push({phase:pi,name:s[0],desc:s[1],prio:it[2],id:k});});});});
  return out;}
 function pickRankEntries(st){
  var caps=buildAttrCaps(S.cur),pc=BUILDS[S.cur].phases.length,out=[],need={};
@@ -1195,7 +1201,7 @@ function markNext(sec){var rows=document.querySelectorAll("#"+sec+" .row");for(v
 // ---- HORDE ----
 function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  var bmc=(function(v){var n=parseInt(v,10);return n>0?n:64;})(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)));
- var ban=b.today?'<div class="banner danger">BLOOD MOON TONIGHT &middot; '+bmc+' enemies inbound &middot; final checks only</div>':'<div class="banner '+(b.until<=1?"warn":"safe")+'">'+b.until+' days until Blood Moon on day '+b.next+' &middot; '+bmc+' enemies configured</div>';
+ var ban=b.off?'<div class="banner safe">Blood Moon disabled in this world &middot; no horde nights scheduled</div>':b.today?'<div class="banner danger">BLOOD MOON TONIGHT &middot; '+bmc+' enemies inbound &middot; final checks only</div>':'<div class="banner '+(b.until<=1?"warn":"safe")+'">'+b.until+' days until Blood Moon on day '+b.next+' &middot; '+bmc+' enemies configured</div>';
  var status=rs.p>=90?"COMBAT READY":rs.p>=75?"FINAL CHECKS":rs.p>=55?"PREPARATION ACTIVE":rs.p>=35?"EXPOSED":"NOT READY";
  var ringCol=rs.p>=75?"#75b47e":rs.p>=45?"#ef9b45":"#d84a3f";
  var prepNotes=[
@@ -1283,7 +1289,7 @@ function memberGS(L){L=L||1;return Math.floor((L+Math.min(S.day||1,L))*1.2);}
 function partyGS(){var gs=(S.squad||[]).map(function(m){return memberGS(m.level);}).sort(function(a,b){return b-a;});var p=0;gs.forEach(function(g,i){p+=g*Math.pow(0.5,i);});return Math.round(p);}
 function rSquad(){
  if(!Array.isArray(S.squad)||!S.squad.length){var ip=S.importedPlayer;S.squad=[{name:ip?ip.name:"You",level:ip?ip.level:(S.lvl||1),build:(BUILDS[S.cur]?S.cur:"sledge")}];}
- var bopts=Object.keys(BUILDS).map(function(k){return '<option value="'+k+'">'+esc(BUILDS[k].name)+'</option>';}).join("");
+ S.squad.forEach(function(m){if(!BUILDS[m.build])m.build="sledge";}); // M1: normalize unknown/legacy build keys once so roles, weapon/role spans and the <select> all agree
  var roles={Anchor:0,Ranged:0,Flanker:0,Support:0};
  S.squad.forEach(function(m){var r=SQUAD_ROLE[m.build];if(r)roles[r]++;});
  var gaps=[];
@@ -1293,13 +1299,16 @@ function rSquad(){
  Object.keys(roles).forEach(function(r){if(roles[r]>=3)gaps.push(roles[r]+"× <b>"+r+"</b> — heavy overlap; spread the roles for full coverage.");});
  var pgs=partyGS(),solo=memberGS((S.importedPlayer&&S.importedPlayer.level)||S.lvl||1),bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
  var flankNote=roles.Flanker?"":'<div class="banner" style="opacity:.85">Tip: no <b>Flanker</b> — no mobile scout/roamer for the 500m PvP kill range. Optional for horde survival, but this world is 8P Kill-Everyone.</div>';
- var members=S.squad.map(function(m,i){var sel=bopts.replace('value="'+m.build+'"','value="'+m.build+'" selected');
+ var members=S.squad.map(function(m,i){
+   var bk=(BUILDS[m.build]?m.build:"sledge"); // normalize unknown/legacy build to a valid key so select + weapon/role stay consistent (M1)
+   if(m.build!==bk)m.build=bk;
+   var sel=Object.keys(BUILDS).map(function(k){return '<option value="'+k+'"'+(k===bk?' selected':'')+'>'+esc(BUILDS[k].name)+'</option>';}).join("");
    return '<div class="squad-row" data-si="'+i+'"><div class="squad-slot">P'+(i+1)+'</div>'+
    '<input class="squad-name" data-sf="name" value="'+esc(m.name||"")+'" placeholder="Player name" aria-label="Player name">'+
    '<input class="squad-lvl" data-sf="level" type="number" min="1" max="300" value="'+(m.level||1)+'" aria-label="Level" title="Level">'+
    '<select class="squad-build" data-sf="build" aria-label="Build">'+sel+'</select>'+
-   '<span class="squad-wpn" title="Main weapon">'+esc((SQUAD_WEAPON[m.build]||["—"])[0])+'</span>'+
-   '<span class="squad-role role-'+(SQUAD_ROLE[m.build]||"x")+'">'+(SQUAD_ROLE[m.build]||"—")+'</span>'+
+   '<span class="squad-wpn" title="Main weapon">'+esc((SQUAD_WEAPON[bk]||["—"])[0])+'</span>'+
+   '<span class="squad-role role-'+(SQUAD_ROLE[bk]||"x")+'">'+(SQUAD_ROLE[bk]||"—")+'</span>'+
    '<button class="squad-del" data-sdel="'+i+'" title="Remove player" aria-label="Remove">✕</button></div>';
  }).join("");
  var ammoMap={},meleeCount=0;
@@ -1603,7 +1612,7 @@ function normalizeScan(data){
   Object.keys(data.maps||{}).forEach(function(w){
     var m=data.maps[w];
     m.img=urlOk(m.img)?m.img:"";m.roads=urlOk(m.roads)?m.roads:null;m.water=urlOk(m.water)?m.water:null;
-    if(m.hm&&!(typeof m.hm.n==="number"&&m.hm.n>0&&m.hm.n<=512))m.hm=null;
+    if(m.hm&&!(typeof m.hm.n==="number"&&m.hm.n>0&&m.hm.n<=256))m.hm=null; // M2: 3D index buffer is Uint16; n>256 overflows 65535 → corrupt mesh. Local scan uses n=256.
     if(m.watermask&&!(typeof m.watermask.n==="number"&&m.watermask.n>0&&m.watermask.n<=4096))m.watermask=null;
     m.pois=(m.pois||[]).map(function(p){
       return [String(p.name==null?"":p.name),num(p.x),num(p.z),num(p.tier),num(p.rotation),num(p.width),num(p.depth),num(p.height),urlOk(p.thumbnail)?p.thumbnail:"",num(p.y),num(p.zombies),p.quests,p.theme,p.ingame||""];
@@ -1684,6 +1693,15 @@ async function scanNow(){
     var res=await fetch("/api/scan",{cache:"no-store"}),data=await res.json();
     if(!res.ok)throw new Error(data.error||("HTTP "+res.status));
     data=normalizeScan(data);W.tree=data.saves||[];W.maps=data.maps||{};W.scanned=true;W.curSave=null;
+    // M11: a previously-imported share world is session-only (held in the EXE's memory). If the
+    // EXE was restarted, this scan returns local saves instead — tell the user plainly rather than
+    // silently dropping the shared world. (No fake persistence; they must re-import the bundle.)
+    if(S.shareImport){
+     var hadShare=(W.tree||[]).some(function(s){return s.world===S.shareImport.world;});
+     if(!hadShare){var sw=S.shareImport.world;S.shareImport=null;save();
+      var gm=document.getElementById("launchstatus");if(gm)gm.innerHTML='⚠ Imported world “'+esc(sw)+'” is session-only — re-import the bundle (Data source → Import) to view it again.';}
+     else{S.shareImport=null;save();}
+    }
     renderWorldGate();
   }catch(e){status.textContent="Scan failed: "+e.message;btn.disabled=false;}
 }
@@ -1708,7 +1726,7 @@ function openSourcePanel(){
    '<div class="src-card"><h3>Custom / network folder</h3><p>Any folder or UNC share that contains <code>Saves</code> + <code>GeneratedWorlds</code>.</p><input id="srcPath" class="srcin" placeholder="C:\\path\\to\\7DaysToDie   or   \\\\host\\share\\7DaysToDie"><button class="btn" id="srcFolder">Use this folder</button></div>'+
    '<div class="src-card src-remote"><h3>Dedicated server (SFTP / FTPS / FTP)</h3><p>Read your save while playing on a server. The password stays in memory for this session — it is never written to disk.</p>'+
     '<div id="srcRecent"></div>'+
-    '<div class="srcrow"><select id="srcProto" class="srcin"><option value="sftp">SFTP (default port 2022)</option><option value="ftps">FTPS — FTP over TLS (port 21)</option><option value="ftp">FTP — plain (port 21)</option></select><input id="srcPort" class="srcin srcsm" placeholder="port"></div>'+
+    '<div class="srcrow"><select id="srcProto" class="srcin"><option value="sftp">SFTP (default port 22)</option><option value="ftps">FTPS — FTP over TLS (port 21)</option><option value="ftp">FTP — plain (port 21)</option></select><input id="srcPort" class="srcin srcsm" placeholder="port"></div>'+
     '<input id="srcHost" class="srcin" placeholder="host  (e.g. 12.34.56.78  or  my.server.com)">'+
     '<div class="srcrow"><input id="srcUser" class="srcin" placeholder="username"><input id="srcPass" type="password" class="srcin" placeholder="password"></div>'+
     '<input id="srcBase" class="srcin" placeholder="remote 7DaysToDie folder  (e.g.  /  or  /home/7dtd  or  .)">'+
@@ -1729,9 +1747,9 @@ function openSourcePanel(){
  function renderRecent(){var box=$("srcRecent");if(!box)return;var L=S.srvList||[];if(!L.length){box.innerHTML="";return;}var h='<div class="srcrecent-lbl">Recent servers</div><div class="srcrecent-row">';L.forEach(function(e,i){h+='<span class="srcchip" data-i="'+i+'" title="'+esc((e.proto||"")+"://"+(e.user?e.user+"@":"")+(e.host||"")+(e.base?" "+e.base:""))+'">'+esc((e.proto||"sftp").toUpperCase())+" · "+esc((e.user?e.user+"@":"")+(e.host||"?"))+'<b class="srcchip-x" data-x="'+i+'" title="Remove">×</b></span>';});h+="</div>";box.innerHTML=h;box.querySelectorAll(".srcchip").forEach(function(c){c.onclick=function(ev){if(ev.target&&ev.target.classList.contains("srcchip-x")){S.srvList.splice(+ev.target.dataset.x,1);save();renderRecent();return;}fillSrv(S.srvList[+c.dataset.i]);};});}
  $("srcProto").onchange=function(){if(!$("srcPort").value)$("srcPort").placeholder=($("srcProto").value==="sftp"?"2022":"21");};
  $("srcBack").onclick=function(){location.reload();};
- var sf=$("srcShareFile");if(sf)sf.onchange=function(){var file=sf.files&&sf.files[0];if(!file)return;var msg=$("srcShareMsg");msg.className="srcmsg";msg.textContent="Loading "+file.name+" …";var fr=new FileReader();fr.onload=function(){fetch("/api/share/import",{method:"POST",headers:{"Content-Type":"application/json"},body:fr.result}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));return j;});}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){msg.className="srcmsg err";msg.textContent=e.message;});};fr.onerror=function(){msg.className="srcmsg err";msg.textContent="Could not read file";};fr.readAsText(file);};
- $("srcLocal").onclick=function(){var b=$("srcLocal");b.disabled=true;srcPost("/api/source/reset",{}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){b.disabled=false;alert(e.message);});};
- $("srcFolder").onclick=function(){var p=$("srcPath").value.trim();if(!p){return;}var b=$("srcFolder");b.disabled=true;srcPost("/api/source/local",{path:p}).then(function(d){applySourceScan(d);renderWorldGate();}).catch(function(e){b.disabled=false;setMsg("Folder: "+e.message,true);});};
+ var sf=$("srcShareFile");if(sf)sf.onchange=function(){var file=sf.files&&sf.files[0];if(!file)return;var msg=$("srcShareMsg");msg.className="srcmsg";msg.textContent="Loading "+file.name+" …";var fr=new FileReader();fr.onload=function(){fetch("/api/share/import",{method:"POST",headers:{"Content-Type":"application/json"},body:fr.result}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));return j;});}).then(function(d){applySourceScan(d);S.shareImport={world:(d&&d.saves&&d.saves[0]&&d.saves[0].world)||"the shared world"};save();renderWorldGate();}).catch(function(e){msg.className="srcmsg err";msg.textContent=e.message;});};fr.onerror=function(){msg.className="srcmsg err";msg.textContent="Could not read file";};fr.readAsText(file);};
+ $("srcLocal").onclick=function(){var b=$("srcLocal");b.disabled=true;srcPost("/api/source/reset",{}).then(function(d){applySourceScan(d);S.shareImport=null;save();renderWorldGate();}).catch(function(e){b.disabled=false;alert(e.message);});};
+ $("srcFolder").onclick=function(){var p=$("srcPath").value.trim();if(!p){return;}var b=$("srcFolder");b.disabled=true;srcPost("/api/source/local",{path:p}).then(function(d){applySourceScan(d);S.shareImport=null;save();renderWorldGate();}).catch(function(e){b.disabled=false;setMsg("Folder: "+e.message,true);});};
  $("srcTest").onclick=function(){setMsg("Testing…");srcPost("/api/source/test",connObj()).then(function(d){setMsg("Connected. Base contains: "+((d.entries||[]).join(", ")||"(empty)"));}).catch(function(e){setMsg(e.message,true);});};
  $("srcConnect").onclick=function(){setMsg("Connecting…");$("srcPick").innerHTML="";srcPost("/api/source/remote-list",connObj()).then(function(d){rememberSrv();renderRemotePicks(d);}).catch(function(e){setMsg(e.message,true);});};
  function renderRemotePicks(d){
@@ -1740,7 +1758,7 @@ function openSourcePanel(){
   $("srcPick").querySelectorAll(".srcpick").forEach(function(b){b.onclick=function(){
    setMsg("Downloading "+b.dataset.w+" / "+b.dataset.s+" … (large worlds take a moment)");
    $("srcPick").querySelectorAll(".srcpick").forEach(function(x){x.disabled=true;});
-   srcPost("/api/source/remote-fetch",{world:b.dataset.w,save:b.dataset.s}).then(function(data){applySourceScan(data);renderWorldGate();}).catch(function(e){setMsg(e.message,true);$("srcPick").querySelectorAll(".srcpick").forEach(function(x){x.disabled=false;});});
+   srcPost("/api/source/remote-fetch",{world:b.dataset.w,save:b.dataset.s}).then(function(data){applySourceScan(data);S.shareImport=null;save();renderWorldGate();}).catch(function(e){setMsg(e.message,true);$("srcPick").querySelectorAll(".srcpick").forEach(function(x){x.disabled=false;});});
   };});
  }
 }
@@ -1809,8 +1827,8 @@ function applyImportedCharacter(pl,force){
   var st=bstate();
   if(!sameChar||(force&&!st.manual)){
     if(!sameChar)st.manual=false;
-    st.chk={};var gi=0;
-    buildAtomicSteps(S.cur).forEach(function(s){gi++;st.chk["c"+gi]=rowImportedDone(s.name,prog);});
+    st.chk={};
+    buildAtomicSteps(S.cur).forEach(function(s){st.chk[s.id]=rowImportedDone(s.name,prog);});
   }
   if(force||!sameChar){
     MAGS.forEach(function(m,i){S.mag[i]=m[5]==="book"?Math.min(m[1],bookCount(prog,m[4])):Math.min(m[1],progressionValue(prog,m[4]));});
@@ -2114,9 +2132,11 @@ function openSave(s){
 }
 function finishImport(pl){
  // Stay on the World tab after import; the dashboard remains an explicit action.
+ // Store STRUCTURED data only (never a baked HTML string): the render sink re-escapes
+ // every field, so a hand-crafted import can't smuggle markup into innerHTML (H3).
  S.importMsg = pl
-   ? ("<b>"+esc(pl.name||"Survivor")+"</b> · Level "+(pl.level||"?")+" imported. Detected build: <b>"+esc((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)+"</b>.")
-   : "World settings loaded without a survivor.";
+   ? {name:String(pl.name||"Survivor"),level:String(pl.level||"?"),build:String((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)}
+   : {plain:"World settings loaded without a survivor."};
  save();
  // On the 3D tab keep the live camera (just refresh the day counter) instead of a full re-render
  // that rebuilds the scene and resets pan/zoom/yaw/pitch — same camera-preservation LIVE uses.
@@ -2128,8 +2148,8 @@ function importWorld(s,pl){
  if(pl){pl.world=s.world;pl.save=s.save;} // tag the survivor with its save so charIdentity distinguishes different saves of the same Steam account
  if(!pl){S.importedPlayer=null;delete S.playerProgression;}
  S.world={world:s.world,save:s.save,version:v3?"3.0+ (Dead Hot Summer)":"≤2.6 (Legacy)",preset:st.SandboxPreset||"",player:pl?pl.name:"",steam:pl?pl.steam:"",login:pl?pl.login:"",settings:st};
- if(v3){var dc=decodeSandbox(st.SandboxCode);var bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;S.world.bmCount=parseInt(dc.BloodMoonEnemyCount,10)||null;}
- else{if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>0)S.freq=bf2;}S.world.bmCount=parseInt(st.BloodMoonEnemyCount,10)||null;}
+ if(v3){var dc=decodeSandbox(st.SandboxCode);var bf=parseInt(dc.BloodMoonFrequency,10);if(bf>=0)S.freq=bf;S.world.bmCount=parseInt(dc.BloodMoonEnemyCount,10)||null;}
+ else{if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>=0)S.freq=bf2;}S.world.bmCount=parseInt(st.BloodMoonEnemyCount,10)||null;}
  if(s.scanned){
   var sm=W.maps&&W.maps[s.world];
   if(sm){S.map=sm;S.map.player=(pl&&pl.pos)?{name:pl.name,x:+pl.pos.split(",")[0],z:+pl.pos.split(",")[2]}:null;}else S.map=null;
@@ -2205,7 +2225,7 @@ function rWorld(){
  } else {
   var s=W.curSave,st=s.settings||{},v3=("SandboxCode" in st);
   h+='<div class="back" data-back="list">Back to worlds</div>';
-  if(S.importMsg)h+='<div class="banner safe">'+S.importMsg+' <span data-go="dash" style="margin-left:8px;text-decoration:underline;cursor:pointer;color:var(--acc2)">Open Dashboard</span></div>';
+  if(S.importMsg&&typeof S.importMsg==="object"){var im=S.importMsg,imHtml=im.plain?esc(String(im.plain)):('<b>'+esc(String(im.name||"Survivor"))+'</b> · Level '+esc(String(im.level||"?"))+' imported. Detected build: <b>'+esc(String(im.build||""))+'</b>.');h+='<div class="banner safe">'+imHtml+' <span data-go="dash" style="margin-left:8px;text-decoration:underline;cursor:pointer;color:var(--acc2)">Open Dashboard</span></div>';}
   var pls=s.pl||[];
   h+='<div class="ops-strip">'+
    opsLead("SAVE / SELECTED",100,v3?"3.0":"2.6",esc(s.world),esc(s.save)+(st.SandboxPreset?" · "+esc(st.SandboxPreset):""),v3?"#ed762e":"#62a5c7")+
@@ -2467,6 +2487,7 @@ function ensureMapAnalysis(cb){
  // vanishes (the documented premultiply trap). The watermask sidesteps that.
  var wm=S.map.watermask;
  if(wm&&wm.d&&wm.n){try{var wd=b64ToU8(wm.d),WN=wm.n,wgr=new Uint8Array(BG*BG),pool=Math.max(1,Math.floor(WN/BG/2));
+  if(WN*WN!==wd.length){W3.waterGrid=null;throw new Error("watermask size mismatch");} // H6 client guard: don't index past short data
   for(var gy=0;gy<BG;gy++)for(var gx=0;gx<BG;gx++){var sx=Math.floor((gx+0.5)/BG*WN),sy=Math.floor((gy+0.5)/BG*WN),on=0;for(var oy=-pool;oy<=pool&&!on;oy++)for(var ox=-pool;ox<=pool&&!on;ox++){var x=sx+ox,y=sy+oy;if(x<0||x>=WN||y<0||y>=WN)continue;if(wd[y*WN+x]>10)on=1;}wgr[gy*BG+gx]=on;}
   W3.waterGrid=wgr;}catch(e){W3.waterGrid=null;}}
  gridFromImage(S.map.img,BG,function(biomeData){W3.biomeGrid=null;W3.biomeCnt=null;
@@ -2714,7 +2735,7 @@ function gsMove(d){var res=document.getElementById("gsresults");if(!GS_HITS.leng
 (function(){var gb=document.getElementById("gsbtn");if(gb){gb.onclick=openGlobalSearch;gb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();openGlobalSearch();}}}
  var gi=document.getElementById("gsinput");if(gi){var _gsDeb=null;gi.oninput=function(){var v=this.value;clearTimeout(_gsDeb);_gsDeb=setTimeout(function(){renderGS(v);},110);};gi.onkeydown=function(e){if(e.key==="ArrowDown"){e.preventDefault();gsMove(1);}else if(e.key==="ArrowUp"){e.preventDefault();gsMove(-1);}else if(e.key==="Enter"){e.preventDefault();gsRun(GS_SEL);}else if(e.key==="Escape"){closeGlobalSearch();}};}
  var ov=document.getElementById("gsoverlay");if(ov)ov.onclick=function(e){if(e.target===ov)closeGlobalSearch();};
- document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&(e.key==="k"||e.key==="K")){e.preventDefault();gsToggle();}else if(e.key==="Escape"){var o=document.getElementById("gsoverlay");if(o&&o.style.display==="flex")closeGlobalSearch();}});})();
+ document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&(e.key==="k"||e.key==="K")){var t=e.target,tag=(t&&t.tagName)||"";if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||(t&&t.isContentEditable))return;e.preventDefault();gsToggle();}else if(e.key==="Escape"){var o=document.getElementById("gsoverlay");if(o&&o.style.display==="flex")closeGlobalSearch();}});})();
 /* ===== Blood Moon desktop notifications ===== */
 function renderNotifyBtn(){var b=document.getElementById("notifybtn");if(b)b.classList.toggle("notify-on",!!S.notify&&("Notification"in window)&&Notification.permission==="granted");}
 function toggleNotify(){
@@ -2732,21 +2753,24 @@ function checkBloodMoonNotify(force){
 }
 (function(){var nb=document.getElementById("notifybtn");if(nb){nb.onclick=toggleNotify;nb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleNotify();}}}renderNotifyBtn();setInterval(function(){checkBloodMoonNotify(false);},60000);setTimeout(function(){checkBloodMoonNotify(false);},2500);})();
 /* ===== Live auto-refresh from save (polls the lightweight /api/refresh) ===== */
-var AUTO_REFRESH_MS=10000,_autoTimer=null;
+var AUTO_REFRESH_MS=10000,_autoTimer=null,_arInFlight=false;
 function renderLiveBtn(){var b=document.getElementById("livebtn");if(b)b.classList.toggle("live-on",!!S.autoRefresh);}
 // Apply a freshly-read save WITHOUT rebuilding the map/3D view (so a 10s poll never resets the camera).
 function autoApplyRefresh(cur,pl){
  var st=cur.settings||{},v3=("SandboxCode" in st);
  if(typeof cur.day==="number"&&cur.day>=1)S.day=cur.day;
  if(pl){pl.world=cur.world;pl.save=cur.save;}
- if(v3){try{var dc=decodeSandbox(st.SandboxCode),bf=parseInt(dc.BloodMoonFrequency,10);if(bf>0)S.freq=bf;var bc=parseInt(dc.BloodMoonEnemyCount,10);if(bc>0)S.world.bmCount=bc;}catch(e){}}
- else if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>0)S.freq=bf2;}
+ if(v3){try{var dc=decodeSandbox(st.SandboxCode),bf=parseInt(dc.BloodMoonFrequency,10);if(bf>=0)S.freq=bf;var bc=parseInt(dc.BloodMoonEnemyCount,10);if(bc>0)S.world.bmCount=bc;}catch(e){}}
+ else if("BloodMoonFrequency" in st){var bf2=parseInt(st.BloodMoonFrequency,10);if(bf2>=0)S.freq=bf2;}
  S.world.settings=st;
  if(pl)applyImportedCharacter(pl,true); else save(); // force=true: LIVE mirrors the save (days, level, magazines, build progress)
 }
 function autoRefreshTick(){
  if(!S.autoRefresh||!S.world)return;
+ if(_arInFlight)return; // M8: skip if the previous /api/refresh is still pending — no stacked, out-of-order ticks
+ _arInFlight=true;
  fetch("/api/refresh",{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+  _arInFlight=false;
   var saves=(d&&d.saves)||[];
   var cur=saves.filter(function(s){return s.world===S.world.world&&s.save===S.world.save;})[0];if(!cur)return;
   var pls=cur.pl||cur.players||[],sid=S.importedPlayer&&S.importedPlayer.steam;
@@ -2763,7 +2787,7 @@ function autoRefreshTick(){
   var _pendingSet=S.tab==="world"&&typeof EDIT!=="undefined"&&EDIT&&Object.keys(EDIT).length>0;
   if(changed&&S.tab!=="d3"&&!_typing&&!_pendingSet)show();
   checkBloodMoonNotify(false);
- }).catch(function(){/* game writing the file / transient — ignore, try again next tick */});
+ }).catch(function(){_arInFlight=false;/* game writing the file / transient — ignore, try again next tick */});
 }
 function setAutoRefresh(on){
  if(on&&!S.world){toast("Import a world + survivor first, then turn on Live.");return;}

@@ -336,6 +336,17 @@ fn handle(
         };
     }
     if request.method() == &Method::Post && path == "/api/share/import" {
+        // M9: require application/json (CSRF defense-in-depth), matching write/restore-settings.
+        if !req_header(&request, "Content-Type")
+            .map(|c| c.starts_with("application/json"))
+            .unwrap_or(false)
+        {
+            return respond_status_json(
+                request,
+                StatusCode(415),
+                &json!({"ok": false, "error": "Content-Type muss application/json sein"}),
+            );
+        }
         let body = match read_body_limited(&mut request) {
             Ok(b) => b,
             Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e})),
@@ -363,6 +374,9 @@ fn handle(
                 return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e}))
             }
         };
+        if serde_json::from_str::<serde_json::Value>(&body).is_err() {
+            return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Ungültiges JSON im Request-Body"}));
+        }
         // Resolve the read-only check AND the write root under ONE lock so a concurrent
         // /api/source/* swap can't slip between the guard and the path resolution (TOCTOU).
         let eff = {
@@ -403,6 +417,9 @@ fn handle(
                 return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e}))
             }
         };
+        if serde_json::from_str::<serde_json::Value>(&body).is_err() {
+            return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Ungültiges JSON im Request-Body"}));
+        }
         // One lock for the read-only check + write root (TOCTOU, see write-settings).
         let eff = {
             let s = match source.lock() {
@@ -770,6 +787,51 @@ fn serve_share_download(request: tiny_http::Request, bundle: &Value, world: &str
 /// Import a world-share bundle: write its textures into the cache, mark the source as
 /// a read-only "share", and serve the bundled scan directly (the cache has no raw saves
 /// to re-scan, so the scan route returns this cached copy while kind == "share").
+/// Cross-field validation of an imported scan's grid assets (H6, fail-closed).
+/// A share bundle is attacker-shaped JSON: `HeightMap.n`/`WaterMask.n` and their
+/// base64 `d` are independent fields, so a bundle can claim n=256 but ship 4 bytes.
+/// The client then indexes past the real data (reads 0s → silent wrong/blank terrain).
+/// Reject any map whose `n` is out of range or whose decoded length != n*n.
+fn validate_scan_maps(data: &ScanData) -> Result<(), String> {
+    // Heightmap is always produced at HEIGHTMAP_N (256). Watermask is produced at
+    // n=1536 (see scan()); allow headroom but keep allocation bounded.
+    const HM_MAX: usize = 256;
+    const WM_MAX: usize = 2048;
+    for (world, map) in &data.maps {
+        if let Some(hm) = &map.hm {
+            if hm.n == 0 || hm.n > HM_MAX {
+                return Err(format!("Heightmap-Größe ungültig für Welt '{world}' (n={})", hm.n));
+            }
+            let len = STANDARD
+                .decode(&hm.d)
+                .map_err(|_| format!("Heightmap-Daten unlesbar für Welt '{world}'"))?
+                .len();
+            if len != hm.n * hm.n {
+                return Err(format!(
+                    "Heightmap inkonsistent für Welt '{world}': n*n={} aber {len} Bytes",
+                    hm.n * hm.n
+                ));
+            }
+        }
+        if let Some(wm) = &map.water_mask {
+            if wm.n == 0 || wm.n > WM_MAX {
+                return Err(format!("Watermask-Größe ungültig für Welt '{world}' (n={})", wm.n));
+            }
+            let len = STANDARD
+                .decode(&wm.d)
+                .map_err(|_| format!("Watermask-Daten unlesbar für Welt '{world}'"))?
+                .len();
+            if len != wm.n * wm.n {
+                return Err(format!(
+                    "Watermask inkonsistent für Welt '{world}': n*n={} aber {len} Bytes",
+                    wm.n * wm.n
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 fn import_share(
     request: tiny_http::Request,
     cache: &Arc<Mutex<Option<ScanData>>>,
@@ -787,6 +849,10 @@ fn import_share(
         Ok(d) => d,
         Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": format!("Scan-Daten unlesbar: {e}")})),
     };
+    // H6: fail-closed cross-field validation of grid assets before any side effects.
+    if let Err(e) = validate_scan_maps(&data) {
+        return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e}));
+    }
     let cdir = remote_cache_dir();
     let _ = fs::remove_dir_all(&cdir);
     if let Err(e) = fs::create_dir_all(&cdir) {
@@ -1207,8 +1273,14 @@ fn parse_level(meta: &Path) -> i32 {
 
 fn parse_ttp_progression(path: &Path) -> BTreeMap<String, i32> {
     let bytes = fs::read(path).unwrap_or_default();
+    // M10 DoS cap: a real .ttp progression file is a few KB. A hostile remote source
+    // (SFTP/FTP/SMB) can serve up to MAX_FILE (2 GiB) of mostly-0x03 bytes; without a
+    // bound the 0x03 scan below would iterate billions of times and pin a scan worker.
+    // Cap the scanned region well above any legitimate file and ignore the rest.
+    const TTP_SCAN_CAP: usize = 16 * 1024 * 1024;
+    let scan_end = bytes.len().min(TTP_SCAN_CAP).saturating_sub(16);
     let mut hits: Vec<(usize, BTreeMap<String, i32>)> = Vec::new();
-    for start in 4..bytes.len().saturating_sub(16) {
+    for start in 4..scan_end {
         if bytes[start] != 3 {
             continue;
         }
@@ -1835,9 +1907,12 @@ fn parse_sdf_entries(bytes: &[u8]) -> Result<Vec<SdfEntry>, String> {
 
 /// Length prefix layout mirrors the game's: u16 little-endian (low, high) followed
 /// by a redundant copy of the low byte — the parser reads the u16 and skips byte 3.
-/// Only the low 16 bits are used, so a single field >= 65536 bytes would truncate;
-/// in practice keys and the base64 SandboxCode are far below that. The write_settings
-/// round-trip guard (serialize == original) fails closed if this ever mis-encodes.
+/// Only the low 16 bits fit, so a single field >= 65536 bytes CANNOT be represented.
+/// `serialize_sdf` (infallible) is only used on entries that came from a successful
+/// parse (≤ u16 by construction). The write path uses `serialize_sdf_checked`, which
+/// refuses to truncate (M3 fail-closed).
+const SDF_MAX_LEN: usize = u16::MAX as usize;
+
 fn write_len(out: &mut Vec<u8>, len: usize) {
     out.push((len & 0xff) as u8);
     out.push(((len >> 8) & 0xff) as u8);
@@ -1861,6 +1936,30 @@ fn serialize_sdf(entries: &[SdfEntry]) -> Vec<u8> {
         }
     }
     out
+}
+
+/// Fail-closed serializer for the write path: errors instead of silently truncating
+/// a length prefix that doesn't fit the 16-bit field. Used before persisting an edited
+/// gameOptions.sdf, so an oversized key/SandboxCode aborts the write rather than
+/// corrupting the save.
+fn serialize_sdf_checked(entries: &[SdfEntry]) -> Result<Vec<u8>, String> {
+    for entry in entries {
+        if entry.key.len() > SDF_MAX_LEN {
+            return Err(format!(
+                "Schlüssel '{}' zu lang ({} Bytes > {SDF_MAX_LEN}) — Schreiben abgebrochen",
+                entry.key, entry.key.len()
+            ));
+        }
+        if let SdfVal::Str { raw, .. } = &entry.val {
+            if raw.len() > SDF_MAX_LEN {
+                return Err(format!(
+                    "Wert von '{}' zu lang ({} Bytes > {SDF_MAX_LEN}) — Schreiben abgebrochen",
+                    entry.key, raw.len()
+                ));
+            }
+        }
+    }
+    Ok(serialize_sdf(entries))
 }
 
 /// Set (or append) one sandbox option in the SandboxCode triplet string.
@@ -2103,7 +2202,22 @@ fn write_settings(paths: &Paths, body: &str) -> Result<Value, String> {
         return Err("Keine Änderungen übermittelt".into());
     }
 
-    let new_bytes = serialize_sdf(&entries);
+    // M3 fail-closed: refuse to truncate an oversized length prefix, then prove the
+    // emitted bytes parse back to the same entries (no silent corruption) BEFORE the
+    // backup+write touch disk.
+    let new_bytes = serialize_sdf_checked(&entries)?;
+    // Re-parse the emitted bytes and re-serialise: if the bytes are self-consistent and
+    // fully understood by our parser, the round-trip is byte-identical. Any divergence
+    // (e.g. a truncated/mis-encoded length) aborts before disk is touched.
+    match parse_sdf_entries(&new_bytes) {
+        Ok(reparsed) if serialize_sdf(&reparsed) == new_bytes => {}
+        Ok(_) => {
+            return Err("Sicherheits-Check nach Bearbeitung fehlgeschlagen: Re-Parse weicht ab — es wurde NICHTS geschrieben.".into());
+        }
+        Err(e) => {
+            return Err(format!("Sicherheits-Check nach Bearbeitung fehlgeschlagen ({e}) — es wurde NICHTS geschrieben."));
+        }
+    }
 
     let stamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -2246,6 +2360,35 @@ mod tests {
 
         let entries = parse_sdf_entries(&bytes).expect("parse");
         assert_eq!(serialize_sdf(&entries), bytes, "round-trip must be byte-identical");
+    }
+
+    #[test]
+    fn serialize_sdf_checked_fails_closed_over_u16() {
+        // A normal-sized entry serialises fine and matches the infallible encoder.
+        let ok_entry = SdfEntry {
+            kind: 2,
+            key: "SandboxCode".to_string(),
+            val: SdfVal::Str { decoded: "ABIE".to_string(), raw: b"ABIE".to_vec() },
+        };
+        let ok = serialize_sdf_checked(std::slice::from_ref(&ok_entry)).expect("small entry must encode");
+        assert_eq!(ok, serialize_sdf(std::slice::from_ref(&ok_entry)));
+
+        // A value whose length exceeds the 16-bit prefix MUST fail closed, not truncate.
+        let huge = SdfEntry {
+            kind: 2,
+            key: "SandboxCode".to_string(),
+            val: SdfVal::Str { decoded: String::new(), raw: vec![b'A'; SDF_MAX_LEN + 1] },
+        };
+        let err = serialize_sdf_checked(std::slice::from_ref(&huge));
+        assert!(err.is_err(), "a value > u16::MAX bytes must be rejected, never silently truncated");
+
+        // An over-long key must also fail closed.
+        let huge_key = SdfEntry {
+            kind: 1,
+            key: "K".repeat(SDF_MAX_LEN + 1),
+            val: SdfVal::Int(1),
+        };
+        assert!(serialize_sdf_checked(std::slice::from_ref(&huge_key)).is_err(), "an over-long key must be rejected");
     }
 
     #[test]
