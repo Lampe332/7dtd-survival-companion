@@ -681,12 +681,18 @@ body::after{display:none!important}
 /* top-bar brand bar follows the active tab accent (no fixed-orange logo on cool tabs) */
 .logo::before{background:var(--tab-hot);box-shadow:none}
 .logo small{color:var(--muted)}
-/* de-emphasise emoji on difficulty presets — the bold label is the real identifier */
-#world .presetbtn .pi{font-size:13px;opacity:.5}
+/* de-emphasise preset emoji — monochrome + small so they don't break the desaturated tactical palette (bold label is the real identifier) */
+#world .presetbtn .pi{font-size:13px;opacity:.6;filter:grayscale(1)}
 /* tab-tint the few remaining hardcoded-orange accents */
 #mags .mag-section-code{border-color:rgba(var(--tab-rgb),.3);background:rgba(var(--tab-rgb),.08);color:var(--tab-cold)}
 .empty-state{border-color:rgba(var(--tab-rgb),.34);background:rgba(var(--tab-rgb),.05)}
 .empty-state::before{border-color:rgba(var(--tab-rgb),.42);background:rgba(var(--tab-rgb),.08);color:var(--tab-hot)}
+/* status banners: flat tint, no directional gradient/glow — consistent across dash/horde/ref */
+.banner.safe{background:rgba(48,106,65,.16)}
+.banner.warn{background:rgba(124,82,24,.18)}
+.banner.danger{background:rgba(123,32,28,.20)}
+/* horde lead/readiness card uses standard card chrome so the stat row reads as one system */
+.readiness-core{border-color:var(--border)}
 /* respect reduced-motion for the new section fade (covers all tabs) */
 @media(prefers-reduced-motion:reduce){.sec.on{animation:none}}
 </style>
