@@ -319,7 +319,16 @@ body.map-fs-active{overflow:hidden}
 }
 html{min-height:100%;background:#090b0d}
 body{position:relative;isolation:isolate;min-height:100vh;padding:0 22px 96px;overflow-x:hidden;color:var(--text);font-family:"Segoe UI Variable Text","Segoe UI",Arial,sans-serif;background:#090b0d}
-/* per-tab accent palette is defined in the CLEAN PASS block at the end of <style> (this old set is superseded) */
+body[data-tab="world"]{--tab-rgb:235,118,45;--tab-hot:#ed762e;--tab-cold:#f5b84e}
+body[data-tab="map"],body[data-tab="d3"]{--tab-rgb:61,158,174;--tab-hot:#3d9eae;--tab-cold:#70d3c7}
+body[data-tab="dash"]{--tab-rgb:239,151,57;--tab-hot:#ef9739;--tab-cold:#f3c45f}
+body[data-tab="build"]{--tab-rgb:98,165,199;--tab-hot:#62a5c7;--tab-cold:#8ed0dc}
+body[data-tab="perks"]{--tab-rgb:140,150,235;--tab-hot:#8c96eb;--tab-cold:#b3bdf5}
+body[data-tab="horde"]{--tab-rgb:211,54,43;--tab-hot:#d3362b;--tab-cold:#ff8a54}
+body[data-tab="loot"]{--tab-rgb:202,145,48;--tab-hot:#ca9130;--tab-cold:#edc860}
+body[data-tab="mags"]{--tab-rgb:157,121,196;--tab-hot:#9d79c4;--tab-cold:#c5a0e5}
+body[data-tab="ref"]{--tab-rgb:111,167,120;--tab-hot:#6fa778;--tab-cold:#9dcc9b}
+body[data-tab="wiki"]{--tab-rgb:90,166,255;--tab-hot:#5aa6ff;--tab-cold:#8fc4ff}
 body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
  radial-gradient(650px 650px at 5% 42%,transparent 0 36%,rgba(var(--tab-rgb),.055) 36.15% 36.35%,transparent 36.5% 44%,rgba(var(--tab-rgb),.03) 44.15% 44.35%,transparent 44.5%),
  radial-gradient(520px 520px at 97% 68%,transparent 0 40%,rgba(var(--tab-rgb),.04) 40.2% 40.45%,transparent 40.6% 51%,rgba(var(--tab-rgb),.025) 51.2% 51.45%,transparent 51.6%),
@@ -621,80 +630,16 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .baserow .bmeta{flex:1;min-width:0}.baserow .bmeta b{display:block;font-size:13px;color:var(--text)}.baserow .bmeta span{font-size:11px;color:var(--muted)}
 
 /* ============================================================
-   CLEAN PASS v1 — calm tactical (2026-06-23)
-   Strips loud decoration (radar bg / scanline grid / corner
-   brackets / glows / per-tab rainbow), flattens surfaces, unifies
-   on the orange brand accent. Keeps the mono code-tags + 01-09
-   numbering as restrained flavor. Pure optics — no JS/markup change.
-   Revert = delete this block (or restore the html backup).
+   NO-LINES — user request 2026-06-23
+   Remove the thin decorative accent lines (top edge), the bottom
+   signal bars, and the matching corner brackets on cards & stat
+   tiles everywhere. Everything else of the design stays as-is.
+   Functional indicators (priority/changed left-stripe, progress
+   bars) are kept. Revert = delete this block.
    ============================================================ */
-:root{--shadow:0 8px 24px rgba(0,0,0,.20)}
-/* per-tab accent — distinct but desaturated; clean wayfinding, never garish.
-   done/success stays green (var(--done), unaffected). */
-body[data-tab="world"]{--tab-rgb:232,124,52;--tab-hot:#e87c34;--tab-cold:#f3a861}
-body[data-tab="map"],body[data-tab="d3"]{--tab-rgb:64,160,172;--tab-hot:#44a3b0;--tab-cold:#79cdd6}
-body[data-tab="dash"]{--tab-rgb:226,158,66;--tab-hot:#e29e42;--tab-cold:#f0c074}
-body[data-tab="build"]{--tab-rgb:96,158,200;--tab-hot:#5f9ec8;--tab-cold:#8fc4dc}
-body[data-tab="perks"]{--tab-rgb:150,146,226;--tab-hot:#8c92e6;--tab-cold:#b3bdf5}
-body[data-tab="horde"]{--tab-rgb:210,72,60;--tab-hot:#d2483c;--tab-cold:#ff8a6e}
-body[data-tab="squad"]{--tab-rgb:198,118,166;--tab-hot:#c676a6;--tab-cold:#e6a6cf}
-body[data-tab="loot"]{--tab-rgb:198,150,58;--tab-hot:#c6963a;--tab-cold:#e6c160}
-body[data-tab="mags"]{--tab-rgb:168,124,206;--tab-hot:#a87cce;--tab-cold:#c5a0e5}
-body[data-tab="ref"]{--tab-rgb:124,164,120;--tab-hot:#7ca878;--tab-cold:#a6cf9b}
-body[data-tab="wiki"]{--tab-rgb:92,160,236;--tab-hot:#5ca0ec;--tab-cold:#8fc4ff}
-/* route the premium-polish accent tokens through the active tab (kills orange leak in
-   links/buttons/badges); primary buttons + focus rings still read as the tab accent */
-body[data-tab]{--accent:var(--tab-hot);--accent-hover:var(--tab-cold);--accent-soft:var(--tab-cold);--accent-pale:var(--tab-cold)}
-/* background: single faint top glow tinted to the active tab — no radar, no scanlines */
-body::before{background:
- radial-gradient(1200px 640px at 50% -280px,rgba(var(--tab-rgb),.085),transparent 66%),
- linear-gradient(180deg,#0e1013,#0a0c0e 58%,#090a0c)!important}
-body::after{display:none!important}
-/* sections sit still: opacity-only fade, no notched banner */
-.sec.on::before{display:none!important}
-.sec.on{animation:cleanfade .15s ease-out}
-@keyframes cleanfade{from{opacity:0}to{opacity:1}}
-/* hero header: flat panel, thin static rule, no grid/radar/glow */
-.hero{background:var(--surface);border-color:var(--border);box-shadow:none;padding:22px 24px}
-.hero::before{display:none!important}
-.hero::after{width:3px;background:var(--tab-hot);box-shadow:none}
-.hero h1{text-shadow:none}
-/* cards & panels: flat, no top-rule, no corner bracket, soft shadow */
-.card,.ph,.acc,.wi,.pcard,.lcard{background:var(--surface);box-shadow:0 6px 18px rgba(0,0,0,.16)}
-.card::before,.card::after{display:none!important}
-.card:hover{border-color:rgba(var(--tab-rgb),.24)}
-/* KPI tiles: flat, no bracket, no signal bar */
-.ops-stat,.ops-lead{background:var(--surface);box-shadow:0 6px 18px rgba(0,0,0,.14)}
-.ops-stat::before,.ops-stat::after,.ops-signal{display:none!important}
-.ops-stat:hover{background:var(--surface-2)}
-/* other gradient panels → flat surface */
-.prep-group,.command-tile,.enemy-card,.loot-card,.mag-section,.mag-entry,.biome-card,.wiki-hit,.readiness-core,.horde-stat{background:var(--surface)}
-.prep-group::before,.enemy-card::after,.loot-card::after{display:none!important}
-.prep-group{box-shadow:0 6px 18px rgba(0,0,0,.14)}
-/* tabs: calm active state, no outer glow, no hover lift */
-.tab.on{box-shadow:inset 0 1px rgba(255,255,255,.04)}
-.tab.on::after{box-shadow:none}
-.tab:hover{transform:none}
-/* misc de-glow */
-.module-title::before{box-shadow:none}
-#build .ph .body{background:transparent}
-/* top-bar brand bar follows the active tab accent (no fixed-orange logo on cool tabs) */
-.logo::before{background:var(--tab-hot);box-shadow:none}
-.logo small{color:var(--muted)}
-/* de-emphasise preset emoji — monochrome + small so they don't break the desaturated tactical palette (bold label is the real identifier) */
-#world .presetbtn .pi{font-size:13px;opacity:.6;filter:grayscale(1)}
-/* tab-tint the few remaining hardcoded-orange accents */
-#mags .mag-section-code{border-color:rgba(var(--tab-rgb),.3);background:rgba(var(--tab-rgb),.08);color:var(--tab-cold)}
-.empty-state{border-color:rgba(var(--tab-rgb),.34);background:rgba(var(--tab-rgb),.05)}
-.empty-state::before{border-color:rgba(var(--tab-rgb),.42);background:rgba(var(--tab-rgb),.08);color:var(--tab-hot)}
-/* status banners: flat tint, no directional gradient/glow — consistent across dash/horde/ref */
-.banner.safe{background:rgba(48,106,65,.16)}
-.banner.warn{background:rgba(124,82,24,.18)}
-.banner.danger{background:rgba(123,32,28,.20)}
-/* horde lead/readiness card uses standard card chrome so the stat row reads as one system */
-.readiness-core{border-color:var(--border)}
-/* respect reduced-motion for the new section fade (covers all tabs) */
-@media(prefers-reduced-motion:reduce){.sec.on{animation:none}}
+.card::before,.card::after,
+.ops-stat::before,.ops-stat::after,.ops-signal,
+.horde-stat .signal{display:none!important}
 </style>
 </head>
 <body>
