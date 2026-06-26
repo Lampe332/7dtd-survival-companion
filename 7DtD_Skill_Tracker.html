@@ -1454,7 +1454,7 @@ function rMags(){if(!S.books)S.books={};
    opsStat("SKILLS / MAXED",magDone,MAGS.filter(function(m){return m[5]!=="book";}).length+" tracked magazine lines")+
    opsStat("BOOKS / COMPLETE",bookDone,bookNow+" of "+(BOOKS.length*7)+" volumes logged")+
    opsStat("PRIORITY / SLEDGE",priorityPct+"%",priorityNow+" of "+priorityMax+" priority progress")+'</div>'+
-  '<div class="card"><h3>Archive Search</h3><div class="sub">Crafting magazines unlock recipes and quality. Completed perk book series grant permanent bonuses. ★ marks priorities for the active Sledge doctrine.</div>'+
+  '<div class="card"><h3>Archive Search</h3><div class="sub">Crafting magazines unlock recipes and quality. Completed perk book series grant permanent bonuses. ★ marks priority crafting lines for the recommended solo Sledge build.</div>'+
   '<input class="searchbar" id="magq" placeholder="Search magazines or perk books…" value="'+esc(S.magq||"")+'" style="margin-top:10px;margin-bottom:0"></div>';
  var nexts=[];MAGS.forEach(function(m,i){var n=magNextUnlock(i);if(n)nexts.push(n);});nexts.sort(function(a,b){return a.need-b.need||a.skill.localeCompare(b.skill);});
  if(nexts.length)html+='<div class="card"><h3>Closest Unlocks</h3><div class="sub">Crafting lines you are nearest a new recipe or quality tier on — read these magazines next.</div><div class="mag-next">'+nexts.slice(0,8).map(function(n){return '<div class="mag-nextrow"><span class="mag-need">+'+n.need+' mag'+(n.need===1?"":"s")+'</span><b>'+esc(n.skill)+'</b><span class="mag-arrow">→ '+esc(n.label)+'</span></div>';}).join("")+'</div></div>';
