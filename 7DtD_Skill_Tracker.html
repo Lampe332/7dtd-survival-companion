@@ -2720,6 +2720,9 @@ function buildSearchIndex(){
  try{(RD&&RD.perks?RD.perks:[]).forEach(function(p){ix.push({cat:"perk",label:p.name||p.key,sub:(p.attr?("["+p.attr+"] "):"")+String(p.desc||p.short||"").slice(0,90),tab:"perks",q:p.name});});}catch(e){}
  try{Object.keys(BUILDS||{}).forEach(function(k){var b=BUILDS[k];ix.push({cat:"build",label:b.name,sub:b.sub||"Build route",tab:"build",cur:k});});}catch(e){}
  try{(typeof MAGS!=="undefined"?MAGS:[]).forEach(function(m){var nm=m&&m[0];if(nm)ix.push({cat:"mag",label:nm,sub:m[2]||"Crafting magazine / unlock ladder",tab:"mags",q:nm});});}catch(e){}
+ // Reverse lookup: index each craftable/recipe a magazine unlocks, so "auger" or "steel club"
+ // finds WHICH magazine unlocks it and how many to read (the game never tells you this).
+ try{(typeof MAGS!=="undefined"?MAGS:[]).forEach(function(m){if(!m||m[5]==="book")return;var cap=m[1],mname=m[0],cat=m[2];var tiers=(RD&&RD.craftingTiers&&RD.craftingTiers[m[4]])||[];tiers.forEach(function(t){if(!t||!t.name||t.lvl>cap)return;ix.push({cat:"mag",label:t.name,sub:"Unlock · read "+t.lvl+"× "+mname+(cat?" ("+cat+")":""),tab:"mags",q:t.name});});});}catch(e){}
  try{(settingsCatalog()||[]).forEach(function(o){ix.push({cat:"set",label:o.label||humanKey(o.name),sub:"World setting · "+String(o.desc||"").slice(0,80),tab:"world",q:o.label||o.name});});}catch(e){}
  try{(typeof REF!=="undefined"?REF:[]).forEach(function(r){var t=r[0]||r.t,rows=r[1]||[];if(t)ix.push({cat:"ref",label:t,sub:(Array.isArray(rows)?rows.map(function(p){return p&&p[0];}).filter(Boolean).slice(0,5).join(" · "):String(rows||"")).slice(0,90),tab:"ref",q:t});if(Array.isArray(rows))rows.forEach(function(p){if(p&&p[0])ix.push({cat:"ref",label:p[0],sub:String(p[1]||"").slice(0,90),tab:"ref",q:t});});});}catch(e){}
  try{PRIMER.forEach(function(p){ix.push({cat:"ref",label:p[0],sub:String(p[1]).slice(0,90),tab:"ref",q:p[0]});});}catch(e){}
