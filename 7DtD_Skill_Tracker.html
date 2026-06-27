@@ -1400,7 +1400,7 @@ function rLoot(){var gs=gamestage(),ls2=lootstage();
   f.oninput=function(){if(this.value==="")return;set(+this.value);save();rLoot();var n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(n.value.length,n.value.length);}catch(_){}}};
   f.onchange=function(){set(+this.value||def);save();rLoot();};}
  lootNum("il",function(v){S.lvl=Math.max(1,Math.min(300,v||1));},1);
- lootNum("ill",function(v){S.ll=Math.max(0,Math.min(300,v||0));},0);
+ lootNum("ill",function(v){S.ll=Math.max(0,Math.min(50,v||0));},0);
  document.getElementById("ib").onchange=function(){S.biome=this.value;save();rLoot();};
  document.querySelectorAll("#loot [data-biome]").forEach(function(c){c.onclick=function(){S.biome=c.dataset.biome;save();rLoot();};});
  var lq=document.getElementById("lootq");if(lq)lq.oninput=function(){S.lootq=this.value;var q=this.value.toLowerCase();document.querySelectorAll("#loot .lq").forEach(function(r){r.style.display=(!q||(r.dataset.txt||r.textContent.toLowerCase()).indexOf(q)>=0)?"":"none";});};
