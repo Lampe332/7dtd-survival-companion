@@ -9,12 +9,24 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
- --bg:#0c0b09;--bg2:#14130f;--card:#1a1813;--card2:#221f18;--glass:rgba(26,24,19,.78);
- --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.15);
- --text:#f2efe8;--muted:#a8a293;--dim:#8a847a;
- --acc:#ef7a35;--acc2:#f5b73c;--blood:#d83b32;--done:#5cc47a;--next:#5aa6ff;--star:#ffce4a;
- --mono:ui-monospace,"Cascadia Mono","Consolas",monospace;
+ /* Unified design tokens — single source of truth (merged from 3 prior :root blocks).
+    Values are the effective cascade result of the old blocks, so rendering is unchanged. */
+ /* surfaces */
+ --bg:#090b0d;--bg2:#0e1114;--card:#14181c;--card2:#1a1f24;--glass:rgba(11,14,17,.93);
+ --line:rgba(255,255,255,.075);--line2:rgba(255,151,66,.22);
+ /* text */
+ --text:#f2eee7;--muted:#a9a29a;--dim:#8a847a;--text-soft:#d7dadd;--text-muted:#9aa0a6;
+ /* accents + status */
+ --acc:#f0782f;--acc2:#f6b24a;--blood:#b82d24;--done:#6fa778;--next:#e69742;--star:#ffd266;
+ /* per-tab accent defaults (overridden per body[data-tab]) */
+ --tab-rgb:240,120,47;--tab-hot:#f0782f;--tab-cold:#f6b24a;
+ /* type */
+ --mono:ui-monospace,"Cascadia Mono","Consolas",monospace;--display:"Segoe UI Variable Display","Segoe UI",Arial,sans-serif;
+ --shadow:0 18px 50px rgba(0,0,0,.28);
+ /* perk attribute colors */
  --p0:#ef7a35;--p1:#5aa6ff;--p2:#e2564a;--p3:#9b8cff;--p4:#5cc47a;--px:#f5b73c;
+ /* component surfaces/controls (settings + world editor) */
+ --surface:#15181d;--surface-2:#1c2027;--border:rgba(255,255,255,.08);--accent:#e8722a;--accent-hover:#f0823d;--accent-soft:#f0b88f;--accent-pale:#ffc397;--accent-ink:#140d09;--control:#111419;--ok:#4fb477;--gold:#d8a24a;--locked:#5a5f66;--radius:6px;--motion:180ms ease;
 }
 html,body{min-height:100%;background:var(--bg)}
 body{color:var(--text);font-family:system-ui,"Segoe UI",Roboto,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 14px 80px;
@@ -308,16 +320,7 @@ body.map-fs-active{overflow:hidden}
 .lbl3d{position:absolute;transform:translate(-50%,-130%);background:rgba(10,9,7,.82);border:1px solid var(--line2);border-left-width:3px;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 2px #000;pointer-events:auto;cursor:pointer}
 .lbl3d:hover{background:rgba(240,120,47,.92);border-color:#fff;z-index:6}
 
-/* ---- Wasteland command interface ---- */
-:root{
- --bg:#090b0d;--bg2:#0e1114;--card:#14181c;--card2:#1a1f24;--glass:rgba(11,14,17,.93);
- --line:rgba(255,255,255,.075);--line2:rgba(255,151,66,.22);
- --text:#f2eee7;--muted:#a9a29a;--dim:#8a847a;
- --acc:#f0782f;--acc2:#f6b24a;--blood:#b82d24;--done:#6fa778;--next:#e69742;--star:#ffd266;
- --tab-rgb:240,120,47;--tab-hot:#f0782f;--tab-cold:#f6b24a;
- --display:"Segoe UI Variable Display","Segoe UI",Arial,sans-serif;
- --shadow:0 18px 50px rgba(0,0,0,.28);
-}
+/* ---- Wasteland command interface (tokens unified into the single :root above) ---- */
 html{min-height:100%;background:#090b0d}
 body{position:relative;isolation:isolate;min-height:100vh;padding:0 22px 96px;overflow-x:hidden;color:var(--text);font-family:"Segoe UI Variable Text","Segoe UI",Arial,sans-serif;background:#090b0d}
 body[data-tab="world"]{--tab-rgb:235,118,45;--tab-hot:#ed762e;--tab-cold:#f5b84e}
@@ -489,7 +492,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 @media(max-width:620px){body{padding-inline:9px}.top{min-height:auto;padding-top:14px}.logo{min-width:210px}.brand-mark{width:38px;height:38px}.brand-copy b{font-size:20px}.logo small{letter-spacing:1.3px}.dayctl{order:2}.hero{padding:21px 19px}.hero h1{font-size:26px}.hero-state,.hero-telemetry{display:none}.g2,.g3{grid-template-columns:1fr}.quick{grid-template-columns:repeat(2,minmax(0,1fr))}.enemy-grid,.loot-grid,.biome-grid,.attr-grid,.horde-threats,.command-grid,.mag-grid,.ref-grid,.world-catalog,.dashboard-overview,.mag-overview,.world-overview,.gate-summary{grid-template-columns:1fr}.ops-lead{grid-column:auto;grid-template-columns:1fr;text-align:center}.ops-lead .ring{margin:auto}.mag-entry{padding:54px 14px 13px}.mag-entry .stepper{left:12px;right:auto;top:10px}.horde-overview{grid-template-columns:1fr}.readiness-core{grid-template-columns:1fr;text-align:center}.readiness-dial{margin:auto}.setrow{align-items:flex-start;flex-direction:column}.setctl{width:100%;max-width:none}.launchbox{padding:34px 22px}.launchbox h1{font-size:31px}.launch.wizard{padding:10px}.launch.wizard .launchbox{padding:19px}.gate-head{grid-template-columns:46px 1fr}.gate-mark{width:46px;height:46px}.gate-progress{display:none}.gate-choice{grid-template-columns:38px 1fr}.gate-choice-mark{width:36px;height:36px}.gate-choice-go{display:none}.gate-actions{align-items:stretch;flex-direction:column}.gate-skip,.gate-back{width:100%}.sethelp-grid{grid-template-columns:1fr}}
 
 /* ---- Scoped premium polish for the newly added surfaces ---- */
-:root{--surface:#15181d;--surface-2:#1c2027;--border:rgba(255,255,255,.08);--text-muted:#9aa0a6;--accent:#e8722a;--accent-hover:#f0823d;--accent-soft:#f0b88f;--accent-pale:#ffc397;--accent-ink:#140d09;--control:#111419;--text-soft:#d7dadd;--ok:#4fb477;--gold:#d8a24a;--locked:#5a5f66;--radius:6px;--motion:180ms ease}
+/* component tokens unified into the single :root above */
 .launch,#introCoach,#world,#d3,#mags,#ref,#wiki,#dash,#build,#perks,#horde,#squad,#loot,.readiness-legend{--bg:#0d0f12;--card:var(--surface);--card2:var(--surface-2);--line:var(--border);--line2:rgba(255,255,255,.14);--text:#f2f3f5;--muted:var(--text-muted);--dim:#8a847a;--acc:var(--accent);--acc2:var(--accent-soft);--done:var(--ok);--star:var(--gold)}
 .launch *,#introCoach *,#world *,#d3 *,#mags *,#ref *,#wiki *{transition-timing-function:ease}
 .launch :is(button,[role=button],input,select):focus-visible,#introCoach :is(button,[role=button]):focus-visible,#world :is(button,[role=button],input,select):focus-visible,#d3 :is(button,[role=button],input,select,canvas):focus-visible,#mags :is(button,[role=button],input,a):focus-visible,#ref :is(button,[role=button],input,textarea,.refcard):focus-visible,#wiki :is(button,input,a):focus-visible,#dash :is(button,[role=button],input,select,a):focus-visible,#build :is(button,[role=button],input,select,a):focus-visible,#perks :is(button,[role=button],input,select,a):focus-visible,#horde :is(button,[role=button],input,select,a):focus-visible,#squad :is(button,[role=button],input,select,a):focus-visible,#loot :is(button,[role=button],input,select,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(232,114,42,.16)}
