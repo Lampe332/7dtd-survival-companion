@@ -693,6 +693,13 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <script>
 function lg(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function ls(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+// App preferences (separate from the tracker state in "7dtd-companion", so "Reset tracker" never clears them).
+function prefGet(k,d){try{var p=JSON.parse(lg("7dtd-prefs")||"{}");return (p&&Object.prototype.hasOwnProperty.call(p,k))?p[k]:d;}catch(e){return d;}}
+function prefSet(k,v){var p={};try{p=JSON.parse(lg("7dtd-prefs")||"{}")||{};}catch(e){}p[k]=v;ls("7dtd-prefs",JSON.stringify(p));}
+// i18n: tr(key,en) returns the active-language string, falling back to the English literal so untranslated keys stay English (no regression). Default language is English; German is opt-in via Settings.
+var I18N={en:{},de:{"tab.world":"Welt","tab.d3":"Karte","tab.dash":"Übersicht","tab.build":"Build","tab.perks":"Perks","tab.horde":"Horde","tab.squad":"Trupp","tab.loot":"Loot","tab.mags":"Magazine","tab.ref":"Referenz","tab.wiki":"Wiki","tab.settings":"Einstellungen"}};
+var LANG=(prefGet("lang","en")==="de")?"de":"en";
+function tr(key,en){var m=I18N[LANG];return (m&&m[key]!=null)?m[key]:en;}
 var BUILDS={
 "sledge":{name:"Sledge (Solo) — Validated",sub:"Solo · Insane · Nightmare · pure Skull Crusher",done:13,phases:[
 ["⚡","Damage Online","Lvl 1-10","p0",[["Skull Crusher R1","",0],["→ Strength 2","",0],["→ Strength 3","",0],["Skull Crusher R2","+20%, 30% knockdown",0],["Cardio R1","Mandatory stamina",0],["Pain Tolerance R1","Mandatory anti-stun",0],["Siphoning Strikes R1","+2 HP per kill",0],["Pack Mule R1","",0],["Pack Mule R2","",0],["→ Strength 4","",0],["→ Strength 5","",0],["Skull Crusher R3","+30%, kills restore stamina",0],["Miner 69'er R1","Faster mining + XP",0],["Pack Mule R3","25% damage ignore",0]]],
@@ -875,7 +882,7 @@ document.getElementById("dm").onclick=function(){if(S.day>1)S.day--;save();rende
 var tb=document.getElementById("tabs");
 function renderTabs(){
  tb.innerHTML="";
- TABS.forEach(function(t,i){var b=document.createElement("div");b.className="tab"+(S.tab===t[0]?" on":"");b.innerHTML='<span>'+t[1]+'</span>';if(i<9)b.title="Press "+(i+1)+" to open "+t[1];b.onclick=function(){S.tab=t[0];S.importMsg=null;S.setMsg=null;save();show();};tb.appendChild(b);});
+ TABS.forEach(function(t,i){var b=document.createElement("div");b.className="tab"+(S.tab===t[0]?" on":"");var _l=tr("tab."+t[0],t[1]);b.innerHTML='<span>'+_l+'</span>';if(i<9)b.title="Press "+(i+1)+" to open "+_l;b.onclick=function(){S.tab=t[0];S.importMsg=null;S.setMsg=null;save();show();};tb.appendChild(b);});
 }
 renderTabs();
 function rSettings(){
@@ -886,7 +893,8 @@ function rSettings(){
   '<div class="grid g2" style="margin-top:14px">'+
    '<div class="card"><h3>Preferences</h3>'+
     '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line,#2c2c2c)"><div><b>Blood Moon alerts</b><div class="sub">Desktop notification when a horde night is near (app must be open).</div></div><button class="btn" id="setNotify">'+(notifyOn?"On":"Off")+'</button></div>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0"><div><b>Live auto-refresh</b><div class="sub">Re-read your save every 10s so day and level follow the game.</div></div><button class="btn" id="setLive">'+(liveOn?"On":"Off")+'</button></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line,#2c2c2c)"><div><b>Live auto-refresh</b><div class="sub">Re-read your save every 10s so day and level follow the game.</div></div><button class="btn" id="setLive">'+(liveOn?"On":"Off")+'</button></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0"><div><b>Language</b><div class="sub">Switch the interface between English and German (Deutsch). Default is English.</div></div><button class="btn" id="setLang">'+(LANG==="de"?"Deutsch":"English")+'</button></div>'+
    '</div>'+
    '<div class="card"><h3>Backup</h3><div class="sub">Your tracker (build, magazines, squad, notes) lives in this browser only. Export a file to keep it safe &mdash; worth doing on a Drop-on-Death=Everything world.</div>'+
     '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="setExport">⤓ Download backup</button><button class="btn" id="setImport">⤒ Load backup</button><button class="btn" id="setReset" style="margin-left:auto;border-color:rgba(216,74,63,.45);color:#e0897f">↺ Reset tracker</button></div>'+
@@ -899,6 +907,7 @@ function rSettings(){
  document.getElementById("settings").innerHTML=html;
  var n=document.getElementById("setNotify");if(n)n.onclick=function(){var b=document.getElementById("notifybtn");if(b)b.click();setTimeout(rSettings,60);};
  var l=document.getElementById("setLive");if(l)l.onclick=function(){var b=document.getElementById("livebtn");if(b)b.click();setTimeout(rSettings,60);};
+ var lgb=document.getElementById("setLang");if(lgb)lgb.onclick=function(){LANG=(LANG==="de")?"en":"de";prefSet("lang",LANG);renderTabs();show();};
  var ex=document.getElementById("setExport");if(ex)ex.onclick=function(){var b=document.getElementById("exp");if(b)b.click();};
  var im=document.getElementById("setImport");if(im)im.onclick=function(){var b=document.getElementById("imp");if(b)b.click();};
  var rs=document.getElementById("setReset");if(rs)rs.onclick=function(){if(!confirm("Reset the tracker to defaults? This erases your tracked progress (build, magazines, squad, notes). A backup copy is saved to this browser's local storage first. Continue?"))return;try{ls("7dtd-companion.bak",lg("7dtd-companion")||"");}catch(_){}try{localStorage.removeItem("7dtd-companion");}catch(_){}location.reload();};
