@@ -683,6 +683,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 <div id="mags" class="sec"></div>
 <div id="ref" class="sec"></div>
 <div id="wiki" class="sec"></div>
+<div id="settings" class="sec"></div>
 <div class="foot">All data <b>stored locally</b> · no cloud · the optional Wiki search fetches fandom.com · ⇅ exports or imports your progress</div>
 </div>
 <script>
@@ -812,7 +813,7 @@ var TIERCOL={"-1":"#6f6a5c","0":"#8a8478","1":"#5cc47a","2":"#9bd14a","3":"#f5b7
 var TIERLBL={"-1":"?","0":"T0","1":"T1","2":"T2","3":"T3","4":"T4","5":"T5"};
 var SANDORDER=["RangedDamage","MeleeDamage","BlockDamage","TerrainDamage","HeadshotMultiplier","CrouchSpeed","WalkSpeed","RunSpeed","JumpStrength","StaminaUsage","StaminaRegen","PlayerLevelBonusApplied","JarRefund","ShowHealthBars","ShowEnemyDamage","NewbieCoat","HeadshotMode","IncomingDamage","XPMultiplier","ShowXP","EncumbranceModifier","ItemDegradation","LoseItemsOnDeathType","LoseItemsOnDeathCount","DegradeItemsOnDeath","DegradeAmountOnDeath","DeathPenalty","DropOnDeath","DropOnQuit","InfectionRate","EnemySpawnMode","EntityDamage","BlockDamageAI","BlockDamageAIBM","ZombieMove","ZombieMoveNight","ZombieFeralMove","ZombieBMMove","ZombieFeralSense","AISmellMode","AllowZombieDigging","ZombieRageChance","EntityIncomingDamage","MaxEnemyTier","BiomeZombieRespawn","BiomeAnimalRespawn","BiomeEnemyDensity","ZombiesEatAnimals","BloodMoonFrequency","BloodMoonRange","BloodMoonWarning","BloodMoonEnemyCount","AirDropFrequency","AirDropMarker","AirDropRandomTime","BiomeProgression","TemperatureSurvival","StormFreq","StormWarning","HeatMapSensitivity","GlobalGSModifier","BiomeGSModifier","GlobalLSModifier","BiomeLSModifier","POITierLSModifier","GlobalTSModifier","DayNightLength","DayLightLength","AllowMap","AllowCompass","AllowScreenMarkers","ShowLocationInfo","ShowDayTime","WorkstationsInTheWild","MaxTechType","LootRespawnDays","LootTimer","LootMaxTier","GlobalLootCount","FoodLootCount","DrinkLootCount","MedicalLootCount","AmmoLootCount","ResourceLootCount","ArmorLootCount","MeleeLootCount","RangedLootCount","DukesLootCount","CraftingMagazinesLootCount","TreasureMapChance","LootBagChance","CropOutput","SeedDropOutput","CropGrowthSpeed","BackpackCrafting","WorkstationCrafting","CraftingProgression","CraftingTime","CraftingInput","CraftingOutput","CraftingMaxTier","MiningOutput","HarvestingOutput","ScrappingOutput","SmeltingType","DewCollectorTime","DewCollectorOutput","DewCollectorInput","ApiaryTime","ApiaryOutput","ApiaryInput","RepairTypes","MaxDegradationAmount","PointsPerMagazine","SkillGainRate","SkillPointsPerLevel","QuestsEnabled","IntroQuestEnabled","TraderToTraderQuestsEnabled","StarterSkillPoints","QuestsPerTier","QuestProgressionDailyLimit","BuriedQuestsEnabled","POIQuestsEnabled","TraderDialog","TraderHours","TradersEnabled","VendingEnabled","TraderSellPrices","TraderBuyPrices","TraderProtection","TraderResetInterval","TraderItemAbundance","TraderBuyLimit","TraderMaxTier","VendingResetInterval","VendingItemAbundance","ChallengesEnabled","IntroChallengesEnabled","VehicleFuelUsage","VehicleEntityDamage","VehicleBlockDamage","VehicleSelfDamage","ElectricalOutput","SillyCelebrate","SillyBigHeads","SillyTinyZombies","SillySounds","SillyLowGravity","SillyBlackandWhite"];
 var SANDVAL={"XPMultiplier":{"v":["25","50","75","100","125","150","175","200","300"]},"DeathPenalty":{"d":["None","XP Only","Injured","Permadeath"]},"DropOnDeath":{"d":["Nothing","Everything","Toolbelt","Backpack","Delete Everything"]},"DropOnQuit":{"d":["Nothing","Everything","Toolbelt","Backpack"]},"BlockDamageAI":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"BlockDamageAIBM":{"v":["25","33","50","67","75","100","125","150","175","200","300"]},"ZombieMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieMoveNight":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieBMMove":{"d":["Walk","Jog","Run","Sprint","Nightmare"]},"ZombieFeralSense":{"d":["Off","Day","Night","All"]},"BloodMoonFrequency":{"v":["0","1","2","3","4","5","6","7","8","9","10","14","20","30"],"d":["Disabled"]},"BloodMoonRange":{"v":["0","1","2","3","4","7","10","14","20"]},"BloodMoonWarning":{"v":["-1","8","18"],"d":["Disabled","Morning","Evening"]},"BloodMoonEnemyCount":{"v":["4","6","8","10","12","16","24","32","64"]},"AirDropFrequency":{"v":["0","24","72","168"],"d":["Disabled"]},"StormFreq":{"v":["0","50","100","150","200","300","400","500"]},"DayNightLength":{"v":["10","20","30","40","50","60","90","120"]},"DayLightLength":{"v":["12","14","16","18"]},"LootRespawnDays":{"v":["-1","5","7","10","15","20","30","40","50"],"d":["Disabled"]},"QuestProgressionDailyLimit":{"v":["-1","1","2","3","4","5","6","7","8"],"d":["Unlimited"]}};
-var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["perks","Perks"],["horde","Horde"],["squad","Squad"],["loot","Loot"],["mags","Magazines"],["ref","Reference"],["wiki","Wiki"]];
+var TABS=[["world","World"],["d3","3D Map"],["dash","Dashboard"],["build","Build"],["perks","Perks"],["horde","Horde"],["squad","Squad"],["loot","Loot"],["mags","Magazines"],["ref","Reference"],["wiki","Wiki"],["settings","Settings"]];
 function loadState(){var raw=lg("7dtd-companion");if(!raw)return {};try{return JSON.parse(raw)||{};}catch(e){try{ls("7dtd-companion.bak",raw);}catch(_){}return {};}}
 function normalizeState(s){s=(s&&typeof s==="object")?s:{};var d={tab:"world",day:1,cur:"sledge",freq:7,builds:{},mag:{},ready:{},col:{},notes:"",lvl:1,biome:"Forest",ll:0,world:null};s=Object.assign({},d,s);if(!BUILDS[s.cur])s.cur="sledge";if(!BIOMES[s.biome])s.biome="Forest";["builds","mag","ready","col"].forEach(function(k){if(typeof s[k]!=="object"||!s[k])s[k]={};});if(typeof s.day!=="number"||s.day<1)s.day=1;if(typeof s.lvl!=="number"||s.lvl<1)s.lvl=1;s.importMsg=null;s.setMsg=null;return s;}
 var S=normalizeState(loadState());
@@ -872,6 +873,30 @@ function renderTabs(){
  TABS.forEach(function(t,i){var b=document.createElement("div");b.className="tab"+(S.tab===t[0]?" on":"");b.innerHTML='<span>'+t[1]+'</span>';if(i<9)b.title="Press "+(i+1)+" to open "+t[1];b.onclick=function(){S.tab=t[0];S.importMsg=null;S.setMsg=null;save();show();};tb.appendChild(b);});
 }
 renderTabs();
+function rSettings(){
+ var notifyOn=!!S.notify&&("Notification"in window)&&Notification.permission==="granted";
+ var liveOn=!!S.autoRefresh;
+ function sc(k,d){return '<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line,#2c2c2c)"><kbd style="background:var(--line,#2c2c2c);border-radius:5px;padding:2px 8px;font-size:12px;font-weight:600">'+esc(k)+'</kbd><span style="color:var(--text-soft,#9a948c);font-size:13px;text-align:right">'+esc(d)+'</span></div>';}
+ var html=hero("Settings & Help","Preferences · backup · shortcuts","Tune the companion, back up your tracker, and learn the keyboard shortcuts. Everything stays on this machine.","tab_settings")+
+  '<div class="grid g2" style="margin-top:14px">'+
+   '<div class="card"><h3>Preferences</h3>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line,#2c2c2c)"><div><b>Blood Moon alerts</b><div class="sub">Desktop notification when a horde night is near (app must be open).</div></div><button class="btn" id="setNotify">'+(notifyOn?"On":"Off")+'</button></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0"><div><b>Live auto-refresh</b><div class="sub">Re-read your save every 10s so day and level follow the game.</div></div><button class="btn" id="setLive">'+(liveOn?"On":"Off")+'</button></div>'+
+   '</div>'+
+   '<div class="card"><h3>Backup</h3><div class="sub">Your tracker (build, magazines, squad, notes) lives in this browser only. Export a file to keep it safe &mdash; worth doing on a Drop-on-Death=Everything world.</div>'+
+    '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="setExport">⤓ Download backup</button><button class="btn" id="setImport">⤒ Load backup</button></div>'+
+   '</div>'+
+  '</div>'+
+  '<div class="card" style="margin-top:12px"><h3>Keyboard shortcuts</h3>'+sc("Ctrl + K","Global search — perks, builds, magazines, POIs, settings")+sc("1 – 9","Jump straight to a tab")+sc("Esc","Close search / exit 3D fullscreen")+'</div>'+
+  '<div class="card" style="margin-top:12px"><h3>About</h3><div class="sub">7DtD Survival Companion <b style="color:var(--text,#e8e4dd)">v'+esc(APP_VERSION)+'</b> — a local, offline tracker. Your save data is read on this machine and never leaves it.</div>'+
+   '<div style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap"><a class="wlink" href="https://github.com/Lampe332/7dtd-survival-companion" target="_blank" rel="noopener noreferrer">Project on GitHub ↗</a><a class="wlink" href="https://github.com/Lampe332/7dtd-survival-companion/releases" target="_blank" rel="noopener noreferrer">Releases ↗</a></div>'+
+  '</div>';
+ document.getElementById("settings").innerHTML=html;
+ var n=document.getElementById("setNotify");if(n)n.onclick=function(){var b=document.getElementById("notifybtn");if(b)b.click();setTimeout(rSettings,60);};
+ var l=document.getElementById("setLive");if(l)l.onclick=function(){var b=document.getElementById("livebtn");if(b)b.click();setTimeout(rSettings,60);};
+ var ex=document.getElementById("setExport");if(ex)ex.onclick=function(){var b=document.getElementById("exp");if(b)b.click();};
+ var im=document.getElementById("setImport");if(im)im.onclick=function(){var b=document.getElementById("imp");if(b)b.click();};
+}
 function show(){
  if(S.tab==="map")S.tab="d3";
  document.body.dataset.tab=S.tab;
@@ -886,7 +911,7 @@ function show(){
  }
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
- try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,squad:rSquad,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki})[S.tab]||rWorld)();}
+ try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,squad:rSquad,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki,settings:rSettings})[S.tab]||rWorld)();}
  catch(e){showRenderError(e);}
  a11yClickable(); // keyboard-enable tabs + freshly rendered clickable elements
  if(typeof checkBloodMoonNotify==="function")checkBloodMoonNotify(false); // re-check Blood Moon alert on every day/tab change (instant, deduped per day)
