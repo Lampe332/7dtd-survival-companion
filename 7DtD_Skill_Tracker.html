@@ -1414,8 +1414,8 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
   ["Zombie Dog",0,"Fast low pack, infection + bleed. Funnel it; sweep with AoE/melee and never let the pack flank you."],
   ["Screamer",0,"Heat-seeker — her 2nd scream summons a horde every ~20s. Kill at range before she screams; cut every heat source."]
  ];
- var tr=threats.map(function(t){var active=gs>=t[1];return '<div class="enemy-card '+(active?"active":"locked")+'"><div class="cap">'+t[0]+(t[1]?' &middot; GS '+t[1]:'')+'<div class="meta">'+t[2]+'</div><span class="threat-status">'+(active?"IN THREAT POOL":"BELOW THRESHOLD")+'</span></div></div>';}).join("");
- html+='<div class="card" style="margin-top:14px"><h3>Threat Identification &middot; Game Stage '+gs+'</h3><div class="horde-threats">'+tr+'</div></div>';
+ var trh=threats.map(function(t){var active=gs>=t[1];return '<div class="enemy-card '+(active?"active":"locked")+'"><div class="cap">'+t[0]+(t[1]?' &middot; GS '+t[1]:'')+'<div class="meta">'+t[2]+'</div><span class="threat-status">'+(active?"IN THREAT POOL":"BELOW THRESHOLD")+'</span></div></div>';}).join("");
+ html+='<div class="card" style="margin-top:14px"><h3>Threat Identification &middot; Game Stage '+gs+'</h3><div class="horde-threats">'+trh+'</div></div>';
  // Game Stage Planner — a what-if projector. Uses its OWN inputs (S.gspLvl/S.gspDay), so it never
  // touches the tracked character; reuses the same `threats` thresholds as the card above (single source).
  var gspL=Math.max(1,(S.gspLvl!=null?S.gspLvl:(S.lvl||1))),gspD=Math.max(1,(S.gspDay!=null?S.gspDay:(S.day||1)));
