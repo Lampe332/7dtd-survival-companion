@@ -1327,6 +1327,22 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  ];
  var tr=threats.map(function(t){var active=gs>=t[1];return '<div class="enemy-card '+(active?"active":"locked")+'"><div class="cap">'+t[0]+(t[1]?' &middot; GS '+t[1]:'')+'<div class="meta">'+t[2]+'</div><span class="threat-status">'+(active?"IN THREAT POOL":"BELOW THRESHOLD")+'</span></div></div>';}).join("");
  html+='<div class="card" style="margin-top:14px"><h3>Threat Identification &middot; Game Stage '+gs+'</h3><div class="horde-threats">'+tr+'</div></div>';
+ // Game Stage Planner — a what-if projector. Uses its OWN inputs (S.gspLvl/S.gspDay), so it never
+ // touches the tracked character; reuses the same `threats` thresholds as the card above (single source).
+ var gspL=Math.max(1,(S.gspLvl!=null?S.gspLvl:(S.lvl||1))),gspD=Math.max(1,(S.gspDay!=null?S.gspDay:(S.day||1)));
+ var projGS=Math.floor((gspL+Math.min(gspD,gspL))*1.2);
+ var gated=threats.filter(function(t){return t[1]>0;}).sort(function(a,b){return a[1]-b[1];});
+ var ptr=gated.map(function(t){var on=projGS>=t[1],newly=on&&gs<t[1];return '<div class="enemy-card '+(on?"active":"locked")+'"><div class="cap">'+esc(t[0])+' &middot; GS '+t[1]+(newly?' <span class="threat-status" style="color:var(--blood)">NEW AT THIS STAGE</span>':'')+'<div class="meta">'+esc(t[2])+'</div><span class="threat-status">'+(on?"IN THREAT POOL":"NOT YET")+'</span></div></div>';}).join("");
+ var nextUp=gated.filter(function(t){return t[1]>projGS;})[0];
+ html+='<div class="card" style="margin-top:12px"><h3>Game Stage Planner</h3><div class="sub">Plan ahead: enter a hypothetical level and days-survived to see the resulting Game Stage and which special infected enter the Blood Moon pool. This is a what-if &mdash; it does NOT change your tracked character.</div>'+
+  '<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin:12px 0">'+
+   '<div><label class="fld">Level</label><input type="number" id="gspl" value="'+gspL+'" min="1" max="300" style="width:92px"></div>'+
+   '<div><label class="fld">Days survived</label><input type="number" id="gspd" value="'+gspD+'" min="1" max="100000" style="width:120px"></div>'+
+   '<button class="btn" id="gspreset" type="button">Use my character</button>'+
+   '<div style="margin-left:auto;text-align:right"><div class="ops-code">PROJECTED GS</div><div style="font-size:30px;font-weight:700;line-height:1.05">'+projGS+'</div></div>'+
+  '</div>'+
+  '<div class="sub" style="margin-bottom:8px">'+(nextUp?('Next special: <b>'+esc(nextUp[0])+'</b> enters the pool at Game Stage '+nextUp[1]+'.'):'Every Game-Stage-gated special is already in the pool at this stage.')+' Vultures, spiders, dogs and screamers can appear at any stage.</div>'+
+  '<div class="horde-threats">'+ptr+'</div></div>';
  html+='<div class="grid g2" style="margin-top:12px"><div class="card"><h3>Blood Moon Sequence</h3><div class="protocol-list">'+
    '<div class="protocol-step"><div class="protocol-time">21:30</div><div class="protocol-copy"><b>Lockdown</b>Seal the route and kill ALL heat (forge, campfire, generator) — heat draws Screamers mid-horde. Verify the bail hatch.</div></div>'+
    '<div class="protocol-step"><div class="protocol-time">22:00</div><div class="protocol-copy"><b>First Contact</b>The horde spawns at night-set. Hold the funnel, headshot, ration stamina — Nightmare sprinters never stop.</div></div>'+
@@ -1341,6 +1357,9 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  document.getElementById("horde").innerHTML=html;
  document.querySelectorAll("#horde [data-r]").forEach(function(r){r.onclick=function(){var i=r.dataset.r;S.ready[i]=!S.ready[i];save();rHorde();};});
  document.querySelectorAll("#horde [data-rg]").forEach(function(btn){btn.onclick=function(){var g=prepGroups[+btn.dataset.rg],all=g.items.every(function(i){return !!S.ready[i];});g.items.forEach(function(i){S.ready[i]=!all;});save();rHorde();};});
+ (function(){function gn(id,key,max){var f=document.getElementById(id);if(!f)return;function set(v){S[key]=Math.min(max,Math.max(1,parseInt(v,10)||1));save();rHorde();var n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(n.value.length,n.value.length);}catch(_){}}}f.oninput=function(){if(this.value==="")return;set(this.value);};f.onchange=function(){set(this.value);};}
+  gn("gspl","gspLvl",300);gn("gspd","gspDay",100000);
+  var rb=document.getElementById("gspreset");if(rb)rb.onclick=function(){delete S.gspLvl;delete S.gspDay;save();rHorde();};}());
  a11yClickable(document.getElementById("horde")); // re-wire after self re-render
 }
 // ---- SQUAD (8-player team coverage board) ----
