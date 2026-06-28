@@ -81,6 +81,7 @@ input[type=number]{font-family:var(--mono);font-weight:700}
 .stepper button{width:30px;height:30px;border:1px solid var(--line2);background:var(--card2);color:var(--text);border-radius:8px;font-size:16px;cursor:pointer;font-weight:700}
 .stepper button:hover{background:var(--acc);color:#0c0b09}.stepper .mc{font-family:var(--mono);font-weight:700;min-width:42px;text-align:center}
 .bar{height:9px;border-radius:999px;background:var(--bg2);overflow:hidden;margin-top:7px}.fillb{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));width:0;transition:width .3s}
+.plan-grid{margin:12px 0}.plan-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line2,#2c2c2c)}.plan-row:first-child{border-top:0}.plan-attr{flex:0 0 116px}.plan-attr b{font-size:14px}.plan-attr .sub{margin:0;font-size:11px}.plan-unl{flex:1 1 240px;min-width:200px;color:var(--text-soft,#9a948c);font-size:12.5px;line-height:1.5}
 .kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px}.kv:last-child{border:none}.kv b{font-family:var(--mono);font-weight:700}
 .refrow{font-size:13.5px;padding:5px 0;color:var(--muted)}.refrow b{color:var(--text);font-weight:600}
 .foot{color:var(--dim);font-size:12px;margin-top:26px;text-align:center;line-height:1.8}
@@ -1076,6 +1077,8 @@ function buildAttrCaps(bid){
 // Flatten selected perks into per-rank entries, each placed in the phase its gate unlocks; cap ranks the route can't reach.
 // Skill-point cost to reach an attribute level (seven-days-to-die SKILL.md §2: lvl 2-5 = 1pt, 6-8 = 2pt, 9-10 = 3pt).
 function attrPointCost(L){return L<=5?1:L<=8?2:3;}
+// Total skill points to raise an attribute from 1 to L (sum of the per-level costs above).
+function attrTotalCost(L){var c=0;for(var l=2;l<=L;l++)c+=attrPointCost(l);return c;}
 // The real per-level attribute passive: raises headshot damage + dismember chance for THAT attribute's weapons.
 // This is the only direct attribute buff in 7DtD V1.0+ (no +melee/+stamina per level — that was pre-1.0). Same scaling
 // for all 5 attributes, different governed weapons. Source: game attribute desc (Localization.csv) + progression.xml
@@ -1219,9 +1222,29 @@ function perkCatalogHTML(st,mode){
 function rPerks(){
  var st=bstate();
  if(!RD||!RD.perks){document.getElementById("perks").innerHTML=hero("Perk Reference","All 57 perks","Loading the perk reference…","tab_perks")+'<div class="card"><div class="wstep">Loading…</div></div>';return;}
+ // Build Point Planner — a free-form what-if. State lives in S.plan (per-attribute level), never the
+ // tracked character/build. Costs use the verified attrPointCost ladder; unlocked perk ranks count
+ // gates met via perkGates (the same gate data the Build tab uses), so nothing is faked.
+ var plan=S.plan||{}, PLATTRS=["Perception","Strength","Fortitude","Agility","Intellect"], pPerksBy={};
+ (RD.perks||[]).forEach(function(p){var a=p.attribute;if(a){(pPerksBy[a]=pPerksBy[a]||[]).push(p);}});
+ var planTotal=0, planRanks=0;
+ var planRows=PLATTRS.map(function(a){
+  var L=Math.min(10,Math.max(1,parseInt(plan[a],10)||1)), cost=attrTotalCost(L), unl=[];
+  planTotal+=cost;
+  (pPerksBy[a]||[]).forEach(function(p){var g=perkGates(p),mr=0;g.forEach(function(gl){if(L>=gl)mr++;});if(mr>0){unl.push(esc(p.name||p.key)+" R"+mr);planRanks+=mr;}});
+  return '<div class="plan-row"><div class="stepper"><button type="button" data-pld="'+a+'" aria-label="'+a+' lower">−</button><span class="mc">'+L+'</span><button type="button" data-plp="'+a+'" aria-label="'+a+' raise">+</button></div>'+
+   '<div class="plan-attr"><b>'+a+'</b><span class="sub">'+cost+' pt'+(cost===1?"":"s")+'</span></div>'+
+   '<div class="plan-unl">'+(unl.length?unl.join(" · "):'<span style="color:var(--dim)">no perk ranks yet</span>')+'</div></div>';
+ }).join("");
+ var planPpl=pointsPerLevel(), planLvl=Math.max(1,Math.ceil((planTotal-TUTORIAL_SKILL_POINTS)/planPpl)+1);
+ var planCard='<div class="card"><h3>Build Point Planner</h3><div class="sub">A free-form what-if: set each attribute level to see the skill points it costs, the character level that affords it, and which perk ranks it unlocks. Attribute points only &mdash; perk ranks cost 1 point each on top. It does not change your tracked character or build.</div>'+
+  '<div class="plan-grid">'+planRows+'</div>'+
+  '<div class="ops-strip" style="margin-top:12px">'+opsStat("ATTRIBUTE / POINTS",planTotal,"Skill points spent on attributes")+opsStat("AFFORDABLE / LVL","≈ "+planLvl,"Character level that affords just the attribute points ("+planPpl+"/level + "+TUTORIAL_SKILL_POINTS+" tutorial)",true)+opsStat("PERK RANKS / OPEN",planRanks,"Perk ranks these attribute levels unlock",true)+'</div>'+
+  '<button class="btn" id="planClear" style="margin-top:12px">Clear planner</button></div>';
  var html=hero("Perk Reference","All 57 perks","A read-only reference of every perk and what each rank does. To add perks to a build, use the Build tab.","tab_perks")+
   '<div class="ops-strip">'+opsStat("CATALOG / SIZE",(RD.perks||[]).length,"Perks documented",true)+opsStat("ATTRIBUTES / SET","5","Plus general perks",true)+opsStat("DETAIL / RANKS","1–5","Per-rank effects shown",true)+'</div>'+
   '<div class="card perk-nav" data-go="build" role="button" tabindex="0"><div><div class="ops-code">BUILD / DOCTRINE</div><b style="display:block;margin-top:7px;font-size:15px;color:var(--text)">Go to the Build tab to select perks</b><span class="sub">Picking and slotting perks into a route happens there.</span></div><span class="perk-nav-go">‹</span></div>'+
+  planCard+
   perkCatalogHTML(st,'reference');
  document.getElementById("perks").innerHTML=html;
  // read-only: clicking a row expands its per-rank effects; no perk selection on this tab.
@@ -1229,6 +1252,8 @@ function rPerks(){
  var pq=document.getElementById("perkqref");if(pq)pq.oninput=function(){S.perkRefq=this.value;filterPerks("#perks",S.perkRefq,S.perkRefAttr);};
  document.querySelectorAll("#perks .filterchips [data-pa]").forEach(function(c){c.onclick=function(){S.perkRefAttr=c.dataset.pa;document.querySelectorAll("#perks .filterchips [data-pa]").forEach(function(x){x.classList.toggle("on",x===c);});filterPerks("#perks",S.perkRefq,S.perkRefAttr);};c.onkeydown=activateOnKey;});
  document.querySelectorAll("#perks .perk-nav").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};x.onkeydown=activateOnKey;});
+ document.querySelectorAll("#perks [data-pld],#perks [data-plp]").forEach(function(b){b.onclick=function(){if(!S.plan)S.plan={};var a=b.dataset.pld||b.dataset.plp,d=b.dataset.plp?1:-1,cur=Math.min(10,Math.max(1,parseInt(S.plan[a],10)||1));S.plan[a]=Math.min(10,Math.max(1,cur+d));save();rPerks();};});
+ var planClr=document.getElementById("planClear");if(planClr)planClr.onclick=function(){S.plan={};save();rPerks();};
  filterPerks("#perks",S.perkRefq,S.perkRefAttr);
 }
 function filterPerks(scope,q,af){
