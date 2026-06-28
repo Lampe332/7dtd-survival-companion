@@ -1980,6 +1980,16 @@ fn patch_sandbox(code: &str, name: &str, idx: i32) -> Result<String, String> {
         return Err("Leerer SandboxCode".into());
     }
     let header = bytes[0];
+    // Fail closed on an unknown SandboxCode format version. The header is currently 'A' (V2.x /
+    // V3.0 experimental); the SANDORDER triplet layout only holds for that version. Writing
+    // index-mapped values into a format the app was never verified against could corrupt
+    // gameOptions.sdf, so refuse rather than risk the save (save protection).
+    if header != b'A' {
+        return Err(
+            "Unknown SandboxCode version — refusing to write (app not verified against this game format)"
+                .into(),
+        );
+    }
     let body = &bytes[1..];
     if !body.len().is_multiple_of(3) {
         return Err("SandboxCode-Länge nicht durch 3 teilbar".into());
@@ -2410,6 +2420,16 @@ mod tests {
     fn patch_sandbox_rejects_bad_index() {
         assert!(patch_sandbox("ABIE", "ZombieMove", 26).is_err());
         assert!(patch_sandbox("ABIE", "NoSuchOption", 1).is_err());
+    }
+
+    #[test]
+    fn patch_sandbox_rejects_unknown_version_header() {
+        // 'A' is the known/verified header — a write succeeds.
+        assert!(patch_sandbox("ABIE", "ZombieMove", 3).is_ok());
+        // Any other header (e.g. a future game-format bump) must fail closed so the app never
+        // writes index-mapped values into a SandboxCode layout it was not verified against.
+        assert!(patch_sandbox("BBIE", "ZombieMove", 3).is_err());
+        assert!(patch_sandbox("ZBIE", "ZombieMove", 3).is_err());
     }
 
     #[test]

@@ -1969,9 +1969,15 @@ var SETCFG=[
  ["👥 World & Multiplayer",[["PlayerKillingMode","PvP Mode","kill",0],["ServerMaxPlayerCount","Max Players","int",0],["ServerVisibility","Visibility","vis",0],["Region","Region","str",0],["BiomeProgression","Biome Progression","bool",0],["LandClaimSize","Claim Size","int",0]]]
 ];
 function sandVal(nm,vi){var s=SANDVAL[nm];if(s){if(s.d&&(!s.v||s.d.length===s.v.length)&&vi>=0&&vi<s.d.length)return s.d[vi];if(s.v&&vi>=0&&vi<s.v.length)return s.v[vi];}var o=refOpt(nm);if(o&&o.options&&vi>=0&&vi<o.options.length)return o.options[vi].label;return "Index "+vi;}
-function decodeSandbox(code){var out={};if(!code||code.length<4)return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),vi=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=sandVal(nm,vi);}return out;}
+// SandboxCode begins with a 1-char format-version header (currently 'A' in V2.x and V3.0
+// experimental). The 3-char-per-option layout below only holds for that version. If a future
+// build (e.g. V3.0 stable) bumps the header, fail CLOSED — decode nothing rather than silently
+// mis-mapping enum ids to wrong settings on an Insane-difficulty survival readout.
+var SB_VER="A",_sbVerWarned=false;
+function sbHeaderOk(code){if(!code)return false;if(code.charAt(0)===SB_VER)return true;if(!_sbVerWarned){_sbVerWarned=true;try{console.warn('7DtD Companion: unknown SandboxCode version header "'+code.charAt(0)+'" (expected "'+SB_VER+'") — skipping decode to avoid showing wrong settings.');}catch(e){}}return false;}
+function decodeSandbox(code){var out={};if(!code||code.length<4||!sbHeaderOk(code))return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),vi=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=sandVal(nm,vi);}return out;}
 // ---- SANDBOXCODE decode (value indices) ----
-function decodeSandboxIdx(code){var out={};if(!code||code.length<2)return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),lo=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=lo;}return out;}
+function decodeSandboxIdx(code){var out={};if(!code||code.length<2||!sbHeaderOk(code))return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),lo=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=lo;}return out;}
 function refOpt(name){return (RD&&RD.byName&&RD.byName[name])||null;}
 // resolve an option's relevance + current value for a given save settings map
 function optState(o,st,v3,sbIdx){
