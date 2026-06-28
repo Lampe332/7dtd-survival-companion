@@ -59,7 +59,7 @@ No installer. No account. No telemetry. Your save data never leaves your machine
 | 📚 **Wiki** | Live search of the 7DtD Fandom wiki, in-app (works offline from cache) |
 | 📖 **Reference** | Quick cards: biomes, attributes, buffs, trader, gamestage |
 
-Plus a top bar with **⌕ Global Search (Ctrl+K)**, **🔔 Blood-Moon alerts**, and **◉ LIVE auto-refresh** that follows the game as you play.
+Plus a top bar with **⌕ Global Search (Ctrl+K)**, **↻ refresh-from-save**, **◉ LIVE auto-refresh** that follows the game as you play, **⌂ change-world**, and a **⚙ Settings** menu — with a **⬆ update badge** that shows up only when a new version is out.
 
 ---
 
@@ -119,11 +119,13 @@ All 23 crafting magazines with a readable **quality ladder** (Q1–Q6) and a **C
 
 ### ⚡ Always on hand
 
-- **⌕ Global Search (Ctrl+K)** — jump straight to any perk, build, magazine, POI or setting.
-- **◉ LIVE mode** — re-reads your save every ~10 s, so the day, level, magazines and Blood Moon countdown follow the game while you play.
-- **🔔 Blood-Moon alerts** — an optional desktop notification the day before a horde night.
+- **⌕ Global Search (Ctrl+K)** — jump straight to any perk, build, magazine, POI or setting (it can even open Settings).
+- **↻ Refresh / ◉ LIVE** — re-read your save on demand, or let LIVE mode re-read it every ~10 s so the day, level, magazines and Blood Moon countdown follow the game while you play.
+- **⚙ Settings** — a centered modal opened by the gear (top-right): EN/DE language, Blood-Moon alerts, the LIVE toggle, backup export/import/reset, an Updates panel and the keyboard shortcuts.
+- **⬆ One-click self-update** — when a newer release is out, the app downloads the new `.exe` from GitHub and restarts itself — no manual re-download. Trigger it any time from **⚙ Settings → Updates → Check for updates**.
+- **🔔 Blood-Moon alerts** — an optional desktop notification the day before a horde night (toggle in ⚙ Settings).
 - **📡 Offline wiki cache** — wiki searches are cached, so they keep working with no connection.
-- **🌐 English or German** — switch the whole interface between English and German in **Settings → Preferences → Language**. Default is English; gameplay and save data stay in their original terms.
+- **🌐 English or German** — switch the whole interface in **⚙ Settings → Preferences → Language**. Default is English; gameplay and save data stay in their original terms.
 
 ---
 
@@ -132,12 +134,12 @@ All 23 crafting magazines with a readable **quality ladder** (Q1–Q6) and a **C
 The app normally reads your **local** game folder — but it can also read from elsewhere, and let you hand your whole map to a friend.
 
 - **Custom / network folder** — point it at any path or UNC share that holds your `Saves` + `GeneratedWorlds`.
-- **Dedicated server (SFTP / FTP)** — enter host, user and the remote folder; it pulls just what it needs and reads your world live while you play on the server.
+- **Dedicated server (SFTP / FTPS / FTP)** — enter host, user and the remote folder; it pulls just what it needs and reads your world live while you play on the server. FTPS is FTP-over-TLS with full certificate validation. Your **last few connections come back as one-click chips** (protocol · user · host — never the password).
 - **Share your world** — hosting a world your friend doesn't have? Export a small `.7dtdworld.json` and they get your **full 3D map** (terrain, POIs, settings) without your save files. Loads read-only.
 
 Credentials stay in memory for the session — never written to disk. The local server stays locked to your machine; sharing is a file you send, not an open port.
 
-<details><summary>📷 Screenshot — data source & sharing panel</summary><br><img src="assets/screenshots/server.png" alt="Source panel: local folder, custom/UNC, SFTP/FTP server, and world export/import"></details>
+<details><summary>📷 Screenshot — data source & sharing panel</summary><br><img src="assets/screenshots/server.png" alt="Source panel: local folder, custom/UNC, SFTP/FTPS/FTP server, and world export/import"></details>
 
 ---
 
@@ -157,7 +159,7 @@ The app reads, it doesn't phone home:
 - **Worlds** — `…/7DaysToDie/GeneratedWorlds/<world>/` → terrain, biomes, water and POIs for the 3D map.
 - **Game install** *(optional)* → prefab tiers and POI thumbnails.
 
-The **only** thing it ever writes is the world settings you change yourself in the World tab — and only after a timestamped backup you can restore in one click. No account, no analytics, no telemetry, no background services — your saves and settings never leave your PC. Exactly two optional outbound calls exist and nothing else: the wiki search you trigger (7DtD Fandom wiki) and a once-a-day version check (GitHub releases API) that powers the update badge; the page's Content-Security-Policy hard-blocks every other destination. Close the tab and it's gone.
+The **only** thing it ever writes is the world settings you change yourself in the World tab — and only after a timestamped backup you can restore in one click. No account, no analytics, no telemetry, no background services — your saves and settings never leave your PC. Exactly two optional outbound destinations exist and nothing else: the wiki search you trigger (7DtD Fandom wiki) and GitHub — a once-a-day version check (releases API) flags new versions and, if you choose, the app downloads the new `.exe` to update in place. Only a public release lookup and the download happen; none of your data is sent. The page's Content-Security-Policy hard-blocks every other destination. Close the tab and it's gone.
 
 ## Build from source
 
@@ -172,7 +174,7 @@ The frontend (`7DtD_Skill_Tracker.html`) and reference data (`src/refdata.json`)
 
 | | |
 |---|---|
-| **Backend** | Rust + [`tiny_http`](https://crates.io/crates/tiny_http) — file scanning, binary `.sdf` / `.ttp` parsing, settings write-back, map decoding, SFTP/FTP ([`russh`](https://crates.io/crates/russh) · [`suppaftp`](https://crates.io/crates/suppaftp)) |
+| **Backend** | Rust + [`tiny_http`](https://crates.io/crates/tiny_http) — file scanning, binary `.sdf` / `.ttp` parsing, settings write-back, map decoding, SFTP/FTPS/FTP ([`russh`](https://crates.io/crates/russh) · [`suppaftp`](https://crates.io/crates/suppaftp), native-tls), one-click self-update ([`ureq`](https://crates.io/crates/ureq)) |
 | **Frontend** | Vanilla JS, single file, hand-rolled WebGL for the 3D map — no framework, no build step |
 | **Platform** | Windows · **UI language:** English / Deutsch (in-app toggle) |
 
