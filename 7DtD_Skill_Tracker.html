@@ -2837,7 +2837,7 @@ function setAutoRefresh(on){
 (function(){var lb=document.getElementById("livebtn");if(lb){lb.onclick=function(){setAutoRefresh(!S.autoRefresh);};lb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setAutoRefresh(!S.autoRefresh);}}}renderLiveBtn();if(S.autoRefresh&&S.world){_autoTimer=setInterval(autoRefreshTick,AUTO_REFRESH_MS);setTimeout(autoRefreshTick,1500);}})();
 // ---- Update check: compare this build with the latest GitHub release (public API,
 // no token, CORS-enabled). Throttled to once/day; shows a ⬆ Update badge when newer.
-var APP_VERSION="1.42.6";
+var APP_VERSION="1.42.7";
 var UPD_REPO="Lampe332/7dtd-survival-companion";
 function verCmp(a,b){var f=function(s){return String(s).replace(/^[vV]\s*/,"").split(/[^0-9]+/).filter(function(x){return x!=="";}).map(Number);};var pa=f(a),pb=f(b);for(var i=0;i<Math.max(pa.length,pb.length);i++){var d=(pa[i]||0)-(pb[i]||0);if(d)return d<0?-1:1;}return 0;}
 function showUpdateBadge(tag){var b=document.getElementById("updbtn");if(!b)return;if(tag&&verCmp(tag,APP_VERSION)>0){b.style.display="";b.textContent="⬆ v"+String(tag).replace(/^[vV]/,"");b.title="Version "+tag+" is available (you have v"+APP_VERSION+") — click to download";}else{b.style.display="none";}}
