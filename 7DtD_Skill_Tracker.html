@@ -1908,7 +1908,7 @@ var SETCFG=[
  ["💀 Death & Loot",[["DropOnDeath","Drop on Death","drop",1],["DropOnQuit","Drop on Quit","drop",0],["LootAbundance","Loot Abundance","pct",0],["LootRespawnDays","Loot Respawn","days",0],["BlockDamageAI","AI Block Damage","pct",0],["BlockDamageAIBM","Blood Moon Block Damage","pct",0],["StormFreq","Storm Frequency","pct",0]]],
  ["👥 World & Multiplayer",[["PlayerKillingMode","PvP Mode","kill",0],["ServerMaxPlayerCount","Max Players","int",0],["ServerVisibility","Visibility","vis",0],["Region","Region","str",0],["BiomeProgression","Biome Progression","bool",0],["LandClaimSize","Claim Size","int",0]]]
 ];
-function sandVal(nm,vi){var s=SANDVAL[nm];if(s){if(s.d&&(!s.v||s.d.length===s.v.length)&&vi>=0&&vi<s.d.length)return s.d[vi];if(s.v&&vi>=0&&vi<s.v.length)return s.v[vi];}return "Index "+vi;}
+function sandVal(nm,vi){var s=SANDVAL[nm];if(s){if(s.d&&(!s.v||s.d.length===s.v.length)&&vi>=0&&vi<s.d.length)return s.d[vi];if(s.v&&vi>=0&&vi<s.v.length)return s.v[vi];}var o=refOpt(nm);if(o&&o.options&&vi>=0&&vi<o.options.length)return o.options[vi].label;return "Index "+vi;}
 function decodeSandbox(code){var out={};if(!code||code.length<4)return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),vi=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=sandVal(nm,vi);}return out;}
 // ---- SANDBOXCODE decode (value indices) ----
 function decodeSandboxIdx(code){var out={};if(!code||code.length<2)return out;var b=code.slice(1);for(var i=0;i+3<=b.length;i+=3){var opt=(b.charCodeAt(i)-65)*26+(b.charCodeAt(i+1)-65),lo=b.charCodeAt(i+2)-65;var nm=SANDORDER[opt];if(nm)out[nm]=lo;}return out;}
