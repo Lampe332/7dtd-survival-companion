@@ -945,8 +945,10 @@ var TUTORIAL_SKILL_POINTS=4;
 // Character level at which the full route is affordable: available(L) = TUTORIAL_SKILL_POINTS + (L-1)*pointsPerLevel.
 function routeLevel(bid){var ppl=pointsPerLevel(),rp=routePoints(bid);return Math.max(1,Math.ceil((rp-TUTORIAL_SKILL_POINTS)/ppl)+1);}
 // Export the active build as shareable Markdown (for the squad's Discord etc.).
-function buildToMarkdown(bid){var b=BUILDS[bid];if(!b)return"";var atomic=buildAtomicSteps(bid),md="# "+b.name+"\n_"+(b.sub||"")+"_\n\nFull route ≈ "+routePoints(bid)+" skill points.\n\n";
- b.phases.forEach(function(ph,pi){md+="### "+ph[0]+" "+ph[1]+" · "+ph[2]+"\n";atomic.filter(function(s){return s.phase===pi;}).forEach(function(s){md+="- "+s.name+(s.desc?" — "+s.desc:"")+"\n";});md+="\n";});
+function buildToMarkdown(bid){var b=BUILDS[bid];if(!b)return"";var atomic=buildAtomicSteps(bid),chk=(S.builds&&S.builds[bid]&&S.builds[bid].chk)||{};
+ var done=atomic.filter(function(s){return chk[s.id];}).length;
+ var md="# "+b.name+"\n_"+(b.sub||"")+"_\n\nFull route ≈ "+routePoints(bid)+" skill points · "+done+"/"+atomic.length+" steps checked.\n\n";
+ b.phases.forEach(function(ph,pi){md+="### "+ph[0]+" "+ph[1]+" · "+ph[2]+"\n";atomic.filter(function(s){return s.phase===pi;}).forEach(function(s){md+="- ["+(chk[s.id]?"x":" ")+"] "+s.name+(s.desc?" — "+s.desc:"")+"\n";});md+="\n";});
  return md.trim()+"\n\n_— 7DtD Survival Companion_";}
 // ---- DASHBOARD ----
 function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
