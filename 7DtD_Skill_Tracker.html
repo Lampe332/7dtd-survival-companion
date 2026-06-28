@@ -1223,6 +1223,21 @@ function updatePickCount(){var st=bstate();var n=Object.keys(st.picks||{}).lengt
 function rowHTML(id,nm,ef,star,on,rightTag){return '<div class="row'+(on?" done":"")+'" data-id="'+id+'"><div class="cbx">'+(on?"✓":"")+'</div><div class="txt"><div class="lbl">'+nm+(star?' <span class="star">★</span>':'')+'</div>'+(ef?'<div class="ef">'+ef+'</div>':'')+'</div>'+(rightTag||'')+'</div>';}
 function markNext(sec){var rows=document.querySelectorAll("#"+sec+" .row");for(var i=0;i<rows.length;i++){if(!rows[i].classList.contains("done")){rows[i].classList.add("next");var s=document.createElement("span");s.className="nx";s.innerHTML='<span class="dot"></span>next';rows[i].appendChild(s);break;}}}
 // ---- HORDE ----
+// Decode the combat-relevant world settings from the linked save and show the actual values
+// (now that sandVal resolves them via refdata). Read-only; only renders cleanly-resolved
+// labels (skips "Index N" and bare legacy ints), and only when enough dials resolve.
+function hordeDialsHTML(){
+ var s=S.world&&S.world.settings; if(!s)return "";
+ var d={};
+ try{if(s.SandboxCode&&typeof decodeSandbox==="function")d=decodeSandbox(s.SandboxCode)||{};}catch(_){}
+ Object.keys(s).forEach(function(k){if(k!=="SandboxCode"&&d[k]==null)d[k]=s[k];});
+ // 3rd field: 1 = percentage setting (a bare integer means "N%"); 0 = categorical (a bare
+ // integer is an unresolved legacy index → skip it rather than show a meaningless number).
+ var KEYS=[["GameDifficulty","Difficulty",0],["IncomingDamage","Damage Taken",1],["RangedDamage","Your Ranged Dmg",1],["MeleeDamage","Your Melee Dmg",1],["HeadshotMultiplier","Headshot Mult",1],["ZombieMove","Day Speed",0],["ZombieMoveNight","Night Speed",0],["ZombieFeralMove","Feral Speed",0],["ZombieBMMove","Blood Moon Speed",0],["ZombieFeralSense","Feral Sense",0],["BlockDamageAI","AI Block Dmg",1],["BlockDamageAIBM","BM Block Dmg",1],["DropOnDeath","Drop on Death",0],["DeathPenalty","Death Penalty",0],["XPMultiplier","XP Rate",1]];
+ var chips=[];KEYS.forEach(function(k){var v=d[k[0]];if(v==null||v==="")return;v=String(v);if(/^Index /.test(v))return;var disp;if(/^-?\d+$/.test(v)){if(!k[2])return;disp=v+"%";}else disp=v;chips.push('<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 11px;border:1px solid var(--line,#2c2c2c);border-radius:8px;font-size:13px"><span style="color:var(--text-soft,#9a948c)">'+esc(k[1])+'</span><span style="font-weight:600">'+esc(disp)+'</span></div>');});
+ if(chips.length<3)return "";
+ return '<div class="card" style="margin-top:12px"><h3>Your World&rsquo;s Danger Dials</h3><div class="sub">The combat settings decoded from your linked save &mdash; what actually drives the fight.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:10px">'+chips.join("")+'</div></div>';
+}
 function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
  var bmc=(function(v){var n=parseInt(v,10);return n>0?n:64;})(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)));
  var ban=b.off?'<div class="banner safe">Blood Moon disabled in this world &middot; no horde nights scheduled</div>':b.today?'<div class="banner danger">BLOOD MOON TONIGHT &middot; '+bmc+' enemies inbound &middot; final checks only</div>':'<div class="banner '+(b.until<=1?"warn":"safe")+'">'+b.until+' days until Blood Moon on day '+b.next+' &middot; '+bmc+' enemies configured</div>';
@@ -1271,7 +1286,7 @@ function rHorde(){var b=bm(),rs=readyScore(),gs=gamestage();
    '<div class="card horde-stat"><span class="code">COUNTDOWN / D-'+b.until+'</span><div><div class="value">'+b.until+'</div><div class="unit">days to contact</div></div><div class="signal"></div></div>'+
    '<div class="card horde-stat" title="Game Stage: hidden difficulty from your level + days survived. Higher = tougher, more numerous zombies and better loot."><span class="code">THREAT / GS ⓘ</span><div><div class="value">'+gs+'</div><div class="unit">current Game Stage</div></div><div class="signal"></div></div>'+
    '<div class="card horde-stat"><span class="code">WAVE / CAP</span><div><div class="value">'+bmc+'</div><div class="unit">configured enemies</div></div><div class="signal"></div></div>'+
-  '</div><div class="horde-groups">'+prepGroups.map(groupHTML).join("")+'</div>';
+  '</div>'+hordeDialsHTML()+'<div class="horde-groups">'+prepGroups.map(groupHTML).join("")+'</div>';
  var threats=[
   ["Feral",37,"Orange-eyed, sprints day+night on Nightmare. Headshots only — never melee-trade on Insane."],
   ["Wight",120,"Permanent feral, 1200-2200 HP, tears walls like a Bear. Drop it ranged/from elevation before it reaches blocks."],
