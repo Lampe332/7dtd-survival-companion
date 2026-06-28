@@ -665,7 +665,9 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
   <span class="icon" id="livebtn" title="Live auto-refresh — keep reading your save every 10s so the day, level and Blood Moon countdown follow the game automatically (the game must write its autosave first)" role="button" tabindex="0">◉ LIVE</span>
   <span class="icon" id="backstart" title="Change world / character — back to the start screen" role="button" tabindex="0">⌂</span>
   <a class="icon" id="updbtn" target="_blank" rel="noopener" href="https://github.com/Lampe332/7dtd-survival-companion/releases" title="A newer version is available on GitHub — click to download" style="display:none">⬆ Update</a>
-  <span class="icon" id="exp" title="Export/Import">⇅</span>
+  <span class="icon" id="exp" title="Download a backup of your tracker (build, magazines, squad, notes) as a file" role="button" tabindex="0">⤓</span>
+  <span class="icon" id="imp" title="Load a tracker backup file" role="button" tabindex="0">⤒</span>
+  <input type="file" id="impfile" accept=".json,application/json" style="display:none">
 </div>
 <div class="tabs" id="tabs"></div>
 <div id="gsoverlay" class="gs-overlay" role="dialog" aria-label="Global search" style="display:none"><div class="gs-panel"><div class="gs-head"><span class="gs-mark">⌕</span><input id="gsinput" class="gs-input" placeholder="Search everything — perks, builds, magazines, POIs, settings, reference…" autocomplete="off"><kbd class="gs-esc">ESC</kbd></div><div id="gsresults" class="gs-results"></div></div></div>
@@ -850,10 +852,19 @@ document.getElementById("dm").onclick=function(){if(S.day>1)S.day--;save();rende
 (function(){var di=document.getElementById("dayv");if(di&&di.tagName==="INPUT")di.onchange=function(){var v=parseInt(this.value,10);if(!(v>=1))v=1;if(v>100000)v=100000;S.day=v;save();renderTop();show();};})();
 (function(){var b=document.getElementById("backstart");if(b){b.onclick=function(){backToLauncher();};b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();backToLauncher();}};}
  var rb=document.getElementById("refreshbtn");if(rb){rb.onclick=function(){refreshSave();};rb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();refreshSave();}};}})();
-document.getElementById("exp").onclick=function(){
- var blob=JSON.stringify(S);var inp=prompt("EXPORT / IMPORT\nCopy this code as a backup, or paste a saved code and press OK to restore it:",blob);
- if(inp&&inp!==blob){var n;try{n=JSON.parse(inp);}catch(e){alert("Invalid companion data.");return;}if(!n||typeof n!=="object"){alert("Invalid companion data.");return;}S=normalizeState(n);save();location.reload();}
-};
+// Backup as a downloadable file (was a copy/paste prompt). Drop-on-Death=Everything makes a
+// durable, one-click backup of build/magazine/squad progress worth keeping off-site.
+(function(){
+ var exp=document.getElementById("exp");
+ function doExport(){try{var blob=new Blob([JSON.stringify(S)],{type:"application/json"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="7dtd-companion-backup-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);}catch(e){alert("Backup failed: "+e.message);}}
+ if(exp){exp.onclick=doExport;exp.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();doExport();}}}
+ var imp=document.getElementById("imp"),f=document.getElementById("impfile");
+ if(imp&&f){
+  function pick(){f.click();}
+  imp.onclick=pick;imp.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}};
+  f.onchange=function(){var file=f.files&&f.files[0];if(!file){return;}var fr=new FileReader();fr.onload=function(){var n;try{n=JSON.parse(fr.result);}catch(e){alert("Invalid backup file.");f.value="";return;}if(!n||typeof n!=="object"){alert("Invalid backup file.");f.value="";return;}if(!confirm("Replace your current tracker data with this backup? This cannot be undone.")){f.value="";return;}S=normalizeState(n);save();location.reload();};fr.onerror=function(){alert("Could not read the file.");f.value="";};fr.readAsText(file);};
+ }
+})();
 // ---- tabs ----
 var tb=document.getElementById("tabs");
 function renderTabs(){
