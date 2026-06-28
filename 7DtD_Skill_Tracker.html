@@ -884,7 +884,7 @@ function rSettings(){
     '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0"><div><b>Live auto-refresh</b><div class="sub">Re-read your save every 10s so day and level follow the game.</div></div><button class="btn" id="setLive">'+(liveOn?"On":"Off")+'</button></div>'+
    '</div>'+
    '<div class="card"><h3>Backup</h3><div class="sub">Your tracker (build, magazines, squad, notes) lives in this browser only. Export a file to keep it safe &mdash; worth doing on a Drop-on-Death=Everything world.</div>'+
-    '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="setExport">⤓ Download backup</button><button class="btn" id="setImport">⤒ Load backup</button></div>'+
+    '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="setExport">⤓ Download backup</button><button class="btn" id="setImport">⤒ Load backup</button><button class="btn" id="setReset" style="margin-left:auto;border-color:rgba(216,74,63,.45);color:#e0897f">↺ Reset tracker</button></div>'+
    '</div>'+
   '</div>'+
   '<div class="card" style="margin-top:12px"><h3>Keyboard shortcuts</h3>'+sc("Ctrl + K","Global search — perks, builds, magazines, POIs, settings")+sc("1 – 9","Jump straight to a tab")+sc("Esc","Close search / exit 3D fullscreen")+'</div>'+
@@ -896,6 +896,7 @@ function rSettings(){
  var l=document.getElementById("setLive");if(l)l.onclick=function(){var b=document.getElementById("livebtn");if(b)b.click();setTimeout(rSettings,60);};
  var ex=document.getElementById("setExport");if(ex)ex.onclick=function(){var b=document.getElementById("exp");if(b)b.click();};
  var im=document.getElementById("setImport");if(im)im.onclick=function(){var b=document.getElementById("imp");if(b)b.click();};
+ var rs=document.getElementById("setReset");if(rs)rs.onclick=function(){if(!confirm("Reset the tracker to defaults? This erases your tracked progress (build, magazines, squad, notes). A backup copy is saved to this browser's local storage first. Continue?"))return;try{ls("7dtd-companion.bak",lg("7dtd-companion")||"");}catch(_){}try{localStorage.removeItem("7dtd-companion");}catch(_){}location.reload();};
 }
 function show(){
  if(S.tab==="map")S.tab="d3";
