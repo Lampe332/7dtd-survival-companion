@@ -1354,6 +1354,22 @@ var ROLE_FILL={Anchor:"shotgun",Ranged:"sniper",Flanker:"stealth",Support:"medic
 var BM_PLAN={Anchor:"Hold the funnel / chokepoint — primary horde DPS, repair the kill-lane blocks between waves. Stand on a 13-high forced-climb so sprinters slow down.",Ranged:"Back platform — headshot <b>Demolishers, Radiated & Wights ONLY</b>. Never let melee touch a Demolisher (chest charge blows your base open).",Support:"Behind the line — repair blocks, hand out ammo + first-aid, drop turrets, heal. Fuel the generator on Day 6, not Day 7.",Flanker:"Roam — clear stragglers, watch the flanks, recover dropped gear (Drop-on-Death loses everything)."};
 function memberGS(L){L=L||1;return Math.floor((L+Math.min(S.day||1,L))*1.2);}
 function partyGS(){var gs=(S.squad||[]).map(function(m){return memberGS(m.level);}).sort(function(a,b){return b-a;});var p=0;gs.forEach(function(g,i){p+=g*Math.pow(0.5,i);});return Math.round(p);}
+function squadToMarkdown(){
+ var sq=Array.isArray(S.squad)?S.squad:[];
+ var strip=function(s){return String(s||"").replace(/<[^>]+>/g,"");};
+ var cell=function(s){return String(s||"").replace(/\|/g,"/");};
+ var roles={Anchor:0,Ranged:0,Flanker:0,Support:0};
+ sq.forEach(function(m){var r=SQUAD_ROLE[m.build];if(r)roles[r]++;});
+ var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
+ var md="# Squad Battle Plan\n_"+sq.length+"/8 players · Party Game Stage "+partyGS()+" · Blood Moon "+bmc+"× per player_\n\n";
+ md+="## Roster\n| # | Player | Lvl | Build | Weapon | Role |\n|---|---|---|---|---|---|\n";
+ sq.forEach(function(m,i){var bk=BUILDS[m.build]?m.build:"sledge";md+="| P"+(i+1)+" | "+cell(m.name||"P")+" | "+(m.level||1)+" | "+cell(BUILDS[bk]?BUILDS[bk].name:bk)+" | "+cell((SQUAD_WEAPON[bk]||["—"])[0])+" | "+(SQUAD_ROLE[bk]||"—")+" |\n";});
+ md+="\n## Role coverage\n";["Anchor","Ranged","Flanker","Support"].forEach(function(r){md+="- "+r+": "+roles[r]+(roles[r]?"":" — MISSING")+"\n";});
+ md+="\n## Blood Moon plan\n";var any=false;Object.keys(roles).filter(function(r){return roles[r];}).forEach(function(r){any=true;var who=sq.filter(function(m){return SQUAD_ROLE[m.build]===r;}).map(function(m){return m.name||"P";});md+="- **"+r+"** ("+who.join(", ")+"): "+strip(BM_PLAN[r])+"\n";});if(!any)md+="- Add players to generate a plan.\n";
+ var ammoMap={},melee=0;sq.forEach(function(m){var w=SQUAD_WEAPON[m.build]||["—","—"],a=w[1];if(a==="melee")melee++;else if(a&&a!=="—"&&a!=="mixed")(ammoMap[a]=ammoMap[a]||[]).push(m.name||"P");});
+ md+="\n## Ammo & supply\n";Object.keys(ammoMap).forEach(function(a){md+="- "+a+": "+ammoMap[a].join(", ")+"\n";});if(melee)md+="- melee: "+melee+" player"+(melee===1?"":"s")+" (repair kits + stamina food)\n";
+ return md.trim()+"\n\n_— 7DtD Survival Companion_";
+}
 function rSquad(){
  if(!Array.isArray(S.squad)||!S.squad.length){var ip=S.importedPlayer;S.squad=[{name:ip?ip.name:"You",level:ip?ip.level:(S.lvl||1),build:(BUILDS[S.cur]?S.cur:"sledge")}];}
  S.squad.forEach(function(m){if(!BUILDS[m.build])m.build="sledge";}); // M1: normalize unknown/legacy build keys once so roles, weapon/role spans and the <select> all agree
@@ -1388,7 +1404,7 @@ function rSquad(){
  var html=hero("Squad Board","8-player team coverage","Assign each teammate a build, spot role gaps, and read the real party Game Stage your group's Blood Moon actually spawns at.","tab_horde")+
   '<div class="ops-strip">'+opsStat("SQUAD / SIZE",S.squad.length+" / 8","Players on the roster")+opsStat("PARTY / GS",pgs,"Effective group Game Stage (estimate, assumes no deaths) — higher than solo, so a tougher Blood Moon and earlier Demolishers/Radiated",true)+opsStat("SOLO / GS",solo,"Your individual Game Stage, for comparison",true)+opsStat("BLOOD MOON / LOAD",bmc+"×"+S.squad.length,bmc+" enemies PER PLAYER — up to ~"+(bmc*S.squad.length)+" total across the squad (capped by the server's max-alive). 8 players is far harsher than the GS number alone implies.",true)+opsStat("ROLES / COVERED",Object.keys(roles).filter(function(r){return roles[r];}).length+" / 4","Anchor · Ranged · Flanker · Support",true)+'</div>'+
   ((gaps.length||missing.length)?'<div class="card" style="border-color:rgba(216,74,63,.4)"><h3>Coverage Gaps</h3><div>'+gaps.map(function(g){return '<div class="squad-gap">⚠ '+g+'</div>';}).join("")+(missing.length?'<div class="sub" style="margin:6px 0 2px">One-click fill a missing role:</div>':"")+quickfill+'</div></div>':'<div class="banner safe">Full role coverage — Anchor, Ranged, Flanker and Support are all present.</div>')+flankNote+
-  '<div class="card"><h3>Roster</h3><div class="squad-list">'+members+'</div>'+(S.squad.length<8?'<button class="btn" id="squadAdd" style="margin-top:12px">+ Add player</button>':'<div class="sub" style="margin-top:10px">Roster full (8 players).</div>')+'</div>'+
+  '<div class="card"><h3>Roster</h3><div class="squad-list">'+members+'</div>'+(S.squad.length<8?'<button class="btn" id="squadAdd" style="margin-top:12px">+ Add player</button>':'<div class="sub" style="margin-top:10px">Roster full (8 players).</div>')+' <button class="btn" id="squadCopy" style="margin-top:12px">⧉ Copy squad plan</button></div>'+
   '<div class="card"><h3>Roles</h3><div>'+Object.keys(SQUAD_ROLE_DESC).map(function(r){return '<div class="squad-roledef"><span class="squad-role role-'+r+'">'+r+' ×'+roles[r]+'</span><span>'+SQUAD_ROLE_DESC[r]+'</span></div>';}).join("")+'</div>'+
    '<p class="sub" style="margin-top:10px">Party GS = highest member GS ×1 + 2nd ×0.5 + 3rd ×0.25… (more players = a tougher Blood Moon). Member GS = (level + days survived) ×1.2. Source: seven-days-to-die skill.</p></div>'+
   '<div class="card"><h3>🩸 Blood Moon Battle Plan</h3><div class="sub">Who does what on horde night (derived from each build). Spread across 2-3 corridors — one doorway won\'t hold '+bmc+' sprinters per player.</div>'+(planRows||'<div class="refrow">Add players to generate a battle plan.</div>')+'</div>'+
@@ -1404,6 +1420,7 @@ function rSquad(){
    row.querySelectorAll("[data-sf]").forEach(function(inp){inp.onchange=function(){var f=inp.dataset.sf;S.squad[i][f]=f==="level"?Math.max(1,parseInt(inp.value,10)||1):inp.value;save();rSquad();};});});
  document.querySelectorAll("#squad [data-sdel]").forEach(function(b){b.onclick=function(){S.squad.splice(+b.dataset.sdel,1);save();rSquad();};});
  var add=document.getElementById("squadAdd");if(add)add.onclick=function(){if(S.squad.length<8){S.squad.push({name:"Player "+(S.squad.length+1),level:1,build:"sledge"});save();rSquad();}};
+ var scp=document.getElementById("squadCopy");if(scp)scp.onclick=function(){var md=squadToMarkdown();var done=function(){scp.textContent="✓ Copied!";setTimeout(function(){scp.textContent="⧉ Copy squad plan";},1500);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(md).then(done,done);}else{var ta=document.createElement("textarea");ta.value=md;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(_){}ta.remove();done();}};
  document.querySelectorAll("#squad [data-fill]").forEach(function(b){b.onclick=function(){if(S.squad.length<8){S.squad.push({name:b.dataset.role,level:(S.importedPlayer&&S.importedPlayer.level)||S.lvl||1,build:b.dataset.fill});save();rSquad();}};});
  a11yClickable(document.getElementById("squad"));
 }
