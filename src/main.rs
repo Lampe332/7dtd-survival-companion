@@ -249,8 +249,11 @@ fn self_update() -> Result<String, String> {
         format!("Konnte die laufende .exe nicht beiseite legen: {e}")
     })?;
     if let Err(e) = fs::rename(&new_path, &cur) {
-        // Roll back so the app isn't left without its executable.
-        let _ = fs::rename(&old_path, &cur);
+        // Roll back so the app is never left without its executable: prefer rename,
+        // fall back to copy if a rename can't restore it (e.g. AV briefly locking the file).
+        if fs::rename(&old_path, &cur).is_err() {
+            let _ = fs::copy(&old_path, &cur);
+        }
         let _ = fs::remove_file(&new_path);
         return Err(format!("Konnte die neue .exe nicht einsetzen: {e}"));
     }
