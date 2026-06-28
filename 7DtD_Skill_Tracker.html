@@ -2202,7 +2202,7 @@ function settingsEditor(world,save,st){
  var cat=settingsCatalog(), byCat={};
  cat.forEach(function(o){
   var sstate=optState(o,st,v3,sbIdx); if(!sstate)return;
-  if(q&&(o.name.toLowerCase().indexOf(q)<0&&(o.label||"").toLowerCase().indexOf(q)<0&&(o.desc||"").toLowerCase().indexOf(q)<0))return;
+  if(q&&(o.name.toLowerCase().indexOf(q)<0&&(o.label||"").toLowerCase().indexOf(q)<0&&(o.desc||"").toLowerCase().indexOf(q)<0&&(o.descDe||"").toLowerCase().indexOf(q)<0))return;
   (byCat[o.cat]=byCat[o.cat]||[]).push([o,sstate]);
  });
  var editableCount=0,totalShown=0;
@@ -2214,7 +2214,7 @@ function settingsEditor(world,save,st){
     var o=pair[0],sstate=pair[1],label=o.label||humanKey(o.name);
    var editable=o.control!=="display"&&(o.options&&o.options.length||o.control==="number"||o.control==="bool");
    if(editable)editableCount++; totalShown++;
-    rows+='<div class="setrow'+(editable?"":" ro")+'" data-name="'+esc(o.name)+'" data-label="'+esc(label)+'" data-help="'+esc(o.desc||tr("set.refFallback","Detailed reference text can be added in refdata.json."))+'" data-source="'+(sstate.target==="sandbox"?"SandboxCode":"Plain setting")+'" data-risk="'+(o.risk||0)+'" data-editable="'+(editable?1:0)+'">'+
+    rows+='<div class="setrow'+(editable?"":" ro")+'" data-name="'+esc(o.name)+'" data-label="'+esc(label)+'" data-help="'+esc(((LANG==="de"&&o.descDe)?o.descDe:o.desc)||tr("set.refFallback","Detailed reference text can be added in refdata.json."))+'" data-source="'+(sstate.target==="sandbox"?"SandboxCode":"Plain setting")+'" data-risk="'+(o.risk||0)+'" data-editable="'+(editable?1:0)+'">'+
       '<div class="setmeta"><div class="setlbl">'+esc(label)+riskBadge(o.risk||0)+(sstate.target==="sandbox"?'<span class="srcb" title="'+tr("set.v3val","V3 SandboxCode value")+'">⟳</span>':'')+'<button type="button" class="sethelpq" aria-label="'+tr("set.explain","Explain ")+esc(label)+'">?</button></div>'+
      '<div class="setdesc">'+tr("set.configKey","Configuration key: ")+'<span class="srcb">'+esc(o.name)+'</span></div></div>'+
      '<div class="setctl">'+ctlHTML(o,sstate)+'</div></div>';
@@ -2921,7 +2921,7 @@ function setAutoRefresh(on){
 (function(){var lb=document.getElementById("livebtn");if(lb){lb.onclick=function(){setAutoRefresh(!S.autoRefresh);};lb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setAutoRefresh(!S.autoRefresh);}}}renderLiveBtn();if(S.autoRefresh&&S.world){_autoTimer=setInterval(autoRefreshTick,AUTO_REFRESH_MS);setTimeout(autoRefreshTick,1500);}})();
 // ---- Update check: compare this build with the latest GitHub release (public API,
 // no token, CORS-enabled). Throttled to once/day; shows a ⬆ Update badge when newer.
-var APP_VERSION="1.42.26";
+var APP_VERSION="1.42.27";
 var UPD_REPO="Lampe332/7dtd-survival-companion";
 function verCmp(a,b){var f=function(s){return String(s).replace(/^[vV]\s*/,"").split(/[^0-9]+/).filter(function(x){return x!=="";}).map(Number);};var pa=f(a),pb=f(b);for(var i=0;i<Math.max(pa.length,pb.length);i++){var d=(pa[i]||0)-(pb[i]||0);if(d)return d<0?-1:1;}return 0;}
 function showUpdateBadge(tag){var b=document.getElementById("updbtn");if(!b)return;if(tag&&verCmp(tag,APP_VERSION)>0){b.style.display="";b.textContent="⬆ v"+String(tag).replace(/^[vV]/,"");b.title=tr("upd.available","A newer version is available — click to install it now: ")+tag;b.onclick=function(e){e.preventDefault();doSelfUpdate(tag);};}else{b.style.display="none";b.onclick=null;}}
