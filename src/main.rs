@@ -168,7 +168,123 @@ fn port_is_our_instance() -> bool {
     buf.contains("\"ok\":true") || buf.contains("\"ok\": true")
 }
 
+/// The official repository. The self-updater only ever downloads from here.
+const UPDATE_REPO: &str = "Lampe332/7dtd-survival-companion";
+
+/// HTTPS GET with the User-Agent GitHub requires, following redirects (rustls/ring).
+fn http_get(url: &str) -> Result<ureq::Response, String> {
+    ureq::get(url)
+        .set("User-Agent", "7DtD-Survival-Companion-Updater")
+        .set("Accept", "application/vnd.github+json")
+        .timeout(Duration::from_secs(90))
+        .call()
+        .map_err(|e| format!("Netzwerkfehler: {e}"))
+}
+
+/// Fetch the newest release's `.exe` from the official repo → (tag, bytes), after
+/// verifying the asset URL belongs to `UPDATE_REPO` and the payload is a real Windows
+/// executable. No filesystem/process side effects (the dry-run check uses this too).
+fn fetch_latest_exe() -> Result<(String, Vec<u8>), String> {
+    // 1. Latest-release metadata from the GitHub API.
+    let api = format!("https://api.github.com/repos/{UPDATE_REPO}/releases/latest");
+    let body = http_get(&api)?
+        .into_string()
+        .map_err(|e| format!("Antwort konnte nicht gelesen werden: {e}"))?;
+    let meta: Value =
+        serde_json::from_str(&body).map_err(|e| format!("Release-Daten ungültig: {e}"))?;
+    let tag = meta["tag_name"].as_str().unwrap_or("").to_string();
+    // 2. Find the .exe asset and its download URL.
+    let asset_url = meta["assets"]
+        .as_array()
+        .and_then(|a| {
+            a.iter().find(|x| {
+                x["name"]
+                    .as_str()
+                    .map(|n| n.to_lowercase().ends_with(".exe"))
+                    .unwrap_or(false)
+            })
+        })
+        .and_then(|x| x["browser_download_url"].as_str())
+        .ok_or_else(|| "Kein .exe-Asset im neuesten Release gefunden.".to_string())?
+        .to_string();
+    // 3. Defense in depth: only ever download from the official repo's GitHub URL.
+    if !asset_url.starts_with(&format!("https://github.com/{UPDATE_REPO}/")) {
+        return Err("Asset-URL gehört nicht zum offiziellen Repository.".to_string());
+    }
+    // 4. Download the bytes (capped at 64 MiB).
+    let mut bytes: Vec<u8> = Vec::new();
+    http_get(&asset_url)?
+        .into_reader()
+        .take(64 * 1024 * 1024)
+        .read_to_end(&mut bytes)
+        .map_err(|e| format!("Download fehlgeschlagen: {e}"))?;
+    // 5. Sanity-check: a real Windows .exe starts with "MZ" and is not tiny.
+    if bytes.len() < 1_000_000 || &bytes[0..2] != b"MZ" {
+        return Err(format!(
+            "Heruntergeladene Datei ist keine gültige .exe ({} Bytes).",
+            bytes.len()
+        ));
+    }
+    Ok((tag, bytes))
+}
+
+/// Download the newest release `.exe`, swap it in for the running executable (Windows
+/// lets you rename a running `.exe`), relaunch it with `--post-update`, and schedule
+/// THIS process to exit so the port frees for the new one. Returns the new tag.
+fn self_update() -> Result<String, String> {
+    let (tag, bytes) = fetch_latest_exe()?;
+    // 6. Swap it in for the running executable.
+    let cur = env::current_exe().map_err(|e| format!("Eigener Pfad unbekannt: {e}"))?;
+    let dir = cur.parent().ok_or("Kein Eltern-Verzeichnis.")?;
+    let stem = cur
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .ok_or("Kein Dateiname.")?;
+    let new_path = dir.join(format!("{stem}.new.exe"));
+    let old_path = dir.join(format!("{stem}.old.exe"));
+    fs::write(&new_path, &bytes).map_err(|e| format!("Schreiben fehlgeschlagen: {e}"))?;
+    let _ = fs::remove_file(&old_path);
+    fs::rename(&cur, &old_path).map_err(|e| {
+        let _ = fs::remove_file(&new_path);
+        format!("Konnte die laufende .exe nicht beiseite legen: {e}")
+    })?;
+    if let Err(e) = fs::rename(&new_path, &cur) {
+        // Roll back so the app isn't left without its executable.
+        let _ = fs::rename(&old_path, &cur);
+        let _ = fs::remove_file(&new_path);
+        return Err(format!("Konnte die neue .exe nicht einsetzen: {e}"));
+    }
+    // 7. Launch the new version; it retry-binds the port after we exit.
+    std::process::Command::new(&cur)
+        .arg("--post-update")
+        .spawn()
+        .map_err(|e| format!("Neustart fehlgeschlagen: {e}"))?;
+    // 8. Exit shortly so the HTTP response flushes first, then the port frees.
+    thread::spawn(|| {
+        thread::sleep(Duration::from_millis(700));
+        std::process::exit(0);
+    });
+    Ok(tag)
+}
+
 fn main() {
+    // A self-update relaunch passes --post-update so this instance waits for the old
+    // one to release the port instead of deferring to it.
+    let post_update = env::args().any(|a| a == "--post-update");
+    // Diagnostic: verify the GitHub download + validation path against the live release
+    // WITHOUT swapping or relaunching anything (GUI subsystem has no stdout → write a file).
+    if env::args().any(|a| a == "--update-check-dryrun") {
+        let msg = match fetch_latest_exe() {
+            Ok((tag, bytes)) => format!(
+                "DRYRUN OK tag={tag} bytes={} mz={}",
+                bytes.len(),
+                &bytes[0..2] == b"MZ"
+            ),
+            Err(e) => format!("DRYRUN ERR {e}"),
+        };
+        let _ = fs::write(env::temp_dir().join("7dtd_update_dryrun.txt"), &msg);
+        return;
+    }
     let appdata = env::var_os("APPDATA")
         .map(PathBuf::from)
         .unwrap_or_default()
@@ -178,20 +294,49 @@ fn main() {
         install: find_install(),
     };
 
-    let server = match Server::http(ADDRESS) {
-        Ok(server) => server,
-        Err(error) => {
-            // Port busy. If it's our own already-running instance, just open the browser
-            // to it; if it's a FOREIGN service (or nothing answers), don't hand the user
-            // someone else's page — warn instead.
-            if port_is_our_instance() {
-                open_browser(&launch_url());
-            } else {
-                eprintln!("[7DtD] Port {ADDRESS} ist belegt oder Start fehlgeschlagen ({error}) — Browser NICHT geöffnet.");
+    let server = if post_update {
+        // After a self-update the old instance exits ~0.7 s after replying; retry the
+        // bind until its port frees (up to ~12 s) so the new version takes over.
+        let mut bound = None;
+        for _ in 0..40 {
+            match Server::http(ADDRESS) {
+                Ok(sv) => {
+                    bound = Some(sv);
+                    break;
+                }
+                Err(_) => thread::sleep(Duration::from_millis(300)),
             }
-            return;
+        }
+        match bound {
+            Some(sv) => sv,
+            None => {
+                eprintln!("[7DtD] Port {ADDRESS} wurde nach dem Update nicht frei.");
+                return;
+            }
+        }
+    } else {
+        match Server::http(ADDRESS) {
+            Ok(server) => server,
+            Err(error) => {
+                // Port busy. If it's our own already-running instance, just open the browser
+                // to it; if it's a FOREIGN service (or nothing answers), don't hand the user
+                // someone else's page — warn instead.
+                if port_is_our_instance() {
+                    open_browser(&launch_url());
+                } else {
+                    eprintln!("[7DtD] Port {ADDRESS} ist belegt oder Start fehlgeschlagen ({error}) — Browser NICHT geöffnet.");
+                }
+                return;
+            }
         }
     };
+    // Best-effort cleanup of the previous version a self-update left behind.
+    if let Ok(cur) = env::current_exe() {
+        if let (Some(dir), Some(stem)) = (cur.parent(), cur.file_stem().and_then(|s| s.to_str())) {
+            let _ = fs::remove_file(dir.join(format!("{stem}.old.exe")));
+            let _ = fs::remove_file(dir.join(format!("{stem}.new.exe")));
+        }
+    }
     let cache: Arc<Mutex<Option<ScanData>>> = Arc::new(Mutex::new(None));
     let source: Arc<Mutex<Source>> = Arc::new(Mutex::new(Source {
         root: paths.appdata.clone(),
@@ -201,10 +346,14 @@ fn main() {
     }));
     println!("[7DtD] Rust Companion läuft: http://{ADDRESS}");
 
-    thread::spawn(|| {
-        thread::sleep(Duration::from_millis(350));
-        open_browser(&launch_url());
-    });
+    // After a self-update the user already has the tab open (it reloads itself), so
+    // don't pop a second browser window.
+    if !post_update {
+        thread::spawn(|| {
+            thread::sleep(Duration::from_millis(350));
+            open_browser(&launch_url());
+        });
+    }
 
     // Worker pool: a slow /api/scan must not freeze asset/write/health requests.
     let server = Arc::new(server);
@@ -437,6 +586,14 @@ fn handle(
         };
         return match restore_settings(&eff, &body) {
             Ok(value) => respond_json(request, &value),
+            Err(error) => {
+                respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
+            }
+        };
+    }
+    if request.method() == &Method::Post && path == "/api/update" {
+        return match self_update() {
+            Ok(tag) => respond_json(request, &json!({"ok": true, "version": tag})),
             Err(error) => {
                 respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
             }
