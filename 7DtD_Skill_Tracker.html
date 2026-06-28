@@ -618,8 +618,10 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .gs-cat.c-poi{background:#5aa6ff}.gs-cat.c-perk{background:#5cc47a}.gs-cat.c-mag{background:#f5b73c}.gs-cat.c-build{background:#ef7a35}.gs-cat.c-set{background:#d83b32;color:#fff}.gs-cat.c-ref{background:#cfc7b6;color:#111}.gs-cat.c-tab{background:#6f6a5c;color:#fff}
 .gs-txt{flex:1;min-width:0}.gs-txt b{display:block;font-size:14px;color:var(--text)}.gs-txt span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gs-empty{padding:22px 15px;color:var(--muted);font-size:13px;text-align:center}
-.set-overlay{position:fixed;inset:0;z-index:210;background:rgba(8,7,6,.6);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:5vh 16px}
-.set-modal{position:relative;width:min(940px,95vw);max-height:90vh;overflow:auto;background:linear-gradient(180deg,#15191d,#0f1316);border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.6);padding:24px 24px 20px}
+.set-overlay{position:fixed;inset:0;z-index:210;background:rgba(8,7,6,.6);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:5vh 16px;opacity:0;transition:opacity .2s ease}
+.set-overlay.open{opacity:1}
+.set-modal{position:relative;width:min(940px,95vw);max-height:90vh;overflow:auto;background:linear-gradient(180deg,#15191d,#0f1316);border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.6);padding:24px 24px 20px;transform:scale(.25);opacity:0;transform-origin:100% 0;transition:transform .3s cubic-bezier(.16,.84,.44,1),opacity .2s ease;will-change:transform,opacity}
+.set-overlay.open .set-modal{transform:scale(1);opacity:1}
 .set-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--muted);font-size:15px;line-height:1;cursor:pointer;z-index:2}
 .set-close:hover{color:var(--text);border-color:var(--acc)}
 .set-head h2{margin:0 0 5px;font-size:21px;color:var(--text)}
@@ -902,10 +904,14 @@ document.getElementById("dm").onclick=function(){if(S.day>1)S.day--;save();rende
 (function(){var di=document.getElementById("dayv");if(di&&di.tagName==="INPUT")di.onchange=function(){var v=parseInt(this.value,10);if(!(v>=1))v=1;if(v>100000)v=100000;S.day=v;save();renderTop();show();};})();
 (function(){var b=document.getElementById("backstart");if(b){b.onclick=function(){backToLauncher();};b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();backToLauncher();}};}
  var rb=document.getElementById("refreshbtn");if(rb){rb.onclick=function(){refreshSave();};rb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();refreshSave();}};}
- var sg=document.getElementById("settbtn"),_setReturnFocus=null;
- function openSettings(){var o=document.getElementById("setoverlay");if(!o)return;_setReturnFocus=document.activeElement;rSettings();o.style.display="flex";document.body.classList.add("modal-open");a11yClickable();var c=document.getElementById("setClose");if(c)setTimeout(function(){try{c.focus();}catch(e){}},10);}
- function closeSettings(){var o=document.getElementById("setoverlay");if(!o||o.style.display==="none")return;o.style.display="none";document.body.classList.remove("modal-open");if(_setReturnFocus&&_setReturnFocus.focus){try{_setReturnFocus.focus();}catch(e){}}_setReturnFocus=null;}
- window.openSettings=openSettings;window.closeSettings=closeSettings;window.settingsOpen=function(){var o=document.getElementById("setoverlay");return !!(o&&o.style.display==="flex");};
+ var sg=document.getElementById("settbtn"),_setReturnFocus=null,_setCloseT=null;
+ function openSettings(){var o=document.getElementById("setoverlay");if(!o)return;if(_setCloseT){clearTimeout(_setCloseT);_setCloseT=null;}_setReturnFocus=document.activeElement;rSettings();o.style.display="flex";o.classList.remove("open");
+  // Anchor the open animation to the ⚙ gear so the panel appears to grow out of the icon.
+  var modal=o.querySelector(".set-modal");if(modal){modal.style.transformOrigin="";var gb=sg?sg.getBoundingClientRect():null;if(gb&&gb.width){var st=modal.style.transition;modal.style.transition="none";modal.style.transform="none";var mr=modal.getBoundingClientRect();modal.style.transform="";void modal.offsetWidth;modal.style.transition=st;modal.style.transformOrigin=Math.round((gb.left+gb.width/2)-mr.left)+"px "+Math.round((gb.top+gb.height/2)-mr.top)+"px";}}
+  void o.offsetWidth;o.classList.add("open");
+  document.body.classList.add("modal-open");a11yClickable();var c=document.getElementById("setClose");if(c)setTimeout(function(){try{c.focus();}catch(e){}},10);}
+ function closeSettings(){var o=document.getElementById("setoverlay");if(!o||o.style.display==="none"||!o.classList.contains("open"))return;o.classList.remove("open");document.body.classList.remove("modal-open");if(_setReturnFocus&&_setReturnFocus.focus){try{_setReturnFocus.focus();}catch(e){}}_setReturnFocus=null;if(_setCloseT)clearTimeout(_setCloseT);_setCloseT=setTimeout(function(){o.style.display="none";_setCloseT=null;},320);}
+ window.openSettings=openSettings;window.closeSettings=closeSettings;window.settingsOpen=function(){var o=document.getElementById("setoverlay");return !!(o&&o.classList.contains("open"));};
  if(sg){sg.onclick=openSettings;sg.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();openSettings();}};}
  var sc=document.getElementById("setClose");if(sc)sc.onclick=closeSettings;
  var sov=document.getElementById("setoverlay");if(sov)sov.onclick=function(e){if(e.target===sov)closeSettings();};
@@ -2909,7 +2915,7 @@ function setAutoRefresh(on){
 (function(){var lb=document.getElementById("livebtn");if(lb){lb.onclick=function(){setAutoRefresh(!S.autoRefresh);};lb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setAutoRefresh(!S.autoRefresh);}}}renderLiveBtn();if(S.autoRefresh&&S.world){_autoTimer=setInterval(autoRefreshTick,AUTO_REFRESH_MS);setTimeout(autoRefreshTick,1500);}})();
 // ---- Update check: compare this build with the latest GitHub release (public API,
 // no token, CORS-enabled). Throttled to once/day; shows a ⬆ Update badge when newer.
-var APP_VERSION="1.42.21";
+var APP_VERSION="1.42.22";
 var UPD_REPO="Lampe332/7dtd-survival-companion";
 function verCmp(a,b){var f=function(s){return String(s).replace(/^[vV]\s*/,"").split(/[^0-9]+/).filter(function(x){return x!=="";}).map(Number);};var pa=f(a),pb=f(b);for(var i=0;i<Math.max(pa.length,pb.length);i++){var d=(pa[i]||0)-(pb[i]||0);if(d)return d<0?-1:1;}return 0;}
 function showUpdateBadge(tag){var b=document.getElementById("updbtn");if(!b)return;if(tag&&verCmp(tag,APP_VERSION)>0){b.style.display="";b.textContent="⬆ v"+String(tag).replace(/^[vV]/,"");b.title=tr("upd.available","A newer version is available — click to install it now: ")+tag;b.onclick=function(e){e.preventDefault();doSelfUpdate(tag);};}else{b.style.display="none";b.onclick=null;}}
