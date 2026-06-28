@@ -1376,7 +1376,7 @@ function partyGS(){var gs=(S.squad||[]).map(function(m){return memberGS(m.level)
 function squadToMarkdown(){
  var sq=Array.isArray(S.squad)?S.squad:[];
  var strip=function(s){return String(s||"").replace(/<[^>]+>/g,"");};
- var cell=function(s){return String(s||"").replace(/\|/g,"/");};
+ var cell=function(s){return String(s||"").replace(/[\r\n]+/g," ").replace(/\|/g,"/");};
  var roles={Anchor:0,Ranged:0,Flanker:0,Support:0};
  sq.forEach(function(m){var r=SQUAD_ROLE[m.build];if(r)roles[r]++;});
  var bmc=(S.world&&(S.world.bmCount||(S.world.settings&&S.world.settings.BloodMoonEnemyCount)))||64;
@@ -1384,8 +1384,8 @@ function squadToMarkdown(){
  md+="## Roster\n| # | Player | Lvl | Build | Weapon | Role |\n|---|---|---|---|---|---|\n";
  sq.forEach(function(m,i){var bk=BUILDS[m.build]?m.build:"sledge";md+="| P"+(i+1)+" | "+cell(m.name||"P")+" | "+(m.level||1)+" | "+cell(BUILDS[bk]?BUILDS[bk].name:bk)+" | "+cell((SQUAD_WEAPON[bk]||["—"])[0])+" | "+(SQUAD_ROLE[bk]||"—")+" |\n";});
  md+="\n## Role coverage\n";["Anchor","Ranged","Flanker","Support"].forEach(function(r){md+="- "+r+": "+roles[r]+(roles[r]?"":" — MISSING")+"\n";});
- md+="\n## Blood Moon plan\n";var any=false;Object.keys(roles).filter(function(r){return roles[r];}).forEach(function(r){any=true;var who=sq.filter(function(m){return SQUAD_ROLE[m.build]===r;}).map(function(m){return m.name||"P";});md+="- **"+r+"** ("+who.join(", ")+"): "+strip(BM_PLAN[r])+"\n";});if(!any)md+="- Add players to generate a plan.\n";
- var ammoMap={},melee=0;sq.forEach(function(m){var w=SQUAD_WEAPON[m.build]||["—","—"],a=w[1];if(a==="melee")melee++;else if(a&&a!=="—"&&a!=="mixed")(ammoMap[a]=ammoMap[a]||[]).push(m.name||"P");});
+ md+="\n## Blood Moon plan\n";var any=false;Object.keys(roles).filter(function(r){return roles[r];}).forEach(function(r){any=true;var who=sq.filter(function(m){return SQUAD_ROLE[m.build]===r;}).map(function(m){return cell(m.name||"P");});md+="- **"+r+"** ("+who.join(", ")+"): "+strip(BM_PLAN[r])+"\n";});if(!any)md+="- Add players to generate a plan.\n";
+ var ammoMap={},melee=0;sq.forEach(function(m){var w=SQUAD_WEAPON[m.build]||["—","—"],a=w[1];if(a==="melee")melee++;else if(a&&a!=="—"&&a!=="mixed")(ammoMap[a]=ammoMap[a]||[]).push(cell(m.name||"P"));});
  md+="\n## Ammo & supply\n";Object.keys(ammoMap).forEach(function(a){md+="- "+a+": "+ammoMap[a].join(", ")+"\n";});if(melee)md+="- melee: "+melee+" player"+(melee===1?"":"s")+" (repair kits + stamina food)\n";
  return md.trim()+"\n\n_— 7DtD Survival Companion_";
 }
