@@ -604,7 +604,7 @@ button.btn:hover,.qbtn:hover{color:#fff;border-color:rgba(240,120,47,.55);backgr
 .readiness-legend{margin:12px 0 0;padding:10px 12px;border-left:2px solid var(--accent);background:rgba(232,114,42,.045);color:var(--text-muted);font-size:12px;line-height:1.5}.readiness-legend b{color:var(--text)}
 @media(max-width:760px){#introCoach{grid-template-columns:36px 1fr}#introCoach::before{width:34px;height:34px}#introCoach #introClose{grid-column:1/-1;width:100%}#d3 .flight-deck{grid-template-columns:1fr}#d3 .flight-status.fs-overlay{max-width:calc(100vw - 24px)}#mags .qladder{grid-template-columns:repeat(3,1fr)}#ref .ref-import-strip{align-items:flex-start;flex-direction:column}}
 @media(max-width:620px){#world .presetbar{grid-template-columns:1fr 1fr}#mags .mag-entry{padding:54px 12px 12px}#mags .bookvol{grid-template-columns:46px 82px 1fr}#mags .qladder{grid-template-columns:repeat(2,1fr)}#wiki .wiki-searchrow{flex-direction:column}#wiki #wikigo{width:100%}}
-@media(prefers-reduced-motion:reduce){.launch *,#introCoach *,#world *,#d3 *,#mags *,#ref *,#wiki *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 .gs-overlay{position:fixed;inset:0;z-index:200;background:rgba(8,7,6,.72);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding-top:11vh}
 .gs-panel{width:min(680px,92vw);background:linear-gradient(180deg,#15191d,#0f1316);border:1px solid var(--acc);border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden}
 .gs-head{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line)}
