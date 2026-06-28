@@ -965,6 +965,7 @@ function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
    '<div class="kv"><span>Build</span><b>'+esc((BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur)+'</b></div>'+
    '<div class="kv"><span>Reference data</span><b>'+(RD?pill(true,"Loaded"):pill(false,"Loading…"))+'</b></div>'+
    (loaded?'':'<div class="qbtn" data-go="world" style="margin-top:10px">Load a world and survivor</div>')+
+   '<button class="btn" id="dashReport" style="margin-top:10px;width:100%">⧉ Copy status report</button>'+
   '</div>';
  var quick='<div class="card"><h3>Command Routing</h3><div class="command-grid">'+
    '<div class="command-tile" data-go="world"><span class="num">01 / DATA</span><b>World Control</b><small>Import saves and verify settings.</small></div>'+
@@ -983,6 +984,29 @@ function rDash(){var b=bm(),rs=readyScore(),gs=gamestage(),ls2=lootstage();
    opsStat("DEFENSE / GRADE",rs.g,rs.p+"% Horde readiness",false,"Readiness grade A–F from your Horde prep checklist. F = not yet prepared — it is a to-do list, not an error.")+'</div>';
  document.getElementById("dash").innerHTML=hero("Survivor Dashboard","Live operation overview","Track the next Blood Moon, imported character status, build progress and current loot pressure.","tab_dash")+ban+overview+'<div class="dashboard-core">'+status+quick+'</div>';
  document.querySelectorAll("#dash [data-go]").forEach(function(x){x.onclick=function(){S.tab=x.dataset.go;save();show();};});
+ var dr=document.getElementById("dashReport");if(dr)dr.onclick=function(){var md=statusReport();var done=function(){dr.textContent="✓ Copied!";setTimeout(function(){dr.textContent="⧉ Copy status report";},1500);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(md).then(done,done);}else{var ta=document.createElement("textarea");ta.value=md;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(_){}ta.remove();done();}};
+}
+// A compact, shareable status snapshot (markdown, for the clipboard). Reuses the same verified
+// helpers the tabs render from — survivor + blood moon + build progress + what to read next + squad —
+// so an 8-player group can paste one message instead of three separate exports. Read-only.
+function statusReport(){
+ var w=S.world,ip=S.importedPlayer,b=bm(),gs=gamestage(),ls=lootstage(),bp=buildPct();
+ var clean=function(s){return String(s==null?"":s).replace(/[\r\n]+/g," ");};
+ var bmc=(function(v){var n=parseInt(v,10);return n>0?n:64;})(w&&(w.bmCount||(w.settings&&w.settings.BloodMoonEnemyCount)));
+ var name=ip?ip.name:"Survivor",lvl=ip?ip.level:(S.lvl||1),bname=(BUILDS[S.cur]&&BUILDS[S.cur].name)||S.cur;
+ var md="# 7DtD Survivor Status\n";
+ if(w)md+="_"+clean(w.world)+" / "+clean(w.save)+(w.version?" · "+clean(w.version):"")+"_\n";
+ md+="\n## Survivor\n- **"+clean(name)+"** · Level "+lvl+"\n- Day "+(S.day||1)+" · Game Stage "+gs+" · Loot Stage "+ls+"\n";
+ md+="- Blood Moon: "+(b.off?"disabled":b.today?("**TONIGHT** — "+bmc+" enemies"):("in "+b.until+" day"+(b.until===1?"":"s")+" (day "+b.next+") — "+bmc+" enemies"))+"\n";
+ md+="\n## Build: "+clean(bname)+" ("+bp+"% complete)\n";
+ var chk=(S.builds&&S.builds[S.cur]&&S.builds[S.cur].chk)||{},steps=buildAtomicSteps(S.cur),next=[];
+ for(var i=0;i<steps.length&&next.length<3;i++){if(!chk[steps[i].id])next.push(steps[i].name);}
+ md+=next.length?("Next up:\n"+next.map(function(n){return "- [ ] "+clean(n);}).join("\n")+"\n"):"Route complete.\n";
+ var nx=[];MAGS.forEach(function(m,i){var n=magNextUnlock(i);if(n)nx.push(n);});nx.sort(function(a,c){return a.need-c.need;});
+ if(nx.length)md+="\n## Read next (closest unlocks)\n"+nx.slice(0,5).map(function(n){return "- +"+n.need+" mag"+(n.need===1?"":"s")+" → "+clean(n.skill)+" → "+clean(n.label);}).join("\n")+"\n";
+ var sq=Array.isArray(S.squad)?S.squad:[];
+ if(sq.length>1)md+="\n## Squad\n- "+sq.length+" players · Party Game Stage "+partyGS()+"\n";
+ return md.trim()+"\n\n_— 7DtD Survival Companion_";
 }
 function card(h,sub,body){return '<div class="card"><h3>'+h+'</h3>'+body+'</div>';}
 function opsStat(code,value,label,small,tip){return '<div class="ops-stat"'+(tip?' title="'+esc(tip)+'"':'')+'><div class="ops-code">'+code+(tip?' <span style="opacity:.55;cursor:help">ⓘ</span>':'')+'</div><div class="ops-value'+(small?" small":"")+'">'+value+'</div><div class="ops-label">'+label+'</div><div class="ops-signal"></div></div>';}
