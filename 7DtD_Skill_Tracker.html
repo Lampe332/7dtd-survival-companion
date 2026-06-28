@@ -2921,7 +2921,7 @@ function setAutoRefresh(on){
 (function(){var lb=document.getElementById("livebtn");if(lb){lb.onclick=function(){setAutoRefresh(!S.autoRefresh);};lb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setAutoRefresh(!S.autoRefresh);}}}renderLiveBtn();if(S.autoRefresh&&S.world){_autoTimer=setInterval(autoRefreshTick,AUTO_REFRESH_MS);setTimeout(autoRefreshTick,1500);}})();
 // ---- Update check: compare this build with the latest GitHub release (public API,
 // no token, CORS-enabled). Throttled to once/day; shows a ⬆ Update badge when newer.
-var APP_VERSION="1.42.24";
+var APP_VERSION="1.42.25";
 var UPD_REPO="Lampe332/7dtd-survival-companion";
 function verCmp(a,b){var f=function(s){return String(s).replace(/^[vV]\s*/,"").split(/[^0-9]+/).filter(function(x){return x!=="";}).map(Number);};var pa=f(a),pb=f(b);for(var i=0;i<Math.max(pa.length,pb.length);i++){var d=(pa[i]||0)-(pb[i]||0);if(d)return d<0?-1:1;}return 0;}
 function showUpdateBadge(tag){var b=document.getElementById("updbtn");if(!b)return;if(tag&&verCmp(tag,APP_VERSION)>0){b.style.display="";b.textContent="⬆ v"+String(tag).replace(/^[vV]/,"");b.title=tr("upd.available","A newer version is available — click to install it now: ")+tag;b.onclick=function(e){e.preventDefault();doSelfUpdate(tag);};}else{b.style.display="none";b.onclick=null;}}
@@ -2938,9 +2938,17 @@ function doSelfUpdate(tag){
   toast(tr("upd.failed","Update failed: ")+e.message);
  });
 }
-function pollNewServer(n){
- if(n>40){location.reload();return;}
- fetch("/api/health",{cache:"no-store"}).then(function(r){if(r.ok){location.reload();}else{throw 0;}}).catch(function(){setTimeout(function(){pollNewServer(n+1);},500);});
+function pollNewServer(n,t0){
+ t0=t0||Date.now();
+ // Hard fallback: reload no matter what within ~20s, so a hung/stale connection can never
+ // leave the page stuck on "Installing…" (a keep-alive fetch to the exited old server can
+ // otherwise hang forever without resolving or rejecting).
+ if(n>40||(Date.now()-t0)>20000){location.reload();return;}
+ var ctl=("AbortController"in window)?new AbortController():null;
+ var to=setTimeout(function(){if(ctl)ctl.abort();},2000); // abort a hanging probe → counts as a retry
+ fetch("/api/health?_="+n,{cache:"no-store",signal:ctl?ctl.signal:undefined})
+  .then(function(r){clearTimeout(to);if(r.ok){location.reload();}else{throw 0;}})
+  .catch(function(){clearTimeout(to);setTimeout(function(){pollNewServer(n+1,t0);},500);});
 }
 function checkForUpdate(){
  var cache=null;try{cache=JSON.parse(localStorage.getItem("7dtd-updcheck")||"null");}catch(e){}
