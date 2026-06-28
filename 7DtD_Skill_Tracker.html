@@ -914,7 +914,7 @@ function show(){
  }
  document.querySelectorAll(".tab").forEach(function(b,i){b.classList.toggle("on",TABS[i][0]===S.tab);});
  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id===S.tab);});
- try{(({world:rWorld,map:rMap,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,squad:rSquad,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki,settings:rSettings})[S.tab]||rWorld)();}
+ try{(({world:rWorld,d3:r3D,dash:rDash,build:rBuild,perks:rPerks,horde:rHorde,squad:rSquad,loot:rLoot,mags:rMags,ref:rRef,wiki:rWiki,settings:rSettings})[S.tab]||rWorld)();}
  catch(e){showRenderError(e);}
  a11yClickable(); // keyboard-enable tabs + freshly rendered clickable elements
  if(typeof checkBloodMoonNotify==="function")checkBloodMoonNotify(false); // re-check Blood Moon alert on every day/tab change (instant, deduped per day)
@@ -2422,135 +2422,6 @@ function worldSummaryCard(w){
 }
 // ---- MAP ----
 function mapFilterOn(t){return S.mapFilter[(""+t)]!==0;}
-function rMap(){
- var el=document.getElementById("map");
- if(!S.map||!S.map.img){
-   el.innerHTML=hero("Tactical Map","2D world intelligence","Inspect biomes, roads, water, POI tiers and the imported survivor spawn without changing verified coordinate transforms.","tab_map")+
-    '<div class="banner warn">No map loaded. Link a world from the <b>World</b> tab and select the complete <b>7DaysToDie</b> folder so GeneratedWorlds data is available.</div>'+
-    '<div class="ops-strip">'+opsStat("LAYER / BIOMES","MISSING","GeneratedWorlds biome image",true)+opsStat("LAYER / POI","MISSING","prefabs.xml intelligence",true)+opsStat("LAYER / ROUTES","MISSING","Road and water overlays",true)+'</div>'+
-    '<div class="command-grid"><div class="command-tile" data-go="world"><span class="num">01 / LINK</span><b>Open World Control</b><small>Select a discovered save and import its map package.</small></div><div class="command-tile"><span class="num">02 / SOURCE</span><b>GeneratedWorlds</b><small>Biome image, POIs, roads and water originate here.</small></div><div class="command-tile"><span class="num">03 / SAFE</span><b>Transforms Locked</b><small>Verified coordinate transforms remain unchanged.</small></div></div>';
-   el.querySelector("[data-go]").onclick=function(){S.tab="world";save();show();};
-   return;
- }
- var m=S.map,pois=m.pois||[];
- var cnt={};pois.forEach(function(p){cnt[p[3]]=(cnt[p[3]]||0)+1;});
- var legend="";["1","2","3","4","5","0","-1"].forEach(function(t){var on=mapFilterOn(t);legend+='<span class="tierchip'+(on?"":" off")+'" data-tf="'+t+'"><span class="tdot" style="background:'+TIERCOL[t]+'"></span>'+TIERLBL[t]+' ('+(cnt[t]||0)+')</span>';});
- var g=m.gen||{};
- var info='<div class="card"><h3>World Telemetry · '+esc(m.world)+'</h3>'+
-   '<div class="kv"><span>Size</span><b>'+m.size+' × '+m.size+'</b></div>'+
-  '<div class="kv"><span>Type</span><b>'+(m.rwg==="true"?"Random Generated World":"Navezgane / Fixed")+'</b></div>'+
-  '<div class="kv"><span>Seed</span><b>'+esc(m.seed||"?")+'</b></div>'+
-  '<div class="kv"><span>Version</span><b>'+esc(m.ver||"?")+'</b></div>'+
-  '<div class="kv"><span>POIs</span><b>'+pois.length+'</b></div>'+
-  (g.Rivers?'<div class="kv"><span>Rivers / Towns</span><b>'+esc(g.Rivers)+" / "+esc(g.Towns)+'</b></div>':"")+'</div>';
- var ctrl='<div class="card"><h3>Tactical Filters</h3>'+
-   '<input id="mapq" placeholder="Search POIs: bunker, trader, factory…" value="'+esc(S.mapSearch||"")+'">'+
-   '<div class="legend">'+legend+'</div>'+
-   '<div class="wstep" style="margin:0">Scroll to zoom · drag to pan · click for POI details · blue marker = survivor spawn</div>'+
-   '<div class="map-actions"><button class="btn" id="mapreset">Reset View</button><button class="btn" data-mapspawn="'+(m.player?1:0)+'">'+(m.player?"Spawn Linked":"No Spawn Data")+'</button></div></div>';
- var canv='<div class="mapwrap"><canvas id="mapcv" width="2048" height="2048"></canvas><div class="maptip" id="maptip"></div></div>';
- var det='<div id="mapdet"></div>';
- el.innerHTML=hero("Tactical Map","2D world intelligence","Inspect biomes, roads, water, POI tiers and the imported survivor spawn.","tab_map")+
-  '<div class="ops-strip">'+
-   opsLead("RECON / COVERAGE",100,pois.length,"POIs Indexed",esc(m.world)+" tactical package is online.","#4fa7b5")+
-   opsStat("WORLD / SIZE",m.size,"blocks per axis")+
-   opsStat("THREAT / T5",cnt[5]||0,"Tier-5 combat locations")+
-   opsStat("NAV / SPAWN",m.player?"LINKED":"NONE",m.player?esc(m.player.name):"Import a survivor",true)+
-   opsStat("LAYER / WATER",m.watermask?"ONLINE":"OFFLINE","Decoded river and water mask",true)+'</div>'+
-  '<div class="map-console">'+info+ctrl+'</div>'+canv+det;
- setupMap();
- document.getElementById("mapq").oninput=function(){S.mapSearch=this.value.toLowerCase();save();drawMap();};
- document.getElementById("mapreset").onclick=function(){W.view=null;setupMap();};
- el.querySelectorAll("[data-tf]").forEach(function(c){c.onclick=function(){var t=c.dataset.tf;S.mapFilter[t]=mapFilterOn(t)?0:1;save();rMap();};});
-}
-function w2cFactors(){var img=W.mapImg,v=W.view,dw=img.naturalWidth*v.k,dh=img.naturalHeight*v.k,sz=S.map.size;return {dw:dw,dh:dh,sz:sz,v:v};}
-function poiScreen(x,z){var f=w2cFactors();return [f.v.tx+(x/f.sz+0.5)*f.dw, f.v.ty+(0.5-z/f.sz)*f.dh];}
-function requestDraw(){if(W.rafPending)return;W.rafPending=true;requestAnimationFrame(function(){W.rafPending=false;drawMap();});}
-// Build ONE overlay (2048², built ONCE) — avoids re-drawing the 5120² splat PNGs
-// every frame (the old lag). WATER = splat4 BLUE channel (the game's real water
-// mask, faint ≤30; same source the 3D map samples) amplified to clear blue. ROADS
-// = splat3 RED channel (asphalt). High res preserves thin rivers + paths.
-// Build ONE overlay (built ONCE) like kui/7dtd-map: composite the FULL splat3
-// (its own alpha = the complete road + trail + path network) onto biomes, then
-// paint the server-decoded water mask on top (splat4 alpha=0 so canvas can't read it).
-// Build the road+water overlay ONCE at high res. splat3's road/trail pixels have
-// LOW alpha (~0.3) so a single composite over biomes is nearly invisible — draw
-// splat3 several times so its faint alpha ACCUMULATES into a clearly visible road
-// + trail + city-street network (like 7dtd-map). Water (splat4 blue, server-decoded
-// because canvas can't read splat4's alpha=0) is painted on top.
-function buildMapOverlay(){
- if(!W.mapImg)return;
- var N=4096;
- var oc=document.createElement("canvas");oc.width=N;oc.height=N;var octx=oc.getContext("2d");octx.imageSmoothingEnabled=true;
- var any=false;
- if(W.roadImg){for(var p=0;p<5;p++)octx.drawImage(W.roadImg,0,0,N,N);any=true;}
- var wm=S.map&&S.map.watermask;W.waterCells=0;
- if(wm&&wm.d){
-  var wd=b64ToU8(wm.d),wn=wm.n;
-  var wc=document.createElement("canvas");wc.width=N;wc.height=N;var wx=wc.getContext("2d");
-  var wo=wx.createImageData(N,N),wob=wo.data;
-  for(var i=0;i<N*N*4;i+=4){var px=(i>>2)%N,py=(i>>2)/N|0,wi=(py*wn/N)|0,wj=(px*wn/N)|0;if(wi>=wn)wi=wn-1;if(wj>=wn)wj=wn-1;
-   if(wd[wi*wn+wj]>=2){wob[i]=44;wob[i+1]=120;wob[i+2]=212;wob[i+3]=235;W.waterCells++;}}
-  wx.putImageData(wo,0,0);octx.drawImage(wc,0,0);any=true;
- }
- W.overlay=any?oc:null;
-}
-function drawLabel(ctx,text,x,y,strong){text=(""+text).slice(0,22);ctx.lineWidth=3;ctx.lineJoin="round";ctx.strokeStyle="rgba(8,7,5,.92)";ctx.strokeText(text,x,y);ctx.fillStyle=strong?"#fff":"#ece8df";ctx.fillText(text,x,y);}
-function drawMap(){
- var cv=document.getElementById("mapcv");if(!cv||!W.mapImg||!W.view)return;
- var ctx=cv.getContext("2d");ctx.setTransform(cv.width/800,0,0,cv.height/800,0,0);var Wc=800,Hc=800,v=W.view,img=W.mapImg;
- var dw=img.naturalWidth*v.k,dh=img.naturalHeight*v.k;
- ctx.clearRect(0,0,Wc,Hc);ctx.fillStyle="#0a0907";ctx.fillRect(0,0,Wc,Hc);
- ctx.imageSmoothingEnabled=false;ctx.drawImage(img,v.tx,v.ty,dw,dh);
- if(W.overlay){ctx.imageSmoothingEnabled=true;ctx.drawImage(W.overlay,v.tx,v.ty,dw,dh);}
- var q=S.mapSearch||"", f=w2cFactors(), labels=[];
- (S.map.pois||[]).forEach(function(p){
-  if(!mapFilterOn(p[3]))return;
-  var s=poiScreen(p[1],p[2]);if(s[0]<-8||s[0]>Wc+8||s[1]<-8||s[1]>Hc+8)return;
-  var hit=q&&p[0].toLowerCase().indexOf(q)>=0;
-  ctx.globalAlpha=(q&&!hit)?0.13:1;
-  var pw=Math.max(2.5,(p[5]||10)/f.sz*f.dw),ph=Math.max(2.5,(p[6]||10)/f.sz*f.dh);
-  ctx.fillStyle=TIERCOL[p[3]];ctx.fillRect(s[0]-pw/2,s[1]-ph/2,pw,ph);
-  if(hit||v.k>v.fit*1.8){ctx.lineWidth=hit?2:1;ctx.strokeStyle="rgba(0,0,0,.55)";ctx.strokeRect(s[0]-pw/2,s[1]-ph/2,pw,ph);}
-  // label LOD: search-hit always; higher tiers earlier; everything when zoomed far in
-  var z=v.k/v.fit;
-  if(hit||(z>5&&p[3]>=4)||(z>9&&p[3]>=3)||z>16)labels.push([s[0],s[1]+3,p[0]||"",hit]); // centred on marker
- });
- ctx.globalAlpha=1;ctx.font="bold 11px system-ui,'Segoe UI',sans-serif";ctx.textBaseline="middle";ctx.textAlign="center";
- labels.slice(0,140).forEach(function(l){drawLabel(ctx,l[2],l[0],l[1],l[3]);});
- if(W.sel!=null){var sp=S.map.pois[W.sel];if(sp){var ss=poiScreen(sp[1],sp[2]);ctx.beginPath();ctx.arc(ss[0],ss[1],9,0,6.283);ctx.lineWidth=2.5;ctx.strokeStyle="#fff";ctx.stroke();ctx.font="bold 12px system-ui,sans-serif";drawLabel(ctx,sp[0]||"",ss[0],ss[1]-12,true);}}
- if(S.map.player){var pp=poiScreen(S.map.player.x,S.map.player.z);ctx.beginPath();ctx.arc(pp[0],pp[1],7,0,6.283);ctx.fillStyle="#5aa6ff";ctx.fill();ctx.lineWidth=2;ctx.strokeStyle="#fff";ctx.stroke();ctx.font="bold 11px system-ui,sans-serif";drawLabel(ctx,"⌂ Spawn",pp[0],pp[1]-12,true);}
- ctx.textAlign="left";ctx.textBaseline="alphabetic";
-}
-function nearestPoi(sx,sy){var best=-1,bd=1e9;(S.map.pois||[]).forEach(function(p,i){if(!mapFilterOn(p[3]))return;var s=poiScreen(p[1],p[2]);var d=(s[0]-sx)*(s[0]-sx)+(s[1]-sy)*(s[1]-sy);if(d<bd){bd=d;best=i;}});return bd<=120?best:-1;}
-function setupMap(){
- var cv=document.getElementById("mapcv");if(!cv)return;
- if(W.mapKey!==S.map.key){W.mapKey=S.map.key;W.mapImg=null;W.roadImg=null;W.overlay=null;W.view=null;W.sel=null;}
- function tryOverlay(){if(W.mapImg&&(!S.map.roads||W.roadImg)){buildMapOverlay();requestDraw();}}
- if(S.map.roads&&!W.roadImg){var road=new Image();road.onload=function(){W.roadImg=road;tryOverlay();};road.onerror=tryOverlay;road.src=S.map.roads;}
- if(W.mapImg&&W.mapImg.src===S.map.img){fitIfNeeded();tryOverlay();requestDraw();}
- else{var img=new Image();img.onload=function(){W.mapImg=img;W.view=null;fitIfNeeded();tryOverlay();requestDraw();};img.src=S.map.img;}
- function rel(e){var r=cv.getBoundingClientRect();return [(e.clientX-r.left)*(800/r.width),(e.clientY-r.top)*(800/r.height)];}
- var drag=null,moved=false;
- cv.onwheel=function(e){e.preventDefault();if(!W.view)return;var p=rel(e),f=e.deltaY<0?1.15:1/1.15,fit=W.view.fit,nk=Math.max(fit*0.95,Math.min(fit*60,W.view.k*f)),ra=nk/W.view.k;W.view.tx=p[0]-(p[0]-W.view.tx)*ra;W.view.ty=p[1]-(p[1]-W.view.ty)*ra;W.view.k=nk;requestDraw();};
- cv.onpointerdown=function(e){drag=rel(e);moved=false;cv.setPointerCapture(e.pointerId);};
- cv.onpointermove=function(e){var p=rel(e);
-  if(drag){var dx=p[0]-drag[0],dy=p[1]-drag[1];if(Math.abs(dx)+Math.abs(dy)>3)moved=true;W.view.tx+=dx;W.view.ty+=dy;drag=p;requestDraw();return;}
-  var tip=document.getElementById("maptip"),i=nearestPoi(p[0],p[1]),r=cv.getBoundingClientRect();
-  if(i>=0){var po=S.map.pois[i];tip.innerHTML='<b>'+esc(po[0])+'</b> · '+TIERLBL[po[3]]+(po[3]>0?" — Tier "+po[3]:po[3]===0?" — no combat":" — unknown tier")+'<br>'+po[1]+", "+po[2];tip.style.display="block";var s=poiScreen(po[1],po[2]);tip.style.left=Math.min(cv.clientWidth-140,(s[0]*r.width/800)+10)+"px";tip.style.top=Math.max(0,(s[1]*r.height/800)-10)+"px";}
-  else tip.style.display="none";};
- cv.onpointerup=function(e){var p=rel(e);if(!moved){var i=nearestPoi(p[0],p[1]);W.sel=i>=0?i:null;showPoiDet();requestDraw();}drag=null;};
- cv.onpointerleave=function(){var t=document.getElementById("maptip");if(t)t.style.display="none";};
- function fitIfNeeded(){if(!W.mapImg)return;if(!W.view){var fit=800/W.mapImg.naturalWidth;W.view={k:fit,fit:fit,tx:0,ty:0};}}
-}
-function showPoiDet(){var d=document.getElementById("mapdet");if(!d)return;if(W.sel==null){d.innerHTML="";return;}
- var p=S.map.pois[W.sel],pl=S.map.player,dist=pl?Math.round(Math.sqrt((p[1]-pl.x)*(p[1]-pl.x)+(p[2]-pl.z)*(p[2]-pl.z))):null;
- d.innerHTML='<div class="card" style="margin-top:10px;border-color:'+TIERCOL[p[3]]+'"><h3><span class="tdot" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+TIERCOL[p[3]]+'"></span> '+esc(p[0])+'</h3>'+
-  '<div class="kv"><span>Tier</span><b>'+(p[3]>0?"Tier "+p[3]+" / 5":p[3]===0?"T0 (no combat)":"Unknown custom POI")+'</b></div>'+
-  '<div class="kv"><span>Coordinates</span><b>'+p[1]+", "+p[2]+'</b></div>'+
-  '<div class="kv"><span>Footprint</span><b>'+(p[5]||"?")+' × '+(p[6]||"?")+' blocks</b></div>'+
-  (dist!=null?'<div class="kv"><span>Distance from Spawn</span><b>'+dist+' m</b></div>':"")+'</div>';
-}
 // ---- 3D FLY MAP (WebGL, self-contained) ----
 function v3sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
 function v3cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
