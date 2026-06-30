@@ -170,6 +170,10 @@ fn port_is_our_instance() -> bool {
 
 /// The official repository. The self-updater only ever downloads from here.
 const UPDATE_REPO: &str = "Lampe332/7dtd-survival-companion";
+// Ed25519 public key (hex) used to verify self-update release signatures. The matching
+// PRIVATE key is kept OFFLINE (never committed/pushed); each release .exe is signed with
+// `--sign` and the .sig uploaded as a release asset. Empty/invalid → updates fail closed.
+const RELEASE_PUBKEY_HEX: &str = "ae8dd62011636fb063635b86c0a54e952fd78e9f96147a1a0c068f5303d5a0ad";
 
 /// HTTPS GET with the User-Agent GitHub requires, following redirects (rustls/ring).
 fn http_get(url: &str) -> Result<ureq::Response, String> {
@@ -181,11 +185,60 @@ fn http_get(url: &str) -> Result<ureq::Response, String> {
         .map_err(|e| format!("Netzwerkfehler: {e}"))
 }
 
-/// Fetch the newest release's `.exe` from the official repo → (tag, bytes), after
-/// verifying the asset URL belongs to `UPDATE_REPO` and the payload is a real Windows
-/// executable. No filesystem/process side effects (the dry-run check uses this too).
+/// Lowercase-hex string → bytes. None on malformed/odd-length input.
+fn hex_to_bytes(s: &str) -> Option<Vec<u8>> {
+    let s = s.trim();
+    if s.is_empty() || s.len() % 2 != 0 {
+        return None;
+    }
+    let b = s.as_bytes();
+    let mut out = Vec::with_capacity(s.len() / 2);
+    let mut i = 0;
+    while i < b.len() {
+        let hi = (b[i] as char).to_digit(16)?;
+        let lo = (b[i + 1] as char).to_digit(16)?;
+        out.push(((hi << 4) | lo) as u8);
+        i += 2;
+    }
+    Some(out)
+}
+
+/// bytes → lowercase hex.
+fn to_hex(b: &[u8]) -> String {
+    let mut s = String::with_capacity(b.len() * 2);
+    for x in b {
+        s.push_str(&format!("{x:02x}"));
+    }
+    s
+}
+
+/// Verify an Ed25519 signature (base64) over `payload` with the embedded release public key.
+/// Fails closed: a missing/invalid key or signature aborts the update.
+fn verify_release_sig(payload: &[u8], sig_b64: &str) -> Result<(), String> {
+    use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+    let pk = hex_to_bytes(RELEASE_PUBKEY_HEX)
+        .filter(|v| v.len() == 32)
+        .ok_or("Kein gültiger eingebetteter Release-Public-Key — Update abgebrochen.")?;
+    let pk_arr: [u8; 32] = pk.as_slice().try_into().unwrap();
+    let vk = VerifyingKey::from_bytes(&pk_arr).map_err(|e| format!("Public-Key ungültig: {e}"))?;
+    let sig_bytes = STANDARD
+        .decode(sig_b64.trim())
+        .map_err(|e| format!("Signatur nicht dekodierbar: {e}"))?;
+    let sig_arr: [u8; 64] = sig_bytes
+        .as_slice()
+        .try_into()
+        .map_err(|_| "Signatur-Länge falsch.".to_string())?;
+    let sig = Signature::from_bytes(&sig_arr);
+    vk.verify(payload, &sig).map_err(|_| {
+        "Signaturprüfung fehlgeschlagen — Update abgebrochen (Datei nicht authentisch).".to_string()
+    })
+}
+
+/// Fetch the newest release's `.exe` from the official repo → (tag, bytes), after verifying:
+/// the asset URL belongs to `UPDATE_REPO`, the payload is a real Windows executable, AND the
+/// release Ed25519 signature (the `.sig` asset) is valid for the embedded public key — so a
+/// compromised GitHub account cannot push unsigned/forged code. No side effects (dry-run uses it).
 fn fetch_latest_exe() -> Result<(String, Vec<u8>), String> {
-    // 1. Latest-release metadata from the GitHub API.
     let api = format!("https://api.github.com/repos/{UPDATE_REPO}/releases/latest");
     let body = http_get(&api)?
         .into_string()
@@ -193,38 +246,55 @@ fn fetch_latest_exe() -> Result<(String, Vec<u8>), String> {
     let meta: Value =
         serde_json::from_str(&body).map_err(|e| format!("Release-Daten ungültig: {e}"))?;
     let tag = meta["tag_name"].as_str().unwrap_or("").to_string();
-    // 2. Find the .exe asset and its download URL.
-    let asset_url = meta["assets"]
+    let assets = meta["assets"]
         .as_array()
-        .and_then(|a| {
-            a.iter().find(|x| {
+        .ok_or_else(|| "Keine Assets im Release.".to_string())?;
+    let official = format!("https://github.com/{UPDATE_REPO}/");
+    let pick = |suffix: &str| -> Option<String> {
+        assets
+            .iter()
+            .find(|x| {
                 x["name"]
                     .as_str()
-                    .map(|n| n.to_lowercase().ends_with(".exe"))
+                    .map(|n| n.to_lowercase().ends_with(suffix))
                     .unwrap_or(false)
             })
-        })
-        .and_then(|x| x["browser_download_url"].as_str())
-        .ok_or_else(|| "Kein .exe-Asset im neuesten Release gefunden.".to_string())?
-        .to_string();
-    // 3. Defense in depth: only ever download from the official repo's GitHub URL.
-    if !asset_url.starts_with(&format!("https://github.com/{UPDATE_REPO}/")) {
+            .and_then(|x| x["browser_download_url"].as_str())
+            .map(|s| s.to_string())
+    };
+    // 1. Download the .exe asset (official URL only, capped at 64 MiB).
+    let asset_url =
+        pick(".exe").ok_or_else(|| "Kein .exe-Asset im neuesten Release gefunden.".to_string())?;
+    if !asset_url.starts_with(&official) {
         return Err("Asset-URL gehört nicht zum offiziellen Repository.".to_string());
     }
-    // 4. Download the bytes (capped at 64 MiB).
     let mut bytes: Vec<u8> = Vec::new();
     http_get(&asset_url)?
         .into_reader()
         .take(64 * 1024 * 1024)
         .read_to_end(&mut bytes)
         .map_err(|e| format!("Download fehlgeschlagen: {e}"))?;
-    // 5. Sanity-check: a real Windows .exe starts with "MZ" and is not tiny.
     if bytes.len() < 1_000_000 || &bytes[0..2] != b"MZ" {
         return Err(format!(
             "Heruntergeladene Datei ist keine gültige .exe ({} Bytes).",
             bytes.len()
         ));
     }
+    // 2. Signature gate (fail closed): download the .sig asset and verify it against the
+    //    embedded public key before the caller is allowed to swap this binary in.
+    let sig_url = pick(".sig").ok_or_else(|| {
+        "Keine Signatur (.sig) im Release — Update aus Sicherheitsgründen abgebrochen.".to_string()
+    })?;
+    if !sig_url.starts_with(&official) {
+        return Err("Signatur-URL gehört nicht zum offiziellen Repository.".to_string());
+    }
+    let mut sig_txt = String::new();
+    http_get(&sig_url)?
+        .into_reader()
+        .take(4096)
+        .read_to_string(&mut sig_txt)
+        .map_err(|e| format!("Signatur-Download fehlgeschlagen: {e}"))?;
+    verify_release_sig(&bytes, &sig_txt)?;
     Ok((tag, bytes))
 }
 
@@ -286,6 +356,54 @@ fn main() {
             Err(e) => format!("DRYRUN ERR {e}"),
         };
         let _ = fs::write(env::temp_dir().join("7dtd_update_dryrun.txt"), &msg);
+        return;
+    }
+    // Offline key tooling (GUI subsystem → results written to temp files).
+    // --genkey <out>: generate the Ed25519 signing key (secret hex → <out>, pubkey hex → temp).
+    let argv: Vec<String> = env::args().collect();
+    if let Some(i) = argv.iter().position(|a| a == "--genkey") {
+        let out = argv
+            .get(i + 1)
+            .cloned()
+            .unwrap_or_else(|| "release_ed25519.key".into());
+        let mut seed = [0u8; 32];
+        if getrandom::getrandom(&mut seed).is_err() {
+            let _ = fs::write(env::temp_dir().join("7dtd_genkey.txt"), "ERR rng");
+            return;
+        }
+        let sk = ed25519_dalek::SigningKey::from_bytes(&seed);
+        let pk = sk.verifying_key();
+        let _ = fs::write(&out, to_hex(&seed));
+        let _ = fs::write(
+            env::temp_dir().join("7dtd_pubkey.txt"),
+            to_hex(pk.as_bytes()),
+        );
+        return;
+    }
+    // --sign <exe> <keyfile>: write <exe>.sig (base64 Ed25519 signature over the exe bytes).
+    if let Some(i) = argv.iter().position(|a| a == "--sign") {
+        use ed25519_dalek::Signer;
+        let exe = argv.get(i + 1).cloned().unwrap_or_default();
+        let key = argv.get(i + 2).cloned().unwrap_or_default();
+        let res = (|| -> Result<(), String> {
+            let seed = hex_to_bytes(&fs::read_to_string(&key).map_err(|e| e.to_string())?)
+                .filter(|v| v.len() == 32)
+                .ok_or("Schlüssel ungültig (erwarte 64 Hex-Zeichen).")?;
+            let seed_arr: [u8; 32] = seed.as_slice().try_into().unwrap();
+            let sk = ed25519_dalek::SigningKey::from_bytes(&seed_arr);
+            let data = fs::read(&exe).map_err(|e| e.to_string())?;
+            let sig = sk.sign(&data);
+            fs::write(format!("{exe}.sig"), STANDARD.encode(sig.to_bytes()))
+                .map_err(|e| e.to_string())?;
+            Ok(())
+        })();
+        let _ = fs::write(
+            env::temp_dir().join("7dtd_sign.txt"),
+            match &res {
+                Ok(_) => "SIGN OK".to_string(),
+                Err(e) => format!("SIGN ERR {e}"),
+            },
+        );
         return;
     }
     let appdata = env::var_os("APPDATA")

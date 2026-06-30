@@ -21,6 +21,12 @@ suppaftp = { version = "9", features = ["native-tls"] }
 # In-app self-update: HTTPS GET of the latest GitHub release asset. Default features
 # give rustls + ring (ring is already pulled by russh) — no OpenSSL/NASM build deps.
 ureq = "2"
+# Self-update signature verification: each release .exe is signed with an OFFLINE Ed25519
+# key (never on GitHub); the app verifies the .sig with the embedded public key before
+# swapping, so a compromised GitHub account/release cannot push unsigned malicious code.
+# Pure Rust, no build deps. getrandom is only used by the one-off --genkey path.
+ed25519-dalek = "2"
+getrandom = "0.2"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = ["Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
