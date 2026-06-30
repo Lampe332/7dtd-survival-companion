@@ -161,6 +161,19 @@ The app reads, it doesn't phone home:
 
 The **only** thing it ever writes is the world settings you change yourself in the World tab — and only after a timestamped backup you can restore in one click. No account, no analytics, no telemetry, no background services — your saves and settings never leave your PC. Exactly two optional outbound destinations exist and nothing else: the wiki search you trigger (7DtD Fandom wiki) and GitHub — a once-a-day version check (releases API) flags new versions and, if you choose, the app downloads the new `.exe` to update in place. Only a public release lookup and the download happen; none of your data is sent. The page's Content-Security-Policy hard-blocks every other destination. Close the tab and it's gone.
 
+## Security & verifying your download
+
+Running an unknown `.exe` should feel sketchy — so here's how to trust this one. Full details in **[SECURITY.md](SECURITY.md)**. The short version:
+
+- **Open source + read-only.** It's `src/` + one HTML file compiled; it reads your saves and only writes settings you change yourself (with a backup). No account, no telemetry, offline except the two optional calls above.
+- **Hardened locally.** Binds `127.0.0.1` only, validates the `Host` + `Origin` headers (blocks DNS-rebinding and cross-site requests), caps request bodies, blocks path traversal.
+- **Signed updates.** Every release `.exe` is signed with an **offline Ed25519 key**; the app verifies the signature before installing and **fails closed** — a compromised GitHub account still can't push code it will run.
+- **Verify the file you downloaded** against the release's `SHA256SUMS.txt`:
+  ```powershell
+  Get-FileHash ".\7DtD Companion.exe" -Algorithm SHA256
+  ```
+  If it doesn't match the published hash, don't run it. Or skip the binary entirely and build from source below.
+
 ## Build from source
 
 ```bash
