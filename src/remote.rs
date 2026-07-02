@@ -31,6 +31,14 @@ fn norm_base(base: &str) -> String {
 /// 7DtD files (dtm.raw for even a 16k world ≈ 512 MB) stay well under this.
 const MAX_FILE: u64 = 2 * 1024 * 1024 * 1024;
 
+/// Bound a hostile/compromised server's Player directory. The per-file `MAX_FILE` cap alone
+/// does not stop a server that lists tens of thousands of small-but-valid `.ttp` names — the
+/// fetch loop would download every one and fill the user's temp disk (DoS). Real saves have a
+/// handful of per-player files, so cap both the count (benign truncation) and the aggregate
+/// bytes (hard abort — abnormal volume signals a hostile server).
+const MAX_PLAYER_FILES: usize = 64;
+const MAX_PLAYER_BYTES: u64 = 4 * 1024 * 1024 * 1024;
+
 /// A path segment is safe to use as ONE local path component only if it cannot
 /// traverse out of the cache dir. Rejects separators, drive colons, NUL and `..` —
 /// applied to BOTH user-supplied world/save AND server-supplied filenames (a hostile
@@ -311,12 +319,27 @@ mod sftp {
             }
             let pdir = format!("{base}/Saves/{world}/{save}/Player");
             if let Ok(entries) = sftp.read_dir(pdir.clone()).await {
+                let mut pf = 0usize;
+                let mut pbytes = 0u64;
                 for e in entries {
+                    if pf >= MAX_PLAYER_FILES {
+                        break;
+                    }
                     let n = e.file_name();
                     if (n.ends_with(".ttp") || n.ends_with(".ttp.meta")) && safe_seg(&n) {
                         let rp = format!("{pdir}/{n}");
-                        if download(&sftp, &rp, &sdir.join("Player").join(&n)).await.is_ok() {
+                        let dest = sdir.join("Player").join(&n);
+                        if download(&sftp, &rp, &dest).await.is_ok() {
                             got += 1;
+                            pf += 1;
+                            pbytes = pbytes
+                                .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
+                            if pbytes > MAX_PLAYER_BYTES {
+                                return Err(format!(
+                                    "Abbruch: Player-Verzeichnis des Servers überschreitet {} GiB (möglicher DoS).",
+                                    MAX_PLAYER_BYTES / (1024 * 1024 * 1024)
+                                ));
+                            }
                         }
                     }
                 }
@@ -459,12 +482,28 @@ mod ftp {
         }
         let pdir = format!("{base}/Saves/{world}/{save}/Player");
         if let Ok(names) = s.nlst(Some(pdir.as_str())) {
+            let mut pf = 0usize;
+            let mut pbytes = 0u64;
             for n in names {
+                if pf >= MAX_PLAYER_FILES {
+                    break;
+                }
                 let bn = n.rsplit('/').next().unwrap_or(&n).to_string();
                 if (bn.ends_with(".ttp") || bn.ends_with(".ttp.meta")) && safe_seg(&bn) {
                     let rp = format!("{pdir}/{bn}");
-                    if retr_to(s, &rp, &sdir.join("Player").join(&bn)).is_ok() {
+                    let dest = sdir.join("Player").join(&bn);
+                    if retr_to(s, &rp, &dest).is_ok() {
                         got += 1;
+                        pf += 1;
+                        pbytes = pbytes
+                            .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
+                        if pbytes > MAX_PLAYER_BYTES {
+                            let _ = s.quit();
+                            return Err(format!(
+                                "Abbruch: Player-Verzeichnis des Servers überschreitet {} GiB (möglicher DoS).",
+                                MAX_PLAYER_BYTES / (1024 * 1024 * 1024)
+                            ));
+                        }
                     }
                 }
             }
