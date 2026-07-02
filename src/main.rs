@@ -866,23 +866,35 @@ fn handle_source(
                 );
             }
             let kind = if p.starts_with("\\\\") { "smb" } else { "local" };
-            {
+            let old_root = {
                 let mut s = source.lock().map_err(|e| e.to_string())?;
-                s.root = pb;
+                let old = std::mem::replace(&mut s.root, pb.clone());
                 s.kind = kind.into();
                 s.label = p;
                 s.conn = None;
+                old
+            };
+            // F4: switching away from a remote/share source must free its staging dir
+            // now, not at next app start (disk leak until restart). Only ever delete
+            // dirs WE created under %TEMP% — never a user path, never the new root.
+            if old_root != pb && is_remote_cache_path(&old_root) {
+                let _ = std::fs::remove_dir_all(&old_root);
             }
             *cache.lock().map_err(|e| e.to_string())? = None;
             scan_and_respond(request, paths, cache, source, Vec::new())
         }
         "/api/source/reset" => {
-            {
+            let old_root = {
                 let mut s = source.lock().map_err(|e| e.to_string())?;
-                s.root = paths.appdata.clone();
+                let old = std::mem::replace(&mut s.root, paths.appdata.clone());
                 s.kind = "local".into();
                 s.label = "Local game saves".into();
                 s.conn = None;
+                old
+            };
+            // F4: same staging-dir cleanup as /api/source/local above.
+            if is_remote_cache_path(&old_root) {
+                let _ = std::fs::remove_dir_all(&old_root);
             }
             *cache.lock().map_err(|e| e.to_string())? = None;
             scan_and_respond(request, paths, cache, source, Vec::new())

@@ -39,6 +39,25 @@ const MAX_FILE: u64 = 2 * 1024 * 1024 * 1024;
 const MAX_PLAYER_FILES: usize = 64;
 const MAX_PLAYER_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 
+/// F5b: warnings returned to the UI are capped — a hostile server that fails
+/// thousands of transfers must not grow the JSON response without bound. Overflow
+/// is only counted; `flush_suppressed` appends one summary entry at the end.
+const MAX_WARNINGS: usize = 20;
+
+fn push_warning(warnings: &mut Vec<String>, suppressed: &mut usize, msg: String) {
+    if warnings.len() < MAX_WARNINGS {
+        warnings.push(msg);
+    } else {
+        *suppressed += 1;
+    }
+}
+
+fn flush_suppressed(warnings: &mut Vec<String>, suppressed: usize) {
+    if suppressed > 0 {
+        warnings.push(format!("+{suppressed} weitere Fehler unterdrückt"));
+    }
+}
+
 /// A path segment is safe to use as ONE local path component only if it cannot
 /// traverse out of the cache dir. Rejects separators, drive colons, NUL and `..` —
 /// applied to BOTH user-supplied world/save AND server-supplied filenames (a hostile
@@ -307,6 +326,7 @@ mod sftp {
             let mut got = 0;
             let mut errs: Vec<String> = Vec::new();
             let mut warnings: Vec<String> = Vec::new();
+            let mut suppressed = 0usize;
             for f in SAVE_FILES {
                 let rp = format!("{base}/Saves/{world}/{save}/{f}");
                 match download(&sftp, &rp, &sdir.join(f)).await {
@@ -325,24 +345,30 @@ mod sftp {
             let pdir = format!("{base}/Saves/{world}/{save}/Player");
             match sftp.read_dir(pdir.clone()).await {
                 Ok(entries) => {
+                    // F5a: `pf` counts ATTEMPTED player files (not just successes) — a
+                    // hostile listing of 100k names whose downloads all fail must still
+                    // terminate after MAX_PLAYER_FILES iterations.
                     let mut pf = 0usize;
                     let mut pbytes = 0u64;
                     for e in entries {
+                        let n = e.file_name();
+                        if !((n.ends_with(".ttp") || n.ends_with(".ttp.meta")) && safe_seg(&n)) {
+                            continue;
+                        }
                         if pf >= MAX_PLAYER_FILES {
                             // X39: a silently truncated player list would show missing
                             // players with no hint why — surface the cap as a warning.
-                            warnings.push(format!(
+                            push_warning(&mut warnings, &mut suppressed, format!(
                                 "Player-Verzeichnis: mehr als {MAX_PLAYER_FILES} Dateien — Rest übersprungen."
                             ));
                             break;
                         }
-                        let n = e.file_name();
-                        if (n.ends_with(".ttp") || n.ends_with(".ttp.meta")) && safe_seg(&n) {
-                            let rp = format!("{pdir}/{n}");
-                            let dest = sdir.join("Player").join(&n);
-                            if download(&sftp, &rp, &dest).await.is_ok() {
+                        pf += 1;
+                        let rp = format!("{pdir}/{n}");
+                        let dest = sdir.join("Player").join(&n);
+                        match download(&sftp, &rp, &dest).await {
+                            Ok(()) => {
                                 got += 1;
-                                pf += 1;
                                 pbytes = pbytes
                                     .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
                                 if pbytes > MAX_PLAYER_BYTES {
@@ -352,6 +378,13 @@ mod sftp {
                                     ));
                                 }
                             }
+                            // F6: FTP reports failed optional downloads — SFTP must too,
+                            // or players go missing with no hint why.
+                            Err(e) => push_warning(
+                                &mut warnings,
+                                &mut suppressed,
+                                format!("Player-Datei {n}: {e}"),
+                            ),
                         }
                     }
                 }
@@ -361,13 +394,17 @@ mod sftp {
             }
             for f in WORLD_FILES {
                 let rp = format!("{base}/GeneratedWorlds/{world}/{f}");
-                if download(&sftp, &rp, &wdir.join(f)).await.is_ok() {
-                    got += 1;
+                match download(&sftp, &rp, &wdir.join(f)).await {
+                    Ok(()) => got += 1,
+                    // F6: world files are optional (may legitimately be missing) —
+                    // record the reason instead of skipping silently (FTP parity).
+                    Err(e) => push_warning(&mut warnings, &mut suppressed, format!("{f}: {e}")),
                 }
             }
             if got == 0 {
                 return Err("Keine Dateien geladen — Pfad/Welt/Save prüfen.".into());
             }
+            flush_suppressed(&mut warnings, suppressed);
             Ok(json!({"ok": true, "files": got, "warnings": warnings}))
         })
     }
@@ -399,6 +436,10 @@ mod ftp {
     const READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
     /// Resolve + connect the FTP control channel with bounded connect/read timeouts.
+    /// F3: the DATA channel gets the same bounds — suppaftp's default passive builder
+    /// is a bare `TcpStream::connect` with no timeouts, so a black-holed data
+    /// connection would hang the worker forever despite the control-socket timeouts.
+    /// `into_secure` carries the builder over, so plain FTP and FTPS both use it.
     fn connect_control<T: TlsStream>(addr: &str) -> Result<ImplFtpStream<T>, String> {
         use std::net::ToSocketAddrs as _;
         let mut last = format!("Verbindung {addr}: Adresse nicht auflösbar");
@@ -411,7 +452,13 @@ mod ftp {
                     s.get_ref()
                         .set_read_timeout(Some(READ_TIMEOUT))
                         .map_err(|e| format!("Read-Timeout: {e}"))?;
-                    return Ok(s);
+                    return Ok(s.passive_stream_builder(|data_addr| {
+                        let ds = std::net::TcpStream::connect_timeout(&data_addr, CONNECT_TIMEOUT)
+                            .map_err(suppaftp::FtpError::ConnectionError)?;
+                        ds.set_read_timeout(Some(READ_TIMEOUT))
+                            .map_err(suppaftp::FtpError::ConnectionError)?;
+                        Ok(ds)
+                    }));
                 }
                 Err(e) => last = format!("Verbindung {addr}: {e}"),
             }
@@ -460,7 +507,19 @@ mod ftp {
         dirs
     }
 
-    fn retr_to<T: TlsStream>(s: &mut ImplFtpStream<T>, remote: &str, local: &Path) -> Result<(), String> {
+    /// Error from one RETR, tagged with whether the control session is now desynced.
+    struct RetrError {
+        /// F2: true = the transfer broke mid-stream (closure failed, so suppaftp's
+        /// `finalize_retr_stream` was skipped) or the transport itself died — the
+        /// session must be replaced before the next command. false = the server
+        /// merely rejected the command (`FtpError::UnexpectedResponse`, e.g. 550
+        /// file missing): suppaftp already dropped the data stream and reset its
+        /// open-flag itself, the session stays usable — no reconnect needed.
+        desync: bool,
+        msg: String,
+    }
+
+    fn retr_to<T: TlsStream>(s: &mut ImplFtpStream<T>, remote: &str, local: &Path) -> Result<(), RetrError> {
         use std::io::Read as _;
         let res = s.retr(remote, |stream| {
             let mut f = std::fs::File::create(local).map_err(suppaftp::FtpError::ConnectionError)?;
@@ -470,21 +529,40 @@ mod ftp {
         });
         if let Err(e) = res {
             // X41: a failed transfer may leave a half-written local file — never let
-            // the scanner read a truncated download as valid data.
+            // the scanner read a truncated download as valid data. (Known exception:
+            // a file over MAX_FILE is silently capped at 2 GiB and counts as success —
+            // deliberate disk-DoS bound, real 7DtD files never get near it.)
             let _ = std::fs::remove_file(local);
-            return Err(format!("{remote}: {e}"));
+            return Err(RetrError {
+                desync: !matches!(e, suppaftp::FtpError::UnexpectedResponse(_)),
+                msg: format!("{remote}: {e}"),
+            });
         }
         Ok(())
     }
 
-    /// R2: a failed RETR skips suppaftp's `finalize_retr_stream`, leaving the control
-    /// session desynced (every following command fails with DataConnectionAlreadyOpen).
-    /// Replace the broken session with a fresh login; if even that fails, abort the
-    /// whole fetch — continuing on a dead session would only mass-produce errors.
+    /// F5c: reconnects per fetch are capped — a hostile server that aborts every
+    /// transfer mid-stream would otherwise trigger one fresh TCP+login round per
+    /// listed file.
+    const MAX_RECONNECTS: usize = 3;
+
+    /// R2/F2: a mid-stream RETR abort skips suppaftp's `finalize_retr_stream`,
+    /// leaving the control session desynced (every following command fails with
+    /// DataConnectionAlreadyOpen). Replace the broken session with a fresh login;
+    /// if that fails or the reconnect budget is spent, abort the whole fetch —
+    /// continuing on a dead session would only mass-produce errors. NOT called for
+    /// plain command rejections (550 etc.), which leave the session clean.
     fn reopen<T: TlsStream>(
         s: &mut ImplFtpStream<T>,
         reconnect: &dyn Fn() -> Result<ImplFtpStream<T>, String>,
+        used: &mut usize,
     ) -> Result<(), String> {
+        *used += 1;
+        if *used > MAX_RECONNECTS {
+            return Err(format!(
+                "Abbruch: mehr als {MAX_RECONNECTS} FTP-Reconnects in einem Abruf — Verbindung instabil oder Server feindselig."
+            ));
+        }
         *s = reconnect()
             .map_err(|e| format!("FTP-Reconnect nach Download-Fehler fehlgeschlagen: {e}"))?;
         Ok(())
@@ -533,13 +611,17 @@ mod ftp {
         let mut got = 0;
         let mut errs: Vec<String> = Vec::new();
         let mut warnings: Vec<String> = Vec::new();
+        let mut suppressed = 0usize;
+        let mut reconnects = 0usize;
         for f in SAVE_FILES {
             let rp = format!("{base}/Saves/{world}/{save}/{f}");
             match retr_to(s, &rp, &sdir.join(f)) {
                 Ok(()) => got += 1,
                 Err(e) => {
-                    errs.push(format!("{f}: {e}"));
-                    reopen(s, reconnect)?;
+                    errs.push(format!("{f}: {}", e.msg));
+                    if e.desync {
+                        reopen(s, reconnect, &mut reconnects)?;
+                    }
                 }
             }
         }
@@ -553,38 +635,48 @@ mod ftp {
         let pdir = format!("{base}/Saves/{world}/{save}/Player");
         match s.nlst(Some(pdir.as_str())) {
             Ok(names) => {
+                // F5a: `pf` counts ATTEMPTED player files (not just successes) — a
+                // hostile listing of 100k names whose transfers all fail must still
+                // terminate after MAX_PLAYER_FILES iterations.
                 let mut pf = 0usize;
                 let mut pbytes = 0u64;
                 for n in names {
+                    let bn = n.rsplit('/').next().unwrap_or(&n).to_string();
+                    if !((bn.ends_with(".ttp") || bn.ends_with(".ttp.meta")) && safe_seg(&bn)) {
+                        continue;
+                    }
                     if pf >= MAX_PLAYER_FILES {
                         // X39: a silently truncated player list would show missing
                         // players with no hint why — surface the cap as a warning.
-                        warnings.push(format!(
+                        push_warning(&mut warnings, &mut suppressed, format!(
                             "Player-Verzeichnis: mehr als {MAX_PLAYER_FILES} Dateien — Rest übersprungen."
                         ));
                         break;
                     }
-                    let bn = n.rsplit('/').next().unwrap_or(&n).to_string();
-                    if (bn.ends_with(".ttp") || bn.ends_with(".ttp.meta")) && safe_seg(&bn) {
-                        let rp = format!("{pdir}/{bn}");
-                        let dest = sdir.join("Player").join(&bn);
-                        match retr_to(s, &rp, &dest) {
-                            Ok(()) => {
-                                got += 1;
-                                pf += 1;
-                                pbytes = pbytes
-                                    .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
-                                if pbytes > MAX_PLAYER_BYTES {
-                                    let _ = s.quit();
-                                    return Err(format!(
-                                        "Abbruch: Player-Verzeichnis des Servers überschreitet {} GiB (möglicher DoS).",
-                                        MAX_PLAYER_BYTES / (1024 * 1024 * 1024)
-                                    ));
-                                }
+                    pf += 1;
+                    let rp = format!("{pdir}/{bn}");
+                    let dest = sdir.join("Player").join(&bn);
+                    match retr_to(s, &rp, &dest) {
+                        Ok(()) => {
+                            got += 1;
+                            pbytes = pbytes
+                                .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
+                            if pbytes > MAX_PLAYER_BYTES {
+                                let _ = s.quit();
+                                return Err(format!(
+                                    "Abbruch: Player-Verzeichnis des Servers überschreitet {} GiB (möglicher DoS).",
+                                    MAX_PLAYER_BYTES / (1024 * 1024 * 1024)
+                                ));
                             }
-                            Err(e) => {
-                                warnings.push(format!("Player-Datei {bn}: {e}"));
-                                reopen(s, reconnect)?;
+                        }
+                        Err(e) => {
+                            push_warning(
+                                &mut warnings,
+                                &mut suppressed,
+                                format!("Player-Datei {bn}: {}", e.msg),
+                            );
+                            if e.desync {
+                                reopen(s, reconnect, &mut reconnects)?;
                             }
                         }
                     }
@@ -600,9 +692,11 @@ mod ftp {
                 Ok(()) => got += 1,
                 Err(e) => {
                     // World files are optional (may legitimately be missing) — record
-                    // the reason and keep going on a fresh session.
-                    warnings.push(format!("{f}: {e}"));
-                    reopen(s, reconnect)?;
+                    // the reason; reconnect only if the abort desynced the session.
+                    push_warning(&mut warnings, &mut suppressed, format!("{f}: {}", e.msg));
+                    if e.desync {
+                        reopen(s, reconnect, &mut reconnects)?;
+                    }
                 }
             }
         }
@@ -610,6 +704,7 @@ mod ftp {
         if got == 0 {
             return Err("Keine Dateien geladen — Pfad/Welt/Save prüfen.".into());
         }
+        flush_suppressed(&mut warnings, suppressed);
         Ok(json!({"ok": true, "files": got, "warnings": warnings}))
     }
 
