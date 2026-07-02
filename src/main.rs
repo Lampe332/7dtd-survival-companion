@@ -1519,11 +1519,22 @@ fn parse_players(save_dir: &Path) -> Vec<Player> {
     let player_re = Regex::new(r#"<player\b([^>]*)>"#).unwrap();
     let attr_re = Regex::new(r#"([A-Za-z]+)="([^"]*)""#).unwrap();
     let mut players = Vec::new();
-    for capture in player_re.captures_iter(&xml) {
+    // Collect all opening tags first so each player's body can be sliced as the text between
+    // this <player ...> tag and the next one (or EOF). The co-op marker <acl> is a CHILD element
+    // AFTER the opening tag closes, so checking the captured attributes alone would ALWAYS miss it.
+    let opens: Vec<_> = player_re.captures_iter(&xml).collect();
+    for (i, capture) in opens.iter().enumerate() {
         let attrs: HashMap<String, String> = attr_re
             .captures_iter(&capture[1])
             .map(|item| (item[1].to_string(), item[2].to_string()))
             .collect();
+        let tag_end = capture.get(0).map(|m| m.end()).unwrap_or(0);
+        let body_end = opens
+            .get(i + 1)
+            .and_then(|c| c.get(0))
+            .map(|m| m.start())
+            .unwrap_or(xml.len());
+        let coop = xml.get(tag_end..body_end).is_some_and(|b| b.contains("<acl"));
         let eos = attrs.get("userid").cloned().unwrap_or_default();
         let ttp = save_dir.join("Player").join(format!("EOS_{eos}.ttp"));
         let meta = save_dir.join("Player").join(format!("EOS_{eos}.ttp.meta"));
@@ -1537,7 +1548,7 @@ fn parse_players(save_dir: &Path) -> Vec<Player> {
             steam: attrs.get("nativeuserid").cloned().unwrap_or_default(),
             login: attrs.get("lastlogin").cloned().unwrap_or_default(),
             pos: attrs.get("position").cloned().unwrap_or_default(),
-            coop: capture[1].contains("<acl"),
+            coop,
             level,
             progression,
         });
