@@ -52,7 +52,14 @@ fn fail(msg: &str) -> ! {
     exit(1);
 }
 
-fn genkey(out: &str) {
+fn genkey(out: &str, force: bool) {
+    // Never clobber an existing signing key: overwriting it would silently invalidate
+    // every already-published .sig (users could no longer verify updates). Require --force.
+    if !force && fs::metadata(out).is_ok() {
+        fail(&format!(
+            "key file {out} already exists — refusing to overwrite (pass --force to replace it)"
+        ));
+    }
     let mut seed = [0u8; 32];
     if getrandom::getrandom(&mut seed).is_err() {
         fail("secure RNG unavailable");
@@ -89,8 +96,15 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     match args.get(1).map(String::as_str) {
         Some("genkey") => {
-            let out = args.get(2).map(String::as_str).unwrap_or("release_ed25519.key");
-            genkey(out);
+            let force = args.iter().any(|a| a == "--force");
+            // The output path is the first positional arg that isn't the --force flag.
+            let out = args
+                .iter()
+                .skip(2)
+                .find(|a| a.as_str() != "--force")
+                .map(String::as_str)
+                .unwrap_or("release_ed25519.key");
+            genkey(out, force);
         }
         Some("sign") => {
             let exe = args.get(2).unwrap_or_else(|| fail("sign: missing <exe> argument"));
@@ -100,7 +114,7 @@ fn main() {
         _ => {
             eprintln!("keytool — offline release-signing tool (not shipped)");
             eprintln!("Usage:");
-            eprintln!("  keytool genkey [out]            Generate an Ed25519 signing key");
+            eprintln!("  keytool genkey [out] [--force]  Generate an Ed25519 signing key (--force overwrites)");
             eprintln!("  keytool sign <exe> <keyfile>    Write <exe>.sig for the release exe");
             exit(2);
         }

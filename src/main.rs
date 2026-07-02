@@ -539,16 +539,26 @@ fn local_request_ok(request: &tiny_http::Request) -> bool {
 /// exhaust memory (8-thread pool). Rejects an oversized declared Content-Length up
 /// front and caps the actual read so a lying/absent length still can't over-allocate.
 const MAX_BODY: u64 = 64 * 1024 * 1024;
+/// A share export caps raw assets at MAX_BUNDLE (256 MiB) but the import body is a JSON
+/// envelope where those assets are base64-encoded (~1.34x) plus the scan JSON, so a
+/// legitimate max-size export lands well above 256 MiB on the wire. The import cap is
+/// therefore 512 MiB (2x MAX_BUNDLE) so a valid export can always be re-imported; every
+/// other route keeps the 64 MiB MAX_BODY default via `read_body_limited`. Localhost-only
+/// route, so the larger ceiling is not a meaningful DoS surface.
+const MAX_SHARE_BODY: u64 = 512 * 1024 * 1024;
 fn read_body_limited(request: &mut tiny_http::Request) -> Result<String, String> {
+    read_body_capped(request, MAX_BODY)
+}
+fn read_body_capped(request: &mut tiny_http::Request, max: u64) -> Result<String, String> {
     if let Some(len) = req_header(request, "Content-Length").and_then(|v| v.parse::<u64>().ok()) {
-        if len > MAX_BODY {
-            return Err(format!("Body zu groß ({len} Bytes, Limit {MAX_BODY})"));
+        if len > max {
+            return Err(format!("Body zu groß ({len} Bytes, Limit {max})"));
         }
     }
     let mut body = String::new();
     request
         .as_reader()
-        .take(MAX_BODY)
+        .take(max)
         .read_to_string(&mut body)
         .map_err(|e| format!("Body unlesbar: {e}"))?;
     Ok(body)
@@ -604,6 +614,15 @@ fn handle(
     }
     // World sharing: export a bundle of the active world, or import a friend's bundle.
     if request.method() == &Method::Get && path == "/api/share/export" {
+        // An imported share has no raw world files to re-bundle — build_share_bundle would
+        // 500 and the browser would download the error JSON as a file. Refuse up front.
+        if source.lock().map(|s| s.kind == "share").unwrap_or(false) {
+            return respond_status_json(
+                request,
+                StatusCode(409),
+                &json!({"ok": false, "error": "Re-export requires the hosting PC / local source (an imported share has no world files to bundle)."}),
+            );
+        }
         let eff = eff_paths(paths, source);
         return match build_share_bundle(&eff) {
             Ok(bundle) => {
@@ -625,7 +644,7 @@ fn handle(
                 &json!({"ok": false, "error": "Content-Type muss application/json sein"}),
             );
         }
-        let body = match read_body_limited(&mut request) {
+        let body = match read_body_capped(&mut request, MAX_SHARE_BODY) {
             Ok(b) => b,
             Err(e) => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e})),
         };
@@ -721,6 +740,17 @@ fn handle(
         };
     }
     if request.method() == &Method::Post && path == "/api/update" {
+        // Serialize with update_guard: a second concurrent update must not race the
+        // .new.exe write/rename (corrupt-exe risk) — reply 409 instead.
+        let _update_g = match update_guard().try_lock() {
+            Ok(g) => g,
+            Err(std::sync::TryLockError::WouldBlock) => {
+                return respond_status_json(request, StatusCode(409), &json!({"ok": false, "error": "Update läuft bereits."}))
+            }
+            Err(std::sync::TryLockError::Poisoned(_)) => {
+                return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": "Update-Lock vergiftet"}))
+            }
+        };
         return match self_update() {
             Ok(tag) => respond_json(request, &json!({"ok": true, "version": tag})),
             Err(error) => {
@@ -965,6 +995,14 @@ fn fetch_guard() -> &'static Mutex<()> {
     L.get_or_init(|| Mutex::new(()))
 }
 
+/// Serialize self-updates: two concurrent /api/update calls would both write the same
+/// `{stem}.new.exe` and race the rename, risking a corrupt executable. try_lock so a
+/// second update returns 409 immediately instead of piling onto the in-flight swap.
+fn update_guard() -> &'static Mutex<()> {
+    static L: OnceLock<Mutex<()>> = OnceLock::new();
+    L.get_or_init(|| Mutex::new(()))
+}
+
 fn parse_conn(body: &Value) -> Result<RemoteConn, String> {
     let proto = body
         .get("proto")
@@ -973,7 +1011,13 @@ fn parse_conn(body: &Value) -> Result<RemoteConn, String> {
         .to_lowercase();
     let host = body.get("host").and_then(|v| v.as_str()).unwrap_or("").trim().to_string();
     let default_port = if proto == "ftp" || proto == "ftps" { 21 } else { 22 };
-    let port = body.get("port").and_then(|v| v.as_u64()).unwrap_or(default_port) as u16;
+    // Range-check before narrowing: `n as u16` silently wraps (65817 -> 281), so an
+    // out-of-range port would connect somewhere unexpected. Reject it as a 400 instead.
+    let port: u16 = match body.get("port").and_then(|v| v.as_u64()) {
+        Some(n) if (1..=65535).contains(&n) => n as u16,
+        Some(_) => return Err("Port ungültig (1..65535 erwartet)".into()),
+        None => default_port as u16,
+    };
     let user = body.get("user").and_then(|v| v.as_str()).unwrap_or("").to_string();
     let pass = body.get("pass").and_then(|v| v.as_str()).unwrap_or("").to_string();
     let base = body.get("base").and_then(|v| v.as_str()).unwrap_or("").trim().to_string();
@@ -1295,7 +1339,16 @@ fn scan_saves(paths: &Paths) -> Result<Vec<Save>, String> {
     let mut saves = Vec::new();
     for world in read_dirs(&saves_root)? {
         let world_dir = saves_root.join(&world);
-        for save_name in read_dirs(&world_dir)? {
+        // One unreadable world dir must not abort the whole scan — skip it (consistent
+        // with the per-save sdf skip below).
+        let save_dirs = match read_dirs(&world_dir) {
+            Ok(d) => d,
+            Err(error) => {
+                eprintln!("[7DtD] Welt-Ordner übersprungen ({}): {error}", world_dir.display());
+                continue;
+            }
+        };
+        for save_name in save_dirs {
             let save_dir = world_dir.join(&save_name);
             let sdf = save_dir.join("gameOptions.sdf");
             if !sdf.is_file() {
@@ -1357,7 +1410,16 @@ fn scan(paths: &Paths) -> Result<ScanData, String> {
     let mut saves = Vec::new();
     for world in read_dirs(&saves_root)? {
         let world_dir = saves_root.join(&world);
-        for save_name in read_dirs(&world_dir)? {
+        // One unreadable world dir must not abort the whole scan — skip it (consistent
+        // with the per-save sdf skip below).
+        let save_dirs = match read_dirs(&world_dir) {
+            Ok(d) => d,
+            Err(error) => {
+                eprintln!("[7DtD] Welt-Ordner übersprungen ({}): {error}", world_dir.display());
+                continue;
+            }
+        };
+        for save_name in save_dirs {
             let save_dir = world_dir.join(&save_name);
             let sdf = save_dir.join("gameOptions.sdf");
             if !sdf.is_file() {
@@ -1453,7 +1515,27 @@ fn read_dirs(path: &Path) -> Result<Vec<String>, String> {
     Ok(result)
 }
 
+/// Extract the `"path"  "…"` values from a Steam `libraryfolders.vdf`. Deliberately a
+/// line-level text scan, NOT a real VDF parser (no new crate): each library entry has a
+/// `"path"` key on its own line, so we pull the second quoted token. VDF escapes `\` as
+/// `\\`, so we unescape those back to single backslashes.
+fn parse_library_paths(vdf: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    for line in vdf.lines() {
+        let t = line.trim();
+        // Match the key exactly so a `"paths"` or comment can't slip through.
+        if let Some(rest) = t.strip_prefix("\"path\"") {
+            let mut parts = rest.split('"').filter(|s| !s.trim().is_empty());
+            if let Some(raw) = parts.next() {
+                out.push(raw.replace("\\\\", "\\"));
+            }
+        }
+    }
+    out
+}
+
 fn find_install() -> Option<PathBuf> {
+    const SUFFIX: &str = r"steamapps\common\7 Days To Die";
     let candidates = [
         r"D:\Steam\steamapps\common\7 Days To Die",
         r"C:\Program Files (x86)\Steam\steamapps\common\7 Days To Die",
@@ -1461,10 +1543,31 @@ fn find_install() -> Option<PathBuf> {
         r"D:\SteamLibrary\steamapps\common\7 Days To Die",
         r"E:\SteamLibrary\steamapps\common\7 Days To Die",
     ];
-    candidates
-        .iter()
-        .map(PathBuf::from)
-        .find(|path| path.join("Data/Prefabs/POIs").is_dir())
+    let is_install = |path: &Path| path.join("Data/Prefabs/POIs").is_dir();
+    // Hardcodes first — Nick's D:\Steam stays match #1.
+    if let Some(hit) = candidates.iter().map(PathBuf::from).find(|p| is_install(p)) {
+        return Some(hit);
+    }
+    // Fall back to every Steam library declared in the known roots' libraryfolders.vdf.
+    // Fail-safe: any read/parse problem just yields no extra candidates.
+    let vdf_roots = [
+        r"C:\Program Files (x86)\Steam",
+        r"D:\Steam",
+        r"C:\SteamLibrary",
+        r"D:\SteamLibrary",
+        r"E:\SteamLibrary",
+    ];
+    for root in vdf_roots {
+        let vdf = PathBuf::from(root).join(r"steamapps\libraryfolders.vdf");
+        let Ok(text) = fs::read_to_string(&vdf) else { continue };
+        for lib in parse_library_paths(&text) {
+            let install = PathBuf::from(&lib).join(SUFFIX);
+            if is_install(&install) {
+                return Some(install);
+            }
+        }
+    }
+    None
 }
 
 /// Cache-bust the launch URL with the binary's own modification time so a freshly
@@ -2421,11 +2524,13 @@ fn patch_sandbox(code: &str, name: &str, idx: i32) -> Result<String, String> {
 
 fn apply_plain(entry: &mut SdfEntry, value: &Value) -> Result<(), String> {
     entry.val = match &entry.val {
-        SdfVal::Int(_) => SdfVal::Int(
-            value
+        SdfVal::Int(_) => SdfVal::Int({
+            let n = value
                 .as_i64()
-                .ok_or_else(|| format!("{} erwartet Zahl", entry.key))? as i32,
-        ),
+                .ok_or_else(|| format!("{} erwartet Zahl", entry.key))?;
+            // `n as i32` would silently wrap on overflow — reject as a validation error.
+            i32::try_from(n).map_err(|_| format!("{} außerhalb i32-Bereich", entry.key))?
+        }),
         SdfVal::Bool(_) => SdfVal::Bool(
             value
                 .as_bool()
@@ -2929,5 +3034,57 @@ mod tests {
         assert!(ver_key(&v).iter().any(|&n| n > 0), "version is not all-zero: {v}");
         // A build's own version is never 'newer' than itself.
         assert!(!ver_gt(&v, &v));
+    }
+
+    #[test]
+    fn parse_conn_rejects_out_of_range_port() {
+        // In range → accepted.
+        let ok = parse_conn(&json!({"host": "h", "base": "/b", "port": 65535}));
+        assert_eq!(ok.unwrap().port, 65535);
+        // Above u16 → 400-style Err (must NOT wrap to 281).
+        let over = parse_conn(&json!({"host": "h", "base": "/b", "port": 65817}));
+        assert!(over.is_err(), "65817 must be rejected, not wrapped");
+        // Zero is not a valid port.
+        assert!(parse_conn(&json!({"host": "h", "base": "/b", "port": 0})).is_err());
+        // Missing → protocol default.
+        let dflt = parse_conn(&json!({"host": "h", "base": "/b", "proto": "ftp"})).unwrap();
+        assert_eq!(dflt.port, 21);
+    }
+
+    #[test]
+    fn parse_library_paths_extracts_and_unescapes() {
+        let vdf = r#"
+"libraryfolders"
+{
+    "0"
+    {
+        "path"		"C:\\Program Files (x86)\\Steam"
+    }
+    "1"
+    {
+        "path"		"D:\\SteamLibrary"
+    }
+}
+"#;
+        let paths = parse_library_paths(vdf);
+        assert_eq!(
+            paths,
+            vec![
+                r"C:\Program Files (x86)\Steam".to_string(),
+                r"D:\SteamLibrary".to_string(),
+            ]
+        );
+        // No "path" lines → no candidates (fail-safe).
+        assert!(parse_library_paths("nothing here\n\"paths\" \"x\"").is_empty());
+    }
+
+    #[test]
+    fn apply_plain_int_overflow_is_error() {
+        let mut ok = SdfEntry { kind: 0, key: "k".into(), val: SdfVal::Int(0) };
+        apply_plain(&mut ok, &json!(1234)).unwrap();
+        assert!(matches!(ok.val, SdfVal::Int(1234)));
+        // i64 beyond i32 must Err, not wrap.
+        let mut over = SdfEntry { kind: 0, key: "k".into(), val: SdfVal::Int(0) };
+        assert!(apply_plain(&mut over, &json!(3_000_000_000i64)).is_err());
     }
 }

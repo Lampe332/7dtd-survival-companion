@@ -286,8 +286,11 @@ mod sftp {
         rt()?.block_on(async {
             let sftp = connect(conn).await?;
             let base = norm_base(&conn.base);
+            // Same empty-base special-case as `list`: norm_base("/") -> "", but a chroot
+            // server needs "/" to read the root — without this, test fails where connect works.
+            let listpath = if base.is_empty() { "/".to_string() } else { base.clone() };
             let entries = sftp
-                .read_dir(base.clone())
+                .read_dir(listpath)
                 .await
                 .map_err(|e| format!("Basis-Ordner '{base}' nicht lesbar: {e}"))?;
             let names: Vec<String> = entries.map(|e| e.file_name()).take(40).collect();
@@ -570,8 +573,11 @@ mod ftp {
 
     fn core_test<T: TlsStream>(s: &mut ImplFtpStream<T>, conn: &RemoteConn) -> Result<Value, String> {
         let base = norm_base(&conn.base);
+        // Same empty-base special-case as `core_list`: norm_base("/") -> "", but a chroot
+        // server needs "/" to list the root — without this, test fails where list works.
+        let listpath = if base.is_empty() { "/".to_string() } else { base.clone() };
         let names = s
-            .nlst(Some(base.as_str()))
+            .nlst(Some(listpath.as_str()))
             .map_err(|e| format!("Basis-Ordner '{base}': {e}"))?;
         let _ = s.quit();
         Ok(json!({"ok": true, "base": base, "entries": names.into_iter().take(40).collect::<Vec<_>>()}))
