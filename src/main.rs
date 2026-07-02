@@ -172,7 +172,8 @@ fn port_is_our_instance() -> bool {
 const UPDATE_REPO: &str = "Lampe332/7dtd-survival-companion";
 // Ed25519 public key (hex) used to verify self-update release signatures. The matching
 // PRIVATE key is kept OFFLINE (never committed/pushed); each release .exe is signed with
-// `--sign` and the .sig uploaded as a release asset. Empty/invalid → updates fail closed.
+// the separate offline `keytool` dev binary (src/bin/keytool.rs, not shipped) and the .sig
+// uploaded as a release asset. Empty/invalid → updates fail closed.
 const RELEASE_PUBKEY_HEX: &str = "ae8dd62011636fb063635b86c0a54e952fd78e9f96147a1a0c068f5303d5a0ad";
 
 /// HTTPS GET with the User-Agent GitHub requires, following redirects (rustls/ring).
@@ -188,7 +189,7 @@ fn http_get(url: &str) -> Result<ureq::Response, String> {
 /// Lowercase-hex string → bytes. None on malformed/odd-length input.
 fn hex_to_bytes(s: &str) -> Option<Vec<u8>> {
     let s = s.trim();
-    if s.is_empty() || s.len() % 2 != 0 {
+    if s.is_empty() || !s.len().is_multiple_of(2) {
         return None;
     }
     let b = s.as_bytes();
@@ -201,15 +202,6 @@ fn hex_to_bytes(s: &str) -> Option<Vec<u8>> {
         i += 2;
     }
     Some(out)
-}
-
-/// bytes → lowercase hex.
-fn to_hex(b: &[u8]) -> String {
-    let mut s = String::with_capacity(b.len() * 2);
-    for x in b {
-        s.push_str(&format!("{x:02x}"));
-    }
-    s
 }
 
 /// Verify an Ed25519 signature (base64) over `payload` with the embedded release public key.
@@ -358,54 +350,9 @@ fn main() {
         let _ = fs::write(env::temp_dir().join("7dtd_update_dryrun.txt"), &msg);
         return;
     }
-    // Offline key tooling (GUI subsystem → results written to temp files).
-    // --genkey <out>: generate the Ed25519 signing key (secret hex → <out>, pubkey hex → temp).
-    let argv: Vec<String> = env::args().collect();
-    if let Some(i) = argv.iter().position(|a| a == "--genkey") {
-        let out = argv
-            .get(i + 1)
-            .cloned()
-            .unwrap_or_else(|| "release_ed25519.key".into());
-        let mut seed = [0u8; 32];
-        if getrandom::getrandom(&mut seed).is_err() {
-            let _ = fs::write(env::temp_dir().join("7dtd_genkey.txt"), "ERR rng");
-            return;
-        }
-        let sk = ed25519_dalek::SigningKey::from_bytes(&seed);
-        let pk = sk.verifying_key();
-        let _ = fs::write(&out, to_hex(&seed));
-        let _ = fs::write(
-            env::temp_dir().join("7dtd_pubkey.txt"),
-            to_hex(pk.as_bytes()),
-        );
-        return;
-    }
-    // --sign <exe> <keyfile>: write <exe>.sig (base64 Ed25519 signature over the exe bytes).
-    if let Some(i) = argv.iter().position(|a| a == "--sign") {
-        use ed25519_dalek::Signer;
-        let exe = argv.get(i + 1).cloned().unwrap_or_default();
-        let key = argv.get(i + 2).cloned().unwrap_or_default();
-        let res = (|| -> Result<(), String> {
-            let seed = hex_to_bytes(&fs::read_to_string(&key).map_err(|e| e.to_string())?)
-                .filter(|v| v.len() == 32)
-                .ok_or("Schlüssel ungültig (erwarte 64 Hex-Zeichen).")?;
-            let seed_arr: [u8; 32] = seed.as_slice().try_into().unwrap();
-            let sk = ed25519_dalek::SigningKey::from_bytes(&seed_arr);
-            let data = fs::read(&exe).map_err(|e| e.to_string())?;
-            let sig = sk.sign(&data);
-            fs::write(format!("{exe}.sig"), STANDARD.encode(sig.to_bytes()))
-                .map_err(|e| e.to_string())?;
-            Ok(())
-        })();
-        let _ = fs::write(
-            env::temp_dir().join("7dtd_sign.txt"),
-            match &res {
-                Ok(_) => "SIGN OK".to_string(),
-                Err(e) => format!("SIGN ERR {e}"),
-            },
-        );
-        return;
-    }
+    // Offline release key generation + signing live in the separate `keytool` dev binary
+    // (src/bin/keytool.rs), so the shipped app carries only signature *verification*
+    // (verify_release_sig above), never key-gen/signing code.
     let appdata = env::var_os("APPDATA")
         .map(PathBuf::from)
         .unwrap_or_default()

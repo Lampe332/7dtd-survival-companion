@@ -24,7 +24,9 @@ ureq = "2"
 # Self-update signature verification: each release .exe is signed with an OFFLINE Ed25519
 # key (never on GitHub); the app verifies the .sig with the embedded public key before
 # swapping, so a compromised GitHub account/release cannot push unsigned malicious code.
-# Pure Rust, no build deps. getrandom is only used by the one-off --genkey path.
+# Pure Rust, no build deps. The app uses ed25519-dalek only to VERIFY; key-gen + signing
+# live in the separate `keytool` dev binary (src/bin/keytool.rs, not shipped) — that's the
+# only user of getrandom.
 ed25519-dalek = "2"
 getrandom = "0.2"
 
