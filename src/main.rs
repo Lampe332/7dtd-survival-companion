@@ -226,6 +226,52 @@ fn verify_release_sig(payload: &[u8], sig_b64: &str) -> Result<(), String> {
     })
 }
 
+/// Read the embedded `APP_VERSION="x.y.z"` string out of a built binary's baked HTML.
+/// Used for anti-rollback: the version is bound to the SIGNED artifact, so a forged
+/// `tag_name` in the (attacker-controllable) GitHub API JSON cannot misreport the real
+/// build version. Fails to `None` (→ fail-closed at the call site) on anything unexpected.
+fn embedded_app_version(bytes: &[u8]) -> Option<String> {
+    let needle = b"APP_VERSION=\"";
+    let start = bytes.windows(needle.len()).position(|w| w == needle)? + needle.len();
+    let rest = &bytes[start..];
+    let end = rest.iter().position(|&b| b == b'"')?;
+    if end == 0 || end > 24 {
+        return None;
+    }
+    let v = std::str::from_utf8(&rest[..end]).ok()?;
+    if v.chars()
+        .all(|c| c.is_ascii_digit() || c == '.' || c == 'v' || c == 'V')
+    {
+        Some(v.to_string())
+    } else {
+        None
+    }
+}
+
+/// Numeric version key: "v1.42.3" -> [1,42,3]; non-numeric parts become 0.
+fn ver_key(s: &str) -> Vec<u32> {
+    s.trim()
+        .trim_start_matches(['v', 'V'])
+        .split('.')
+        .map(|p| p.parse::<u32>().unwrap_or(0))
+        .collect()
+}
+
+/// True iff version `a` is strictly newer than `b` (component-wise, zero-padded).
+fn ver_gt(a: &str, b: &str) -> bool {
+    let (ka, kb) = (ver_key(a), ver_key(b));
+    for i in 0..ka.len().max(kb.len()) {
+        let (x, y) = (
+            ka.get(i).copied().unwrap_or(0),
+            kb.get(i).copied().unwrap_or(0),
+        );
+        if x != y {
+            return x > y;
+        }
+    }
+    false
+}
+
 /// Fetch the newest release's `.exe` from the official repo → (tag, bytes), after verifying:
 /// the asset URL belongs to `UPDATE_REPO`, the payload is a real Windows executable, AND the
 /// release Ed25519 signature (the `.sig` asset) is valid for the embedded public key — so a
@@ -287,6 +333,18 @@ fn fetch_latest_exe() -> Result<(String, Vec<u8>), String> {
         .read_to_string(&mut sig_txt)
         .map_err(|e| format!("Signatur-Download fehlgeschlagen: {e}"))?;
     verify_release_sig(&bytes, &sig_txt)?;
+    // 3. Anti-rollback (fail closed): read the version from the SIGNED bytes (bound to the
+    //    artifact, not the forgeable API tag_name) and refuse anything not strictly newer than
+    //    the running build. Blocks a downgrade to an older, still-validly-signed vulnerable exe.
+    let cur_ver = embedded_app_version(APP_HTML.as_bytes())
+        .ok_or("Eigene Version nicht lesbar — Update abgebrochen.")?;
+    let new_ver = embedded_app_version(&bytes)
+        .ok_or("Version der neuen Datei nicht lesbar — Update abgebrochen.")?;
+    if !ver_gt(&new_ver, &cur_ver) {
+        return Err(format!(
+            "Update abgebrochen: angebotene Version v{new_ver} ist nicht neuer als die laufende v{cur_ver} (Rollback-Schutz)."
+        ));
+    }
     Ok((tag, bytes))
 }
 
@@ -2703,5 +2761,30 @@ mod tests {
                 "SANDORDER drift at idx {idx}: refdata says {name}"
             );
         }
+    }
+
+    // Anti-rollback (self-update): reject anything not strictly newer than the running build.
+    #[test]
+    fn ver_gt_orders_versions() {
+        assert!(ver_gt("1.42.33", "1.42.32"));
+        assert!(ver_gt("1.43.0", "1.42.99"));
+        assert!(ver_gt("2.0.0", "1.99.99"));
+        assert!(ver_gt("v1.42.33", "1.42.32")); // tolerates a leading v
+        assert!(!ver_gt("1.42.32", "1.42.32")); // equal is NOT newer (no reinstall/downgrade)
+        assert!(!ver_gt("1.42.31", "1.42.32")); // older is rejected
+        assert!(!ver_gt("1.42", "1.42.0")); // zero-padded: 1.42 == 1.42.0
+        assert!(ver_gt("1.42.1", "1.42")); // 1.42.1 > 1.42(.0)
+    }
+
+    // The running binary's own baked HTML must expose a parseable APP_VERSION, or the
+    // anti-rollback gate would fail closed and block every legitimate update.
+    #[test]
+    fn embedded_app_version_is_readable() {
+        let v = embedded_app_version(APP_HTML.as_bytes())
+            .expect("APP_HTML must contain a parseable APP_VERSION=\"x.y.z\"");
+        assert!(!ver_key(&v).is_empty(), "version key non-empty: {v}");
+        assert!(ver_key(&v).iter().any(|&n| n > 0), "version is not all-zero: {v}");
+        // A build's own version is never 'newer' than itself.
+        assert!(!ver_gt(&v, &v));
     }
 }
