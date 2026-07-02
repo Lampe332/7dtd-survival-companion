@@ -885,7 +885,7 @@ function normalizeState(s){s=migrateState(s);var d={tab:"world",day:1,cur:"sledg
 var S=normalizeState(loadState());
 var W={tree:null,curSave:null,maps:{},mapImg:null,roadImg:null,waterImg:null,view:null,sel:null,mapKey:null,scanned:false};
 var W3={dead:true,gl:null,raf:0};
-var RD=null,UIA={},EDIT={},EDIT_CTX=null;
+var RD=null,UIA={},EDIT={},EDIT_CTX=null,SRC_RO=false; // SRC_RO: /api/source says canWrite=false (remote/share) → settings write disabled (X11)
 if(!S.mapFilter)S.mapFilter={"-1":1,"0":1,"1":1,"2":1,"3":1,"4":1,"5":1};
 function buildRefIndex(){if(!RD)return;RD.byName={};(RD.sandbox||[]).forEach(function(o){RD.byName[o.name]=o;});(RD.plain||[]).forEach(function(o){if(!RD.byName[o.name])RD.byName[o.name]=o;});RD.perkByKey={};(RD.perks||[]).forEach(function(p){RD.perkByKey[p.key]=p;});}
 function loadRef(cb){
@@ -1937,6 +1937,17 @@ function unlockApp(){
 }
 // Re-open the start screen (world + character selection) without reloading the page. Uses the cached scan; only the app is unlocked post-scan so W.tree is populated.
 function backToLauncher(){if(W.scanned&&W.tree){renderWorldGate();window.scrollTo(0,0);}else location.reload();}
+// X1: resolve the previously-imported survivor in a fresh scan STRICTLY — steam id first, then
+// exact name. NO pls[0] fallback: if the user continued without a character, or the character is
+// gone from the save, return null instead of silently adopting a different survivor (whose build,
+// perks and magazines would then overwrite the planner). Shared by refreshSave + autoRefreshTick.
+function matchImportedPlayer(cur){
+ var ip=S.importedPlayer;if(!ip)return null;
+ var pls=cur.pl||cur.players||[];
+ return pls.filter(function(p){return ip.steam&&p.steam&&p.steam===ip.steam;})[0]
+  ||pls.filter(function(p){return ip.name&&p.name===ip.name;})[0]
+  ||null;
+}
 // Re-read the active save (level, day, progression, books) without leaving the app — re-scans and re-imports the same world+survivor (manual edits are preserved because the identity is unchanged).
 function refreshSave(){
  if(!S.world){backToLauncher();return;}
@@ -1944,9 +1955,13 @@ function refreshSave(){
  fetch("/api/scan",{cache:"no-store"}).then(function(r){return r.json();}).then(function(data){
   data=normalizeScan(data);W.tree=data.saves||[];W.maps=data.maps||{};W.scanned=true;
   var cur=(W.tree||[]).filter(function(s){return s.world===S.world.world&&s.save===S.world.save;})[0];
-  if(cur){var pls=cur.pl||cur.players||[],sid=S.importedPlayer&&S.importedPlayer.steam;
-   var pl=pls.filter(function(p){return p.steam&&p.steam===sid;})[0]||pls.filter(function(p){return p.name===(S.importedPlayer&&S.importedPlayer.name);})[0]||pls[0]||null;
-   importWorld(cur,pl);}
+  if(cur){
+   var pl=matchImportedPlayer(cur);
+   // No match while a character IS imported (rename / mid-write parse): keep the import and only
+   // refresh world data — importWorld(cur,null) would wipe importedPlayer+progression permanently.
+   if(S.importedPlayer&&!pl){autoApplyRefresh(cur,null);show();}
+   else importWorld(cur,pl);
+  }
   if(btn)btn.textContent="↻";
  }).catch(function(){if(btn)btn.textContent="↻";});
 }
@@ -1990,7 +2005,13 @@ function srcPost(path,obj){
  return fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(obj||{})})
   .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));return j;});});
 }
-function applySourceScan(data){data=normalizeScan(data);W.tree=data.saves||[];W.maps=data.maps||{};W.scanned=true;W.curSave=null;}
+function applySourceScan(data){
+ data=normalizeScan(data);W.tree=data.saves||[];W.maps=data.maps||{};W.scanned=true;W.curSave=null;
+ // X12: a source switch invalidates the previously imported world, map AND survivor identity —
+ // full reset like enterWithoutWorld, so nothing (LIVE poll, build import) can operate on stale
+ // data from the old source before the world gate re-import. renderWorldGate reads W.tree only.
+ S.world=null;S.map=null;S.importedPlayer=null;delete S.playerProgression;S.importMsg=null;save();
+}
 function openSourcePanel(){
  var launch=document.getElementById("launcher"),box=launch.querySelector(".launchbox");
  launch.classList.add("wizard");launch.classList.remove("hide");
@@ -2029,6 +2050,19 @@ function openSourcePanel(){
  $("srcFolder").onclick=function(){var p=$("srcPath").value.trim();if(!p){return;}var b=$("srcFolder");b.disabled=true;srcPost("/api/source/local",{path:p}).then(function(d){applySourceScan(d);S.shareImport=null;save();renderWorldGate();}).catch(function(e){b.disabled=false;setMsg(tr("src.folderPrefix","Folder: ")+e.message,true);});};
  $("srcTest").onclick=function(){setMsg(tr("src.testing","Testing…"));srcPost("/api/source/test",connObj()).then(function(d){setMsg(tr("src.baseContains","Connected. Base contains: ")+((d.entries||[]).join(", ")||tr("src.empty","(empty)")));}).catch(function(e){setMsg(e.message,true);});};
  $("srcConnect").onclick=function(){setMsg(tr("src.connecting","Connecting…"));$("srcPick").innerHTML="";srcPost("/api/source/remote-list",connObj()).then(function(d){rememberSrv();renderRemotePicks(d);}).catch(function(e){setMsg(e.message,true);});};
+ // X18 (frontend): when the active source IS an imported share bundle, exporting it again would
+ // just re-wrap someone else's world — gray the export card out instead of offering the click.
+ // Probe errors are ignored → card stays as today.
+ fetch("/api/source",{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+  if(!d||d.kind!=="share")return;
+  var ex=$("srcExport");if(!ex)return;
+  ex.removeAttribute("href");ex.removeAttribute("download");ex.setAttribute("aria-disabled","true");
+  ex.style.opacity=".4";ex.style.pointerEvents="none";ex.style.cursor="not-allowed";
+  ex.onclick=function(ev){ev.preventDefault();};
+  var hint=document.createElement("div");hint.className="srcmsg err";
+  hint.textContent=tr("src.exportShareBlocked","Current source is an imported share bundle — export is only available on the PC that hosts the world.");
+  ex.parentNode.appendChild(hint);
+ }).catch(function(){});
  function renderRemotePicks(d){
   var html="",n=0;(d.worlds||[]).forEach(function(w){(w.saves||[]).forEach(function(s){n++;html+='<button class="btn srcpick" data-w="'+esc(w.world)+'" data-s="'+esc(s)+'">'+esc(w.world)+' / '+esc(s)+'</button>';});});
   $("srcPick").innerHTML=html;setMsg(n?(tr("src.connectedPick","Connected — pick a save to download (")+n+tr("src.found"," found):")):tr("src.noWorlds","Connected, but no worlds with saves under that path. Check the base folder."),!n);
@@ -2311,6 +2345,13 @@ function wireSettingsEditor(){
  var rv=document.getElementById("setrevert");if(rv)rv.onclick=function(){EDIT={};S.setMsg=null;save();rWorld();};
  var rs=document.getElementById("setrestore");if(rs)rs.onclick=doRestore;
  refreshSaveBar();
+ // X11: ask the backend whether this source can be written (remote SFTP/FTP caches and share
+ // bundles cannot). On canWrite=false the Write button stays disabled and the savebar says why.
+ // Probe errors are ignored → behavior stays exactly as before.
+ fetch("/api/source",{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+  var ro=!!(d&&d.canWrite===false);
+  if(ro!==SRC_RO){SRC_RO=ro;refreshSaveBar();}
+ }).catch(function(){});
 }
 function onSettingChange(inp){
  var name=inp.dataset.opt,o=refOpt(name);if(!o)return;
@@ -2332,8 +2373,11 @@ function onSettingChange(inp){
 function refreshSaveBar(){
  var n=Object.keys(EDIT).length,info=document.getElementById("sbinfo"),sv=document.getElementById("setsave"),bar=document.getElementById("savebar");
  if(!info)return;
- info.textContent=n?(n+" "+tr("set.unsavedChanges","unsaved change")+(n>1?tr("common.pluralS","s"):"")):tr("set.noPending","No pending changes");
- if(sv)sv.disabled=!n; if(bar)bar.classList.toggle("active",!!n);
+ var txt=n?(n+" "+tr("set.unsavedChanges","unsaved change")+(n>1?tr("common.pluralS","s"):"")):tr("set.noPending","No pending changes");
+ if(SRC_RO)txt+=" · "+tr("set.readOnlySource","Read-only source — write disabled");
+ info.textContent=txt;
+ if(sv)sv.disabled=!n||SRC_RO; if(bar)bar.classList.toggle("active",!!n);
+ var rs=document.getElementById("setrestore");if(rs)rs.disabled=SRC_RO;
 }
 function applyOnlyChangedFilter(){applySettingSearch();}
 function applySettingSearch(){
@@ -2353,7 +2397,7 @@ function applySettingSearch(){
  });
 }
 function doWriteSettings(){
- var nch=Object.keys(EDIT).length;if(!nch||!EDIT_CTX)return;
+ var nch=Object.keys(EDIT).length;if(!nch||!EDIT_CTX||SRC_RO)return; // SRC_RO: read-only source (X11)
  if(!confirm(tr("set.confirmWrite","Write ")+nch+tr("set.confirmWriteChange"," change")+(nch>1?tr("common.pluralS","s"):"")+tr("set.confirmWriteTo"," to gameOptions.sdf?\n\nWorld: ")+EDIT_CTX.world+"  /  "+EDIT_CTX.save+tr("set.confirmWriteBody","\n\nA timestamped backup is made first. Close 7 Days to Die before writing, then reload the save in-game to apply.")))return;
  var plain={},sandbox={};
  Object.keys(EDIT).forEach(function(name){var e=EDIT[name];if(e.target==="sandbox")sandbox[name]=e.value;else plain[name]=e.value;});
@@ -2371,7 +2415,7 @@ function doWriteSettings(){
   .catch(function(e){S.setMsg={ok:false,text:tr("set.networkError","Network error: ")+e.message};save();rWorld();});
 }
 function doRestore(){
- var lb=S.lastBackup;if(!lb)return;
+ var lb=S.lastBackup;if(!lb||SRC_RO)return;
  if(!confirm(tr("set.confirmRestore","Restore the most recent backup for ")+lb.world+" / "+lb.save+tr("set.confirmRestoreBody","?\n\nThis copies the last gameOptions.sdf backup back over the current file, undoing your last write. Close 7 Days to Die first.")))return;
  fetch("/api/restore-settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({world:lb.world,save:lb.save})})
   .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
@@ -2933,8 +2977,7 @@ function autoRefreshTick(){
   _arInFlight=false;
   var saves=(d&&d.saves)||[];
   var cur=saves.filter(function(s){return s.world===S.world.world&&s.save===S.world.save;})[0];if(!cur)return;
-  var pls=cur.pl||cur.players||[],sid=S.importedPlayer&&S.importedPlayer.steam;
-  var pl=pls.filter(function(p){return p.steam&&p.steam===sid;})[0]||pls.filter(function(p){return p.name===(S.importedPlayer&&S.importedPlayer.name);})[0]||pls[0]||null;
+  var pl=matchImportedPlayer(cur); // X1: strict steam→name match; null (no import / no match) keeps world data flowing without adopting a foreign survivor
   var oldDay=S.day,oldLvl=S.lvl,oldProg=JSON.stringify(S.playerProgression||{}),oldCur=S.cur;
   autoApplyRefresh(cur,pl);
   var changed=(S.day!==oldDay)||(S.lvl!==oldLvl)||(S.cur!==oldCur)||(JSON.stringify(S.playerProgression||{})!==oldProg);
