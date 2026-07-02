@@ -463,6 +463,9 @@ fn main() {
             let _ = fs::remove_file(dir.join(format!("{stem}.new.exe")));
         }
     }
+    // X2: sweep orphaned remote-cache staging dirs from earlier runs (the source at
+    // startup is always local, so every one of them is stale).
+    cleanup_remote_cache_dirs_in(&env::temp_dir());
     let cache: Arc<Mutex<Option<ScanData>>> = Arc::new(Mutex::new(None));
     let source: Arc<Mutex<Source>> = Arc::new(Mutex::new(Source {
         root: paths.appdata.clone(),
@@ -808,12 +811,21 @@ fn scan_and_respond(
     paths: &Paths,
     cache: &Arc<Mutex<Option<ScanData>>>,
     source: &Arc<Mutex<Source>>,
+    warnings: Vec<Value>,
 ) -> Result<(), String> {
     let eff = eff_paths(paths, source);
     match scan(&eff) {
         Ok(data) => {
             *cache.lock().map_err(|e| e.to_string())? = Some(data.clone());
-            respond_json(request, &data)
+            if warnings.is_empty() {
+                return respond_json(request, &data);
+            }
+            // X39: surface fetch warnings (skipped optional files, caps) alongside the scan.
+            let mut v = serde_json::to_value(&data).map_err(|e| e.to_string())?;
+            if let Some(obj) = v.as_object_mut() {
+                obj.insert("warnings".into(), Value::Array(warnings));
+            }
+            respond_json(request, &v)
         }
         Err(error) => {
             respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": error}))
@@ -862,7 +874,7 @@ fn handle_source(
                 s.conn = None;
             }
             *cache.lock().map_err(|e| e.to_string())? = None;
-            scan_and_respond(request, paths, cache, source)
+            scan_and_respond(request, paths, cache, source, Vec::new())
         }
         "/api/source/reset" => {
             {
@@ -873,7 +885,7 @@ fn handle_source(
                 s.conn = None;
             }
             *cache.lock().map_err(|e| e.to_string())? = None;
-            scan_and_respond(request, paths, cache, source)
+            scan_and_respond(request, paths, cache, source, Vec::new())
         }
         "/api/source/test" | "/api/source/remote-list" | "/api/source/remote-fetch" => {
             handle_remote(request, paths, cache, source, path, body)
@@ -886,13 +898,56 @@ fn handle_source(
     }
 }
 
-fn remote_cache_dir() -> PathBuf {
-    std::env::temp_dir().join("7dtd-companion-remote")
+/// Every remote/share cache dir lives directly under %TEMP% and starts with this
+/// prefix — used to mint fresh staging dirs and to sweep orphans at startup.
+const REMOTE_CACHE_PREFIX: &str = "7dtd-companion-remote";
+
+/// Fresh, unique staging dir for ONE remote fetch / share import (X2): the download
+/// is staged here and the source only repointed AFTER success, so a failed fetch can
+/// never destroy the still-working previous cache.
+fn new_remote_stage_dir() -> PathBuf {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static SEQ: AtomicU64 = AtomicU64::new(0);
+    let millis = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0);
+    let seq = SEQ.fetch_add(1, Ordering::Relaxed);
+    std::env::temp_dir().join(format!("{REMOTE_CACHE_PREFIX}-{millis}-{seq}"))
 }
 
-/// Serializes remote fetches so two concurrent downloads can't race on the shared
-/// cache dir (one wiping it while the other writes). Single-user app, so a global
-/// lock is fine — fetches are rare and never need to overlap.
+/// True only for dirs THIS app created under %TEMP% (direct child, prefix match) —
+/// the delete-the-replaced-root path must never be able to hit a user's local/SMB folder.
+fn is_remote_cache_path(p: &Path) -> bool {
+    let tmp = std::env::temp_dir();
+    p.parent() == Some(tmp.as_path())
+        && p.file_name()
+            .and_then(|n| n.to_str())
+            .map(|n| n.starts_with(REMOTE_CACHE_PREFIX))
+            .unwrap_or(false)
+}
+
+/// Best-effort sweep of every "<root>/7dtd-companion-remote*" dir. Called at startup,
+/// when the source is still local — so every such dir is an orphan of an earlier run.
+fn cleanup_remote_cache_dirs_in(root: &Path) {
+    if let Ok(entries) = fs::read_dir(root) {
+        for e in entries.flatten() {
+            let p = e.path();
+            if p.is_dir()
+                && p.file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.starts_with(REMOTE_CACHE_PREFIX))
+                    .unwrap_or(false)
+            {
+                let _ = fs::remove_dir_all(&p);
+            }
+        }
+    }
+}
+
+/// Serializes remote fetches and share imports (each stages into its own dir, but
+/// the source swap + old-cache cleanup must not interleave). Single-user app, so a
+/// global lock is fine — fetches are rare and never need to overlap.
 fn fetch_guard() -> &'static Mutex<()> {
     static L: OnceLock<Mutex<()>> = OnceLock::new();
     L.get_or_init(|| Mutex::new(()))
@@ -984,24 +1039,40 @@ fn handle_remote(
                     None => return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Erst verbinden (Verbindung testen/auflisten)."})),
                 }
             };
-            let cdir = remote_cache_dir();
-            let _ = std::fs::remove_dir_all(&cdir);
-            if let Err(e) = std::fs::create_dir_all(&cdir) {
+            // X2: stage the download in a FRESH dir — the previous cache/root stays
+            // intact until the new fetch has fully succeeded, so a failed fetch can
+            // never kill a working source.
+            let stage = new_remote_stage_dir();
+            if let Err(e) = std::fs::create_dir_all(&stage) {
                 return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": format!("Cache-Ordner: {e}")}));
             }
-            match remote::fetch(&conn, &world, &save, &cdir) {
-                Ok(_) => {
-                    {
+            match remote::fetch(&conn, &world, &save, &stage) {
+                Ok(fetched) => {
+                    let old_root = {
                         let mut s = source.lock().map_err(|e| e.to_string())?;
-                        s.root = cdir;
+                        let old = std::mem::replace(&mut s.root, stage);
                         s.kind = conn.proto.clone();
                         s.label = format!("{}://{}/{}/{}", conn.proto, conn.host, world, save);
                         s.conn = Some(conn);
+                        old
+                    };
+                    // Only ever delete dirs WE created under %TEMP% — never a user path.
+                    if is_remote_cache_path(&old_root) {
+                        let _ = std::fs::remove_dir_all(&old_root);
                     }
                     *cache.lock().map_err(|e| e.to_string())? = None;
-                    scan_and_respond(request, paths, cache, source)
+                    // X39: pass fetch warnings (skipped optional files, caps) through.
+                    let warnings = fetched
+                        .get("warnings")
+                        .and_then(|w| w.as_array())
+                        .cloned()
+                        .unwrap_or_default();
+                    scan_and_respond(request, paths, cache, source, warnings)
                 }
-                Err(e) => respond_status_json(request, StatusCode(502), &json!({"ok": false, "error": e})),
+                Err(e) => {
+                    let _ = std::fs::remove_dir_all(&stage);
+                    respond_status_json(request, StatusCode(502), &json!({"ok": false, "error": e}))
+                }
             }
         }
         _ => respond_status_json(request, StatusCode(404), &json!({"ok": false, "error": "Unbekannte Remote-Route"})),
@@ -1121,6 +1192,17 @@ fn import_share(
     source: &Arc<Mutex<Source>>,
     bundle: Value,
 ) -> Result<(), String> {
+    // X16: an import races a remote fetch on the source swap + cache cleanup exactly
+    // like a second fetch would — same guard, same immediate 409.
+    let _fetch_g = match fetch_guard().try_lock() {
+        Ok(g) => g,
+        Err(std::sync::TryLockError::WouldBlock) => {
+            return respond_status_json(request, StatusCode(409), &json!({"ok": false, "error": "Ein Fetch läuft bereits — bitte warten."}))
+        }
+        Err(std::sync::TryLockError::Poisoned(_)) => {
+            return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": "fetch lock vergiftet"}))
+        }
+    };
     if bundle.get("kind").and_then(|v| v.as_str()) != Some("7dtd-world-share") {
         return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Keine gültige World-Share-Datei"}));
     }
@@ -1136,9 +1218,10 @@ fn import_share(
     if let Err(e) = validate_scan_maps(&data) {
         return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": e}));
     }
-    let cdir = remote_cache_dir();
-    let _ = fs::remove_dir_all(&cdir);
-    if let Err(e) = fs::create_dir_all(&cdir) {
+    // X2: stage the imported assets in a FRESH dir — the previous cache/root stays
+    // intact until the import has fully succeeded.
+    let stage = new_remote_stage_dir();
+    if let Err(e) = fs::create_dir_all(&stage) {
         return respond_status_json(request, StatusCode(500), &json!({"ok": false, "error": format!("Cache-Ordner: {e}")}));
     }
     if let Some(assets) = bundle.get("assets").and_then(|v| v.as_object()) {
@@ -1147,6 +1230,7 @@ fn import_share(
         const MAX_IMPORT_FILES: usize = 512;
         const MAX_IMPORT_BYTES: usize = 256 * 1024 * 1024;
         if assets.len() > MAX_IMPORT_FILES {
+            let _ = fs::remove_dir_all(&stage);
             return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Share-Datei hat zu viele Asset-Dateien"}));
         }
         let mut total = 0usize;
@@ -1162,9 +1246,10 @@ fn import_share(
             if let Ok(bytes) = STANDARD.decode(b64) {
                 total += bytes.len();
                 if total > MAX_IMPORT_BYTES {
+                    let _ = fs::remove_dir_all(&stage);
                     return respond_status_json(request, StatusCode(400), &json!({"ok": false, "error": "Share-Datei zu groß (Asset-Daten überschreiten das Limit)"}));
                 }
-                let dir = cdir.join("GeneratedWorlds").join(w);
+                let dir = stage.join("GeneratedWorlds").join(w);
                 if fs::create_dir_all(&dir).is_ok() {
                     let _ = fs::write(dir.join(f), bytes);
                 }
@@ -1172,12 +1257,17 @@ fn import_share(
         }
     }
     let world = bundle.get("world").and_then(|v| v.as_str()).unwrap_or("world").to_string();
-    {
+    let old_root = {
         let mut s = source.lock().map_err(|e| e.to_string())?;
-        s.root = cdir;
+        let old = std::mem::replace(&mut s.root, stage);
         s.kind = "share".into();
         s.label = format!("Shared world: {world}");
         s.conn = None;
+        old
+    };
+    // Only ever delete dirs WE created under %TEMP% — never a user path.
+    if is_remote_cache_path(&old_root) {
+        let _ = fs::remove_dir_all(&old_root);
     }
     *cache.lock().map_err(|e| e.to_string())? = Some(data.clone());
     respond_json(request, &data)
@@ -2790,6 +2880,31 @@ mod tests {
         assert!(!ver_gt("1.42.31", "1.42.32")); // older is rejected
         assert!(!ver_gt("1.42", "1.42.0")); // zero-padded: 1.42 == 1.42.0
         assert!(ver_gt("1.42.1", "1.42")); // 1.42.1 > 1.42(.0)
+    }
+
+    // X2 (remote-cache staging): stage dirs are unique + sweep-recognisable, the
+    // old-root delete guard never matches user paths, and the startup sweep removes
+    // only prefixed orphans.
+    #[test]
+    fn remote_cache_staging_helpers() {
+        let a = new_remote_stage_dir();
+        let b = new_remote_stage_dir();
+        assert_ne!(a, b, "stage dirs must be unique");
+        assert!(is_remote_cache_path(&a) && is_remote_cache_path(&b));
+        // User paths must NEVER be classified as deletable cache dirs.
+        assert!(!is_remote_cache_path(Path::new("C:\\Users\\x\\AppData\\Roaming\\7DaysToDie")));
+        assert!(!is_remote_cache_path(&env::temp_dir().join("sub").join("7dtd-companion-remote-1")));
+
+        // The sweep removes prefixed dirs but leaves everything else alone.
+        let root = env::temp_dir().join(format!("7dtd-test-sweep-{}", std::process::id()));
+        let orphan = root.join("7dtd-companion-remote-42-0");
+        let keep = root.join("unrelated");
+        fs::create_dir_all(&orphan).unwrap();
+        fs::create_dir_all(&keep).unwrap();
+        cleanup_remote_cache_dirs_in(&root);
+        assert!(!orphan.exists(), "orphaned staging dir must be swept");
+        assert!(keep.exists(), "non-prefixed dirs must survive the sweep");
+        let _ = fs::remove_dir_all(&root);
     }
 
     // The running binary's own baked HTML must expose a parseable APP_VERSION, or the

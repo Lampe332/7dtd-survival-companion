@@ -252,9 +252,13 @@ mod sftp {
         let mut lf = tokio::fs::File::create(local)
             .await
             .map_err(|e| e.to_string())?;
-        tokio::io::copy(&mut limited, &mut lf)
-            .await
-            .map_err(|e| format!("Download {remote}: {e}"))?;
+        if let Err(e) = tokio::io::copy(&mut limited, &mut lf).await {
+            // X41: never leave a half-written file behind — the scanner would read
+            // the truncated download as valid data.
+            drop(lf);
+            let _ = tokio::fs::remove_file(local).await;
+            return Err(format!("Download {remote}: {e}"));
+        }
         lf.flush().await.ok();
         Ok(())
     }
@@ -302,6 +306,7 @@ mod sftp {
             let (sdir, wdir) = ensure_dirs(cache, world, save)?;
             let mut got = 0;
             let mut errs: Vec<String> = Vec::new();
+            let mut warnings: Vec<String> = Vec::new();
             for f in SAVE_FILES {
                 let rp = format!("{base}/Saves/{world}/{save}/{f}");
                 match download(&sftp, &rp, &sdir.join(f)).await {
@@ -318,31 +323,41 @@ mod sftp {
                 ));
             }
             let pdir = format!("{base}/Saves/{world}/{save}/Player");
-            if let Ok(entries) = sftp.read_dir(pdir.clone()).await {
-                let mut pf = 0usize;
-                let mut pbytes = 0u64;
-                for e in entries {
-                    if pf >= MAX_PLAYER_FILES {
-                        break;
-                    }
-                    let n = e.file_name();
-                    if (n.ends_with(".ttp") || n.ends_with(".ttp.meta")) && safe_seg(&n) {
-                        let rp = format!("{pdir}/{n}");
-                        let dest = sdir.join("Player").join(&n);
-                        if download(&sftp, &rp, &dest).await.is_ok() {
-                            got += 1;
-                            pf += 1;
-                            pbytes = pbytes
-                                .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
-                            if pbytes > MAX_PLAYER_BYTES {
-                                return Err(format!(
-                                    "Abbruch: Player-Verzeichnis des Servers überschreitet {} GiB (möglicher DoS).",
-                                    MAX_PLAYER_BYTES / (1024 * 1024 * 1024)
-                                ));
+            match sftp.read_dir(pdir.clone()).await {
+                Ok(entries) => {
+                    let mut pf = 0usize;
+                    let mut pbytes = 0u64;
+                    for e in entries {
+                        if pf >= MAX_PLAYER_FILES {
+                            // X39: a silently truncated player list would show missing
+                            // players with no hint why — surface the cap as a warning.
+                            warnings.push(format!(
+                                "Player-Verzeichnis: mehr als {MAX_PLAYER_FILES} Dateien — Rest übersprungen."
+                            ));
+                            break;
+                        }
+                        let n = e.file_name();
+                        if (n.ends_with(".ttp") || n.ends_with(".ttp.meta")) && safe_seg(&n) {
+                            let rp = format!("{pdir}/{n}");
+                            let dest = sdir.join("Player").join(&n);
+                            if download(&sftp, &rp, &dest).await.is_ok() {
+                                got += 1;
+                                pf += 1;
+                                pbytes = pbytes
+                                    .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
+                                if pbytes > MAX_PLAYER_BYTES {
+                                    return Err(format!(
+                                        "Abbruch: Player-Verzeichnis des Servers überschreitet {} GiB (möglicher DoS).",
+                                        MAX_PLAYER_BYTES / (1024 * 1024 * 1024)
+                                    ));
+                                }
                             }
                         }
                     }
                 }
+                // X39: an unreadable Player dir means a save without player data —
+                // report it instead of silently showing an empty roster.
+                Err(e) => warnings.push(format!("Player-Verzeichnis nicht lesbar ({pdir}): {e}")),
             }
             for f in WORLD_FILES {
                 let rp = format!("{base}/GeneratedWorlds/{world}/{f}");
@@ -353,7 +368,7 @@ mod sftp {
             if got == 0 {
                 return Err("Keine Dateien geladen — Pfad/Welt/Save prüfen.".into());
             }
-            Ok(json!({"ok": true, "files": got}))
+            Ok(json!({"ok": true, "files": got, "warnings": warnings}))
         })
     }
 }
@@ -378,9 +393,35 @@ mod ftp {
         Ok(NativeTlsConnector::from(c))
     }
 
+    /// X15: FTP mirrors the SFTP timeouts (20 s connect / 30 s control-channel read)
+    /// so a black-holed server can't pin a worker thread forever.
+    const CONNECT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(20);
+    const READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
+    /// Resolve + connect the FTP control channel with bounded connect/read timeouts.
+    fn connect_control<T: TlsStream>(addr: &str) -> Result<ImplFtpStream<T>, String> {
+        use std::net::ToSocketAddrs as _;
+        let mut last = format!("Verbindung {addr}: Adresse nicht auflösbar");
+        for sa in addr
+            .to_socket_addrs()
+            .map_err(|e| format!("Verbindung {addr}: {e}"))?
+        {
+            match ImplFtpStream::connect_timeout(sa, CONNECT_TIMEOUT) {
+                Ok(s) => {
+                    s.get_ref()
+                        .set_read_timeout(Some(READ_TIMEOUT))
+                        .map_err(|e| format!("Read-Timeout: {e}"))?;
+                    return Ok(s);
+                }
+                Err(e) => last = format!("Verbindung {addr}: {e}"),
+            }
+        }
+        Err(last)
+    }
+
     fn connect_plain(conn: &RemoteConn) -> Result<FtpStream, String> {
         let addr = format!("{}:{}", conn.host, conn.port);
-        let mut s = FtpStream::connect(&addr).map_err(|e| format!("Verbindung {addr}: {e}"))?;
+        let mut s: FtpStream = connect_control(&addr)?;
         s.login(&conn.user, &conn.pass)
             .map_err(|e| format!("FTP-Login abgelehnt: {e}"))?;
         s.transfer_type(FileType::Binary)
@@ -390,8 +431,7 @@ mod ftp {
 
     fn connect_tls(conn: &RemoteConn) -> Result<NativeTlsFtpStream, String> {
         let addr = format!("{}:{}", conn.host, conn.port);
-        let plain = NativeTlsFtpStream::connect(&addr)
-            .map_err(|e| format!("Verbindung {addr}: {e}"))?;
+        let plain: NativeTlsFtpStream = connect_control(&addr)?;
         let mut s = plain
             .into_secure(tls_connector()?, &conn.host)
             .map_err(|e| format!("FTPS/TLS-Handshake fehlgeschlagen ({}): {e}", conn.host))?;
@@ -422,13 +462,32 @@ mod ftp {
 
     fn retr_to<T: TlsStream>(s: &mut ImplFtpStream<T>, remote: &str, local: &Path) -> Result<(), String> {
         use std::io::Read as _;
-        s.retr(remote, |stream| {
+        let res = s.retr(remote, |stream| {
             let mut f = std::fs::File::create(local).map_err(suppaftp::FtpError::ConnectionError)?;
             std::io::copy(&mut stream.take(MAX_FILE), &mut f)
                 .map_err(suppaftp::FtpError::ConnectionError)?;
             Ok(())
-        })
-        .map_err(|e| format!("{remote}: {e}"))
+        });
+        if let Err(e) = res {
+            // X41: a failed transfer may leave a half-written local file — never let
+            // the scanner read a truncated download as valid data.
+            let _ = std::fs::remove_file(local);
+            return Err(format!("{remote}: {e}"));
+        }
+        Ok(())
+    }
+
+    /// R2: a failed RETR skips suppaftp's `finalize_retr_stream`, leaving the control
+    /// session desynced (every following command fails with DataConnectionAlreadyOpen).
+    /// Replace the broken session with a fresh login; if even that fails, abort the
+    /// whole fetch — continuing on a dead session would only mass-produce errors.
+    fn reopen<T: TlsStream>(
+        s: &mut ImplFtpStream<T>,
+        reconnect: &dyn Fn() -> Result<ImplFtpStream<T>, String>,
+    ) -> Result<(), String> {
+        *s = reconnect()
+            .map_err(|e| format!("FTP-Reconnect nach Download-Fehler fehlgeschlagen: {e}"))?;
+        Ok(())
     }
 
     fn core_test<T: TlsStream>(s: &mut ImplFtpStream<T>, conn: &RemoteConn) -> Result<Value, String> {
@@ -461,16 +520,27 @@ mod ftp {
         Ok(json!({"ok": true, "base": base, "worlds": worlds, "genWorlds": gen}))
     }
 
-    fn core_fetch<T: TlsStream>(s: &mut ImplFtpStream<T>, conn: &RemoteConn, world: &str, save: &str, cache: &Path) -> Result<Value, String> {
+    fn core_fetch<T: TlsStream>(
+        s: &mut ImplFtpStream<T>,
+        reconnect: &dyn Fn() -> Result<ImplFtpStream<T>, String>,
+        conn: &RemoteConn,
+        world: &str,
+        save: &str,
+        cache: &Path,
+    ) -> Result<Value, String> {
         let base = norm_base(&conn.base);
         let (sdir, wdir) = ensure_dirs(cache, world, save)?;
         let mut got = 0;
         let mut errs: Vec<String> = Vec::new();
+        let mut warnings: Vec<String> = Vec::new();
         for f in SAVE_FILES {
             let rp = format!("{base}/Saves/{world}/{save}/{f}");
             match retr_to(s, &rp, &sdir.join(f)) {
                 Ok(()) => got += 1,
-                Err(e) => errs.push(format!("{f}: {e}")),
+                Err(e) => {
+                    errs.push(format!("{f}: {e}"));
+                    reopen(s, reconnect)?;
+                }
             }
         }
         if !errs.is_empty() {
@@ -481,44 +551,66 @@ mod ftp {
             ));
         }
         let pdir = format!("{base}/Saves/{world}/{save}/Player");
-        if let Ok(names) = s.nlst(Some(pdir.as_str())) {
-            let mut pf = 0usize;
-            let mut pbytes = 0u64;
-            for n in names {
-                if pf >= MAX_PLAYER_FILES {
-                    break;
-                }
-                let bn = n.rsplit('/').next().unwrap_or(&n).to_string();
-                if (bn.ends_with(".ttp") || bn.ends_with(".ttp.meta")) && safe_seg(&bn) {
-                    let rp = format!("{pdir}/{bn}");
-                    let dest = sdir.join("Player").join(&bn);
-                    if retr_to(s, &rp, &dest).is_ok() {
-                        got += 1;
-                        pf += 1;
-                        pbytes = pbytes
-                            .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
-                        if pbytes > MAX_PLAYER_BYTES {
-                            let _ = s.quit();
-                            return Err(format!(
-                                "Abbruch: Player-Verzeichnis des Servers überschreitet {} GiB (möglicher DoS).",
-                                MAX_PLAYER_BYTES / (1024 * 1024 * 1024)
-                            ));
+        match s.nlst(Some(pdir.as_str())) {
+            Ok(names) => {
+                let mut pf = 0usize;
+                let mut pbytes = 0u64;
+                for n in names {
+                    if pf >= MAX_PLAYER_FILES {
+                        // X39: a silently truncated player list would show missing
+                        // players with no hint why — surface the cap as a warning.
+                        warnings.push(format!(
+                            "Player-Verzeichnis: mehr als {MAX_PLAYER_FILES} Dateien — Rest übersprungen."
+                        ));
+                        break;
+                    }
+                    let bn = n.rsplit('/').next().unwrap_or(&n).to_string();
+                    if (bn.ends_with(".ttp") || bn.ends_with(".ttp.meta")) && safe_seg(&bn) {
+                        let rp = format!("{pdir}/{bn}");
+                        let dest = sdir.join("Player").join(&bn);
+                        match retr_to(s, &rp, &dest) {
+                            Ok(()) => {
+                                got += 1;
+                                pf += 1;
+                                pbytes = pbytes
+                                    .saturating_add(std::fs::metadata(&dest).map(|m| m.len()).unwrap_or(0));
+                                if pbytes > MAX_PLAYER_BYTES {
+                                    let _ = s.quit();
+                                    return Err(format!(
+                                        "Abbruch: Player-Verzeichnis des Servers überschreitet {} GiB (möglicher DoS).",
+                                        MAX_PLAYER_BYTES / (1024 * 1024 * 1024)
+                                    ));
+                                }
+                            }
+                            Err(e) => {
+                                warnings.push(format!("Player-Datei {bn}: {e}"));
+                                reopen(s, reconnect)?;
+                            }
                         }
                     }
                 }
             }
+            // X39: an unreadable Player dir means a save without player data —
+            // report it instead of silently showing an empty roster.
+            Err(e) => warnings.push(format!("Player-Verzeichnis nicht lesbar ({pdir}): {e}")),
         }
         for f in WORLD_FILES {
             let rp = format!("{base}/GeneratedWorlds/{world}/{f}");
-            if retr_to(s, &rp, &wdir.join(f)).is_ok() {
-                got += 1;
+            match retr_to(s, &rp, &wdir.join(f)) {
+                Ok(()) => got += 1,
+                Err(e) => {
+                    // World files are optional (may legitimately be missing) — record
+                    // the reason and keep going on a fresh session.
+                    warnings.push(format!("{f}: {e}"));
+                    reopen(s, reconnect)?;
+                }
             }
         }
         let _ = s.quit();
         if got == 0 {
             return Err("Keine Dateien geladen — Pfad/Welt/Save prüfen.".into());
         }
-        Ok(json!({"ok": true, "files": got}))
+        Ok(json!({"ok": true, "files": got, "warnings": warnings}))
     }
 
     fn is_tls(conn: &RemoteConn) -> bool {
@@ -543,9 +635,9 @@ mod ftp {
 
     pub fn fetch(conn: &RemoteConn, world: &str, save: &str, cache: &Path) -> Result<Value, String> {
         if is_tls(conn) {
-            core_fetch(&mut connect_tls(conn)?, conn, world, save, cache)
+            core_fetch(&mut connect_tls(conn)?, &|| connect_tls(conn), conn, world, save, cache)
         } else {
-            core_fetch(&mut connect_plain(conn)?, conn, world, save, cache)
+            core_fetch(&mut connect_plain(conn)?, &|| connect_plain(conn), conn, world, save, cache)
         }
     }
 }
