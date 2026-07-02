@@ -1529,10 +1529,15 @@ fn parse_players(save_dir: &Path) -> Vec<Player> {
             .map(|item| (item[1].to_string(), item[2].to_string()))
             .collect();
         let tag_end = capture.get(0).map(|m| m.end()).unwrap_or(0);
-        let body_end = opens
-            .get(i + 1)
-            .and_then(|c| c.get(0))
-            .map(|m| m.start())
+        // Bound this player's body to its OWN element: stop at the first of its </player> close
+        // or the next <player> tag (or EOF). Prevents an <acl in a following sibling / trailing
+        // text from being mis-attributed to this player.
+        let next_open = opens.get(i + 1).and_then(|c| c.get(0)).map(|m| m.start());
+        let close = xml[tag_end..].find("</player>").map(|p| tag_end + p);
+        let body_end = [next_open, close]
+            .into_iter()
+            .flatten()
+            .min()
             .unwrap_or(xml.len());
         let coop = xml.get(tag_end..body_end).is_some_and(|b| b.contains("<acl"));
         let eos = attrs.get("userid").cloned().unwrap_or_default();
